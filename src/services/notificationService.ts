@@ -20,7 +20,8 @@ export class NotificationService {
     return NotificationService.instance
   }
 
-  private async requestNotificationPermission() {
+  // Hacemos público el método de solicitud de permisos
+  async requestNotificationPermission() {
     if (!('Notification' in window)) {
       console.warn('Este navegador no soporta notificaciones de escritorio')
       return false
@@ -36,6 +37,11 @@ export class NotificationService {
     }
 
     return false
+  }
+
+  // Método estático para obtener el estado actual del permiso
+  static getPermissionStatus(): NotificationPermission {
+    return Notification.permission
   }
 
   startMonitoring() {

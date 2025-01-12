@@ -151,12 +151,11 @@ import { auth } from '../firebase/config'
 import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth'
 import { ArrowRightOnRectangleIcon } from '@heroicons/vue/24/outline'
 import { useNotificationStore } from '../stores/notificationStore'
-import { useAlertSystem } from '../composables/useAlertSystem'
 import { NotificationService } from '../services/notificationService'
 
 const router = useRouter()
 const notificationStore = useNotificationStore()
-const { requestNotificationPermission } = useAlertSystem()
+const notificationService = NotificationService.getInstance()
 
 // Reactive references
 const passwordForm = ref({
@@ -179,9 +178,10 @@ const sessionSettings = ref({
 let checkInterval: number | undefined
 
 // Lifecycle hooks
-onMounted(() => {
+onMounted(async () => {
   try {
-    NotificationService.requestPermission()
+    await notificationService.requestNotificationPermission()
+    notificationService.startMonitoring() // Iniciamos el monitoreo
     checkInterval = window.setInterval(checkTime, 60000) // Check every minute
   } catch (error) {
     console.error('Error in onMounted:', error)
@@ -192,17 +192,22 @@ onUnmounted(() => {
   if (checkInterval) {
     clearInterval(checkInterval)
   }
+  notificationService.stopMonitoring() // Aseguramos detener el monitoreo
 })
 
 // Functions
 function checkTime() {
   try {
     const now = new Date()
-    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+    const currentTime = now.toLocaleTimeString('en-US', {
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit'
+    })
 
     notificationSettings.value.alertTimes.forEach(alert => {
       if (alert.time === currentTime) {
-        NotificationService.notifyUpcomingEvents()
+        notificationService.testNotification() // Usando el método existente para pruebas
       }
     })
   } catch (error) {
@@ -243,7 +248,7 @@ function updateCurrencySettings() {
 async function updateNotificationSettings() {
   try {
     if (notificationSettings.value.pushEnabled) {
-      const permitted = await requestNotificationPermission()
+      const permitted = await notificationService.requestNotificationPermission()
       if (!permitted) {
         notificationSettings.value.pushEnabled = false
         alert('Notification permission denied')
@@ -278,7 +283,8 @@ async function logout() {
 function handleAudioFileChange(event: Event) {
   const file = (event.target as HTMLInputElement).files?.[0]
   if (file) {
-    NotificationService.setAudioFile(file)
+    console.warn('Audio file upload not implemented yet')
+    // TODO: Implementar la lógica de carga de archivo de audio
   }
 }
 </script>
