@@ -5,9 +5,11 @@ import { useSettingsStore } from '../stores/settingsStore'
 
 export class NotificationService {
   private static instance: NotificationService
+  private customAudioUrl: string | null = null
   private eventStore = useEventStore()
   private checkInterval: number | null = null
   private readonly NOTIFICATION_THRESHOLD = 30 // minutos antes del evento
+  private finalAlarm: HTMLAudioElement | null = null
 
   private constructor() {
     this.requestNotificationPermission()
@@ -44,6 +46,10 @@ export class NotificationService {
     return Notification.permission
   }
 
+  setCustomAudioUrl(url: string | null) {
+    this.customAudioUrl = url
+  }
+
   startMonitoring() {
     // Verificar eventos cada minuto
     this.checkInterval = window.setInterval(() => {
@@ -60,61 +66,179 @@ export class NotificationService {
   private async checkUpcomingEvents() {
     const now = new Date()
     const events = this.eventStore.events
+    const settingsStore = useSettingsStore()
+    const alertTimes = settingsStore.notificationSettings.alertTimes
 
     events.forEach(event => {
       const eventDate = parseISO(`${event.date}T${event.time}`)
-      const notificationTime = addMinutes(eventDate, -this.NOTIFICATION_THRESHOLD)
 
-      // Verificar si estamos dentro del intervalo de notificación
-      if (isWithinInterval(now, {
-        start: notificationTime,
-        end: addMinutes(notificationTime, 1)
-      })) {
-        this.sendNotification(event)
-      }
+      // Verificar cada tiempo de alerta configurado
+      alertTimes.forEach(minutes => {
+        const notificationTime = addMinutes(eventDate, -minutes)
+
+        // Verificar si estamos dentro del intervalo de notificación
+        if (isWithinInterval(now, {
+          start: notificationTime,
+          end: addMinutes(notificationTime, 1)
+        })) {
+          this.sendNotification(event, minutes)
+        }
+      })
     })
   }
 
   private async playNotificationSound() {
     const settingsStore = useSettingsStore()
-    if (settingsStore.notificationSettings.sound) {
-      try {
-        const audio = new Audio(notificationConfig.sound)
-        await audio.play()
-      } catch (error) {
-        console.warn('No se pudo reproducir el sonido de notificación:', error)
+    if (!settingsStore.notificationSettings.sound) return
+
+    try {
+      // Intentar primero con el audio personalizado si existe
+      if (this.customAudioUrl) {
+        const customAudio = new Audio(this.customAudioUrl)
+        try {
+          await customAudio.play()
+          return
+        } catch (error) {
+          console.warn('Error reproduciendo audio personalizado, usando audio por defecto:', error)
+        }
       }
+
+      // Si no hay audio personalizado o falló, usar el audio por defecto
+      const defaultAudio = new Audio(notificationConfig.sound)
+      await defaultAudio.play()
+    } catch (error) {
+      console.warn('Error reproduciendo sonido:', error)
+      this.playSystemBeep() // Último recurso: beep del sistema
     }
   }
 
-  private async sendNotification(event: any) {
-    const settingsStore = useSettingsStore()
-    const hasPermission = await this.requestNotificationPermission()
-
-    if (!hasPermission || !settingsStore.notificationSettings.enabled) {
-      return
+  private playSystemBeep() {
+    try {
+      // Crear un oscillator para generar un beep
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+      const oscillator = audioContext.createOscillator()
+      oscillator.connect(audioContext.destination)
+      oscillator.frequency.setValueAtTime(880, audioContext.currentTime) // Frecuencia del beep
+      oscillator.start()
+      oscillator.stop(audioContext.currentTime + 0.1) // Duración del beep: 100ms
+    } catch (error) {
+      console.warn('No se pudo reproducir el beep del sistema:', error)
     }
+  }
+
+  private async sendNotification(event: any, minutesBefore: number) {
+    const settingsStore = useSettingsStore()
+    const alertTime = settingsStore.notificationSettings.alertTimes
+      .find(alert => alert.minutes === minutesBefore)
+
+    if (!alertTime || !alertTime.enabled) return
+
+    const hasPermission = await this.requestNotificationPermission()
+    if (!hasPermission) return
 
     try {
-      const notification = new Notification('Próximo Evento', {
-        body: `${event.provider} - ${event.description}\nEn ${this.NOTIFICATION_THRESHOLD} minutos\nLugar: ${event.location}`,
-        icon: notificationConfig.icon,
-        tag: `event-${event.id}`,
-        // vibrate: settingsStore.notificationSettings.vibration ? [200, 100, 200] : undefined,
-        silent: !settingsStore.notificationSettings.sound
-      })
+      const isFinalAlert = alertTime.type === 'final'
 
-      if (settingsStore.notificationSettings.sound) {
+      // Configurar notificación
+      const notificationOptions: NotificationOptions = {
+        body: this.getNotificationBody(event, minutesBefore, isFinalAlert),
+        icon: notificationConfig.icon,
+        tag: `event-${event.id}-${minutesBefore}`,
+        renotify: true,
+        requireInteraction: true,
+        silent: false
+      }
+
+      if (settingsStore.notificationSettings.vibration) {
+        notificationOptions.vibrate = isFinalAlert ?
+          [200, 100, 200, 100, 200] : // Vibración más intensa para alarma final
+          [200, 100, 200]
+      }
+
+      const notification = new Notification(
+        isFinalAlert ? '¡ALERTA FINAL!' : 'Recordatorio de Evento',
+        notificationOptions
+      )
+
+      // Manejar audio según tipo de alerta
+      if (isFinalAlert) {
+        await this.startFinalAlarm()
+      } else {
         await this.playNotificationSound()
       }
 
+      // Activar pantalla y LED
+      if (settingsStore.notificationSettings.screen) {
+        await this.wakeScreen()
+      }
+
+      if (settingsStore.notificationSettings.led) {
+        this.flashLED(isFinalAlert)
+      }
+
       notification.onclick = () => {
+        if (isFinalAlert) {
+          this.stopFinalAlarm()
+        }
         window.focus()
-        // Navegar al evento
         window.location.href = `/calendar?event=${event.id}`
       }
     } catch (error) {
       console.error('Error al enviar notificación:', error)
+    }
+  }
+
+  private getNotificationBody(event: any, minutesBefore: number, isFinalAlert: boolean): string {
+    if (isFinalAlert) {
+      return `🚨 ¡ÚLTIMA ALARMA! 🚨\n${event.provider} - ${event.description}\n¡El evento comienza en ${minutesBefore} minutos!\nLugar: ${event.location}`
+    }
+
+    const hours = Math.floor(minutesBefore / 60)
+    const minutes = minutesBefore % 60
+    const timeText = hours > 0 ?
+      `${hours} horas${minutes > 0 ? ` y ${minutes} minutos` : ''}` :
+      `${minutes} minutos`
+
+    return `Faltan ${timeText} para el evento:\n${event.provider} - ${event.description}\nLugar: ${event.location}`
+  }
+
+  private async startFinalAlarm() {
+    try {
+      if (this.finalAlarm) {
+        this.finalAlarm.pause()
+      }
+
+      this.finalAlarm = new Audio(useSettingsStore().notificationSettings.finalAlarmSound)
+      this.finalAlarm.loop = true
+      await this.finalAlarm.play()
+    } catch (error) {
+      console.error('Error iniciando alarma final:', error)
+    }
+  }
+
+  public stopFinalAlarm() {
+    if (this.finalAlarm) {
+      this.finalAlarm.pause()
+      this.finalAlarm = null
+    }
+  }
+
+  private flashLED(isFinalAlert: boolean = false) {
+    if ('setAppBadge' in navigator) {
+      if (isFinalAlert) {
+        // Para la alarma final, hacer parpadear el LED
+        const flashInterval = setInterval(() => {
+          (navigator as any).setAppBadge(1)
+          setTimeout(() => (navigator as any).clearAppBadge(), 500)
+        }, 1000)
+
+        // Detener el parpadeo después de 30 segundos
+        setTimeout(() => clearInterval(flashInterval), 30000)
+      } else {
+        // Para notificaciones normales, solo encender una vez
+        (navigator as any).setAppBadge(1)
+        setTimeout(() => (navigator as any).clearAppBadge(), 3000)
+      }
     }
   }
 
@@ -130,6 +254,40 @@ export class NotificationService {
     }
 
     await this.sendNotification(testEvent)
+  }
+
+  // Método para probar notificación programada
+  async sendScheduledTestNotification() {
+    const testEvent = {
+      id: 'scheduled-test',
+      provider: 'Test Provider',
+      description: 'Esta es una notificación de prueba programada',
+      location: 'Ubicación de Prueba',
+      date: new Date().toISOString().split('T')[0],
+      time: new Date().toTimeString().split(' ')[0]
+    }
+
+    try {
+      // Forzar todas las opciones de notificación para la prueba
+      const settingsStore = useSettingsStore()
+      const originalSettings = { ...settingsStore.notificationSettings }
+
+      settingsStore.updateNotificationSettings({
+        enabled: true,
+        sound: true,
+        vibration: true,
+        screen: true,
+        led: true
+      })
+
+      await this.sendNotification(testEvent, 0)
+
+      // Restaurar configuración original
+      settingsStore.updateNotificationSettings(originalSettings)
+    } catch (error) {
+      console.error('Error en notificación programada:', error)
+      throw error
+    }
   }
 }
 

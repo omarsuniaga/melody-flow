@@ -12,6 +12,8 @@
     "@headlessui/vue": "^1.7.23",
     "@heroicons/vue": "^2.0.18",
     "@vueuse/core": "^10.7.2",
+    "axios": "^1.7.9",
+    "country-flag-icons": "^1.5.14",
     "date-fns": "^4.1.0",
     "firebase": "^10.8.0",
     "pinia": "^2.1.7",

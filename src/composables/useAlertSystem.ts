@@ -7,35 +7,25 @@ export function useAlertSystem() {
   const notificationStore = useNotificationStore()
   const notificationService = NotificationService.getInstance()
 
-  async function initializeNotifications() {
-    await notificationService.requestNotificationPermission()
-  }
-
-  function checkTime() {
-    const now = new Date()
-    const currentTime = now.toLocaleTimeString('en-US', {
-      hour12: false,
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-
-    const shouldNotify = notificationStore.settings.alertTimes.some(
-      alert => alert.time === currentTime
-    )
-
-    if (shouldNotify) {
-      // Usamos el servicio de notificaciones instanciado
-      notificationService.checkUpcomingEvents()
-    }
-  }
-
   onMounted(async () => {
-    // Inicializamos las notificaciones al montar
-    await initializeNotifications()
-
-    // Iniciamos el monitoreo
+    await notificationService.requestNotificationPermission()
     notificationService.startMonitoring()
-    checkInterval.value = window.setInterval(checkTime, 60000)
+    checkInterval.value = window.setInterval(() => {
+      const now = new Date()
+      const currentTime = now.toLocaleTimeString('en-US', {
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+
+      const shouldNotify = notificationStore.settings.alertTimes.some(
+        alert => alert.time === currentTime
+      )
+
+      if (shouldNotify) {
+        notificationService.testNotification()
+      }
+    }, 60000)
   })
 
   onUnmounted(() => {
@@ -47,6 +37,6 @@ export function useAlertSystem() {
 
   return {
     requestNotificationPermission: () => notificationService.requestNotificationPermission(),
-    getPermissionStatus: NotificationService.getPermissionStatus
+    getPermissionStatus: () => Notification.permission
   }
 }
