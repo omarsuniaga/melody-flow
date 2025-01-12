@@ -397,6 +397,9 @@ onMounted(async () => {
   } catch (error) {
     console.error('Error in onMounted:', error)
   }
+
+  // Inicializar tasas de cambio
+  await currencyStore.initializeExchangeRates()
 })
 
 onUnmounted(() => {
@@ -592,7 +595,9 @@ async function updateExchangeRate() {
     await currencyStore.updateExchangeRate()
     alert('Tasa de cambio actualizada correctamente')
   } catch (error) {
-    alert('Error al actualizar la tasa de cambio')
+    // Mostrar mensaje más específico
+    const errorMessage = error instanceof Error ? error.message : 'Error al actualizar la tasa de cambio'
+    alert(errorMessage)
   }
 }
 

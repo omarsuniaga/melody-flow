@@ -20,6 +20,7 @@ const currencyToCountryMap: Record<string, string> = {
   'COP': 'CO',
   'CLP': 'CL',
   'PEN': 'PE',
+  "VEN": "VE",
   // Añade más según necesites
 }
 
@@ -77,15 +78,20 @@ export const useCurrencyStore = defineStore('currency', {
     },
 
     formatAmount(amount: number, currencyCode?: string): string {
-      const currency = currencyCode === this.settings.foreignCurrency.code
-        ? this.settings.foreignCurrency
-        : this.settings.nativeCurrency
+      try {
+        const currency = currencyCode === this.settings.foreignCurrency.code
+          ? this.settings.foreignCurrency
+          : this.settings.nativeCurrency
 
-      return new Intl.NumberFormat('es-DO', {
-        style: 'currency',
-        currency: currency.code,
-        minimumFractionDigits: 2
-      }).format(amount)
+        return new Intl.NumberFormat('es-DO', {
+          style: 'currency',
+          currency: currency.code.toUpperCase(),
+          minimumFractionDigits: 2
+        }).format(amount)
+      } catch (error) {
+        console.error('Error formateando cantidad:', error)
+        return `${amount.toFixed(2)} ${currencyCode || this.settings.nativeCurrency.code}`
+      }
     },
 
     async updateExchangeRate() {
@@ -124,6 +130,37 @@ export const useCurrencyStore = defineStore('currency', {
 
     getCurrencyCountry(currency: string): string {
       return currencyToCountryMap[currency] || currency.slice(0, 2)
+    },
+
+    shouldUpdateRate(): boolean {
+      if (!this.lastUpdate) return true
+
+      const lastUpdateTime = new Date(this.lastUpdate).getTime()
+      const now = new Date().getTime()
+      const hoursSinceLastUpdate = (now - lastUpdateTime) / (1000 * 60 * 60)
+
+      // Actualizar si han pasado más de 6 horas
+      return hoursSinceLastUpdate > 6
+    },
+
+    async initializeExchangeRates() {
+      // Intentar cargar tasa guardada en localStorage
+      const savedRate = localStorage.getItem('lastExchangeRate')
+      const savedUpdate = localStorage.getItem('lastExchangeUpdate')
+
+      if (savedRate && savedUpdate) {
+        this.settings.exchangeRate = parseFloat(savedRate)
+        this.lastUpdate = savedUpdate
+      }
+
+      // Actualizar tasa si es necesario
+      if (this.shouldUpdateRate()) {
+        try {
+          await this.updateExchangeRate()
+        } catch (error) {
+          console.warn('No se pudo actualizar la tasa de cambio inicial:', error)
+        }
+      }
     }
   },
 

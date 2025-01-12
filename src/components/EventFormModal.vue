@@ -102,12 +102,15 @@ import { ref, watch } from 'vue'
 import Modal from './Modal.vue'
 import Button from './Button.vue'
 import { useEventStore } from '../stores/eventStore'
+import { useUserStore } from '../stores/userStore'
 import type { EventFormData } from '../types/event'
 import { addWeeks, isSameMonth, getDay } from 'date-fns'
+import { MessageParserService } from '../services/MessageParserService'
 
 const props = defineProps<{
   modelValue: boolean
   selectedDate?: Date
+  sharedMessage?: string
 }>()
 
 const emit = defineEmits<{
@@ -116,6 +119,7 @@ const emit = defineEmits<{
 }>()
 
 const eventStore = useEventStore()
+const userStore = useUserStore()
 
 const eventForm = ref<EventFormData>({
   activityType: 'Eventual',
@@ -125,9 +129,10 @@ const eventForm = ref<EventFormData>({
   location: '',
   date: props.selectedDate ? props.selectedDate.toISOString().split('T')[0] : '',
   time: '19:00',
-  amount: 0,
-  userId: '',
-})
+  amount: 6000,
+  userId: userStore.currentUser?.uid || '',
+  isFixed: false,
+}) // Eliminado el paréntesis extra
 
 const providerSuggestions = ref<string[]>([])
 const descriptionSuggestions = ref<string[]>([])
@@ -249,4 +254,28 @@ async function editEvent() {
 function close() {
   emit('update:modelValue', false)
 }
+
+// Añadir esta función para procesar mensajes compartidos
+async function processSharedMessage(message: string) {
+  try {
+    const parsedData = await MessageParserService.parseSharedMessage(message)
+
+    // Actualizar el formulario con los datos extraídos
+    if (parsedData.provider) eventForm.value.provider = parsedData.provider
+    if (parsedData.description) eventForm.value.description = parsedData.description
+    if (parsedData.location) eventForm.value.location = parsedData.location
+    if (parsedData.date) eventForm.value.date = parsedData.date
+    if (parsedData.time) eventForm.value.time = parsedData.time
+    if (parsedData.amount) eventForm.value.amount = parsedData.amount
+  } catch (error) {
+    console.error('Error processing shared message:', error)
+  }
+}
+
+// Observar cambios en el mensaje compartido
+watch(() => props.sharedMessage, (newMessage) => {
+  if (newMessage) {
+    processSharedMessage(newMessage)
+  }
+})
 </script>

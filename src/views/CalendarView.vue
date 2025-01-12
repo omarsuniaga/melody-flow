@@ -139,6 +139,7 @@
     <EventFormModal
       v-model="isEventFormOpen"
       :selected-date="selectedDate"
+      :shared-message="sharedMessage"
       @saved="handleEventSaved"
     />
 
@@ -361,6 +362,27 @@ function handleEventSaved() {
   selectedEvent.value = null
   eventStore.fetchEvents()
 }
+
+const sharedMessage = ref<string | undefined>(undefined)
+
+// Función para manejar mensajes compartidos
+async function handleSharedMessage() {
+  try {
+    if ('share' in navigator && 'shareTarget' in navigator) {
+      const shareData = await (navigator as any).shareTarget.receive()
+      if (shareData.text) {
+        sharedMessage.value = shareData.text
+        isEventFormOpen.value = true
+      }
+    }
+  } catch (error) {
+    console.error('Error receiving shared message:', error)
+  }
+}
+
+onMounted(() => {
+  handleSharedMessage()
+})
 </script>
 
 <style>
