@@ -1,21 +1,21 @@
 <template>
-  <div class="min-h-screen p-4">
+  <div class="min-h-screen p-2 sm:p-4">
     <div class="max-w-7xl mx-auto">
-      <div class="bg-white rounded-lg shadow p-6">
+      <div class="bg-white rounded-lg shadow p-3 sm:p-6">
         <!-- Calendar Header -->
-        <div class="flex justify-between items-center mb-6">
-          <h2 class="text-2xl font-bold text-gray-800">
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-4 sm:mb-6 gap-3">
+          <h2 class="text-xl sm:text-2xl font-bold text-gray-800">
             {{ format(currentDate, 'MMMM yyyy') }}
           </h2>
           <div class="flex gap-2">
-            <Button variant="secondary" @click="previousMonth">
-              <ChevronLeftIcon class="h-5 w-5" />
+            <Button variant="secondary" class="p-1 sm:p-2" @click="previousMonth">
+              <ChevronLeftIcon class="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
-            <Button variant="secondary" @click="currentDate = new Date()">
+            <Button variant="secondary" class="text-sm sm:text-base px-2 sm:px-4" @click="currentDate = new Date()">
               Today
             </Button>
-            <Button variant="secondary" @click="nextMonth">
-              <ChevronRightIcon class="h-5 w-5" />
+            <Button variant="secondary" class="p-1 sm:p-2" @click="nextMonth">
+              <ChevronRightIcon class="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
           </div>
         </div>
@@ -23,8 +23,10 @@
         <!-- Calendar Grid -->
         <div class="grid grid-cols-7 gap-1">
           <!-- Day Headers -->
-          <div v-for="day in weekDays" :key="day" class="p-2 text-center font-semibold text-gray-600">
-            {{ day }}
+          <div v-for="day in weekDays"
+               :key="day"
+               class="p-1 sm:p-2 text-center text-xs sm:text-sm font-semibold text-gray-600">
+            {{ isMobile ? day.charAt(0) : day }}
           </div>
 
           <!-- Calendar Days -->
@@ -32,7 +34,7 @@
             v-for="date in calendarDays"
             :key="date.toISOString()"
             :class="[
-              'p-2 min-h-[100px] border rounded-md relative', // Añadido 'relative'
+              'p-1 sm:p-2 min-h-[60px] sm:min-h-[100px] border rounded-md relative',
               isToday(date) ? 'border-blue-500' : 'border-gray-200',
               getDateEvents(date).length > 0 ? getDayColorClass(date) : '',
               'cursor-pointer hover:border-blue-300'
@@ -41,28 +43,28 @@
           >
             <div class="flex justify-between items-start">
               <span :class="[
-                'text-sm font-medium',
+                'text-xs sm:text-sm font-medium',
                 !isSameMonth(date, currentDate) ? 'text-gray-400' : 'text-gray-700'
               ]">
                 {{ format(date, 'd') }}
               </span>
               <!-- Badge de eventos mejorado -->
               <div v-if="getDateEvents(date).length > 0"
-                class="flex items-center justify-center min-w-[1.5rem] h-6 px-1.5 text-xs font-bold text-white bg-blue-500 rounded-full shadow-sm">
+                class="flex items-center justify-center min-w-[1.25rem] sm:min-w-[1.5rem] h-5 sm:h-6 px-1 sm:px-1.5 text-xs font-bold text-white bg-blue-500 rounded-full shadow-sm">
                 {{ getDateEvents(date).length }}
               </div>
             </div>
             <!-- Vista previa de eventos -->
             <div class="mt-1 space-y-1">
-              <div v-for="(event, index) in getDateEvents(date).slice(0, 2)"
-                   :key="event.id"
-                   class="text-xs truncate p-1 rounded"
-                   :class="event.paymentStatus === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'">
+              <div v-for="(event, index) in getDateEvents(date).slice(0, isMobile ? 1 : 2)"
+                   :key="index"
+                   class="text-[10px] sm:text-xs truncate p-0.5 sm:p-1 rounded"
+                   :class="event.paymentStatus === 'Pagado' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'">
                 {{ event.provider }}
               </div>
-              <div v-if="getDateEvents(date).length > 2"
-                   class="text-xs text-gray-500 pl-1">
-                +{{ getDateEvents(date).length - 2 }} más
+              <div v-if="getDateEvents(date).length > (isMobile ? 1 : 2)"
+                   class="text-[10px] sm:text-xs text-gray-500 pl-1">
+                +{{ getDateEvents(date).length - (isMobile ? 1 : 2) }} más
               </div>
             </div>
           </div>
@@ -70,9 +72,18 @@
       </div>
     </div>
 
-    <!-- Event List Modal or New Event Modal -->
-    <Modal v-if="selectedDateEvents.length > 0" v-model="isEventListModalOpen"
-           :title="format(selectedDate, 'MMMM d, yyyy')">
+    <!-- Modales responsivos -->
+    <Modal v-if="selectedDateEvents.length > 0"
+           v-model="isEventListModalOpen"
+           :title="format(selectedDate, 'MMMM d, yyyy')"
+           class="w-11/12 sm:w-3/4 md:w-2/3 lg:w-1/2">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-medium">Eventos del día</h3>
+        <Button variant="primary" @click="openNewEventForm">
+          <PlusIcon class="h-5 w-5 mr-1" />
+          Nuevo Evento
+        </Button>
+      </div>
       <div class="mt-4 space-y-4">
         <div v-for="event in selectedDateEvents" :key="event.id"
           class="p-4 rounded-lg border"
@@ -124,7 +135,8 @@
       </div>
     </Modal>
 
-    <EventFormModal v-else
+    <!-- Formulario de nuevo evento -->
+    <EventFormModal
       v-model="isEventFormOpen"
       :selected-date="selectedDate"
       @saved="handleEventSaved"
@@ -162,9 +174,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval,
-  startOfWeek, endOfWeek, isSameMonth, isToday } from 'date-fns'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek, isSameMonth, isToday, addWeeks, getDay } from 'date-fns'
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -173,7 +184,8 @@ import {
   TrashIcon,
   CheckCircleIcon,
   ClockIcon,
-  MapPinIcon
+  MapPinIcon,
+  PlusIcon
 } from '@heroicons/vue/24/outline'
 import { useEventStore } from '../stores/eventStore'
 import type { MusicEvent } from '../types/event'
@@ -206,6 +218,26 @@ const selectedDateEvents = computed(() => {
   return eventStore.getEventsByDate(format(selectedDate.value, 'yyyy-MM-dd'))
 })
 
+onMounted(() => {
+  eventStore.fetchEvents()
+})
+
+// Añadir detección de dispositivo móvil
+const isMobile = ref(window.innerWidth < 640)
+
+// Actualizar el estado de isMobile cuando cambie el tamaño de la ventana
+onMounted(() => {
+  window.addEventListener('resize', () => {
+    isMobile.value = window.innerWidth < 640
+  })
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', () => {
+    isMobile.value = window.innerWidth < 640
+  })
+})
+
 function previousMonth() {
   currentDate.value = subMonths(currentDate.value, 1)
 }
@@ -215,7 +247,20 @@ function nextMonth() {
 }
 
 function getDateEvents(date: Date) {
-  return eventStore.getEventsByDate(format(date, 'yyyy-MM-dd'))
+  const events = eventStore.getEventsByDate(format(date, 'yyyy-MM-dd'))
+  const fixedEvents = events.filter(event => event.isFixed)
+  const nonFixedEvents = events.filter(event => !event.isFixed)
+
+  // Duplicar eventos fijos para las próximas semanas del mes
+  fixedEvents.forEach(event => {
+    let nextDate = addWeeks(date, 1)
+    while (isSameMonth(nextDate, date)) {
+      nonFixedEvents.push({ ...event, date: format(nextDate, 'yyyy-MM-dd') })
+      nextDate = addWeeks(nextDate, 1)
+    }
+  })
+
+  return nonFixedEvents
 }
 
 function getDayColorClass(date: Date) {
@@ -240,8 +285,9 @@ function selectDate(date: Date) {
   }
 }
 
-function closeEventListModal() {
-  isEventListModalOpen.value = false
+function openNewEventForm() {
+  isEventListModalOpen.value = false // Cerrar el modal de listado
+  isEventFormOpen.value = true // Abrir el formulario de nuevo evento
 }
 
 function viewEvent(event: MusicEvent) {
@@ -271,7 +317,29 @@ function closeDeleteModal() {
 
 async function deleteEvent() {
   if (eventToDelete.value?.id) {
-    await eventStore.deleteEvent(eventToDelete.value.id)
+    const eventDate = new Date(eventToDelete.value.date)
+    const dayOfWeek = getDay(eventDate)
+
+    // Eliminar eventos fijos para el resto del mes
+    if (eventToDelete.value.isFixed) {
+      const eventsToDelete = eventStore.events.filter(e =>
+        e.provider === eventToDelete.value.provider &&
+        e.description === eventToDelete.value.description &&
+        e.location === eventToDelete.value.location &&
+        e.time === eventToDelete.value.time &&
+        e.amount === eventToDelete.value.amount &&
+        getDay(new Date(e.date)) === dayOfWeek &&
+        isSameMonth(new Date(e.date), eventDate)
+      )
+      for (const event of eventsToDelete) {
+        if (event.id) {
+          await eventStore.deleteEvent(event.id)
+        }
+      }
+    } else {
+      await eventStore.deleteEvent(eventToDelete.value.id)
+    }
+
     closeDeleteModal()
   }
 }
@@ -287,6 +355,8 @@ async function togglePaymentStatus(event: MusicEvent) {
 }
 
 function handleEventSaved() {
+  isEventFormOpen.value = false
+  isEventListModalOpen.value = true // Volver a mostrar el listado después de guardar
   isEditModalOpen.value = false
   selectedEvent.value = null
   eventStore.fetchEvents()
@@ -299,5 +369,30 @@ function handleEventSaved() {
   top: 0.25rem;
   right: 0.25rem;
   transform: translate(25%, -25%);
+}
+
+/* Estilos adicionales para mejorar el responsive */
+@media (max-width: 640px) {
+  .calendar-day-badge {
+    transform: translate(15%, -15%);
+  }
+
+  /* Ajustes para modales en móvil */
+  .modal-content {
+    margin: 1rem;
+    max-height: calc(100vh - 2rem);
+  }
+}
+
+/* Prevenir el zoom en inputs en iOS */
+@supports (-webkit-touch-callout: none) {
+  input {
+    font-size: 16px;
+  }
+}
+
+/* Asegurar que el calendario ocupe todo el espacio disponible */
+.grid-cols-7 {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 </style>

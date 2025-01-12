@@ -1,9 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { collection, addDoc, query, where, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore'
-import { db } from '../firebase/config'
+import { db, auth } from '../firebase/config'
 import type { MusicEvent, EventFormData } from '../types/event'
-import { auth } from '../firebase/config'
 
 export const useEventStore = defineStore('events', () => {
   const events = ref<MusicEvent[]>([])
@@ -22,8 +21,10 @@ export const useEventStore = defineStore('events', () => {
       const newEvent: MusicEvent = {
         ...eventData,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdBy: auth.currentUser.displayName || auth.currentUser.email || 'Unknown',
+        userIP: '', // Add IP address here
         userId: auth.currentUser.uid
+
       }
 
       const docRef = await addDoc(collection(db, 'actividades'), newEvent)
@@ -42,12 +43,13 @@ export const useEventStore = defineStore('events', () => {
       const eventRef = doc(db, 'actividades', id)
       await updateDoc(eventRef, {
         ...eventData,
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
+        userId: auth.currentUser?.uid // Ensure userId is updated
       })
 
       const index = events.value.findIndex(e => e.id === id)
       if (index !== -1) {
-        events.value[index] = { ...events.value[index], ...eventData }
+        events.value[index] = { ...events.value[index], ...eventData, userId: auth.currentUser?.uid }
       }
     } catch (err) {
       error.value = 'Failed to update event'
@@ -77,6 +79,7 @@ export const useEventStore = defineStore('events', () => {
       loading.value = true
       const q = query(
         collection(db, 'actividades'),
+        where('userId', '==', auth.currentUser.uid)
       )
       const querySnapshot = await getDocs(q)
       events.value = querySnapshot.docs.map(doc => ({
@@ -98,8 +101,6 @@ export const useEventStore = defineStore('events', () => {
     const newPaymentStatus = event.paymentStatus === 'Pendiente' ? 'Pagado' : 'Pendiente'
     await updateEvent(id, { paymentStatus: newPaymentStatus })
   }
-
-
 
   return {
     events,

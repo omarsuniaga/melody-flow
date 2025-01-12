@@ -85,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import Modal from './Modal.vue'
 import Button from './Button.vue'
 import { useEventStore } from '../stores/eventStore'
@@ -110,7 +110,10 @@ const eventForm = ref<EventFormData>({
   location: props.event.location,
   date: props.event.date,
   time: props.event.time,
-  amount: props.event.amount
+  amount: props.event.amount,
+  userId: props.event.userId,
+  isFixed: props.event.isFixed,
+
 })
 
 async function saveEvent() {

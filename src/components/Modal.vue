@@ -14,11 +14,14 @@
     ></div>
 
     <!-- Modal -->
-    <div class="flex min-h-full items-center justify-center p-4">
+    <div class="flex min-h-full items-center justify-center p-2 sm:p-4">
       <div
         ref="modalRef"
-        class="relative w-full max-w-md transform overflow-hidden rounded-lg bg-white p-6 text-left shadow-xl transition-all"
-        :class="{ 'animate-modal-open': modelValue }"
+        class="relative w-full transform overflow-hidden rounded-lg bg-white p-4 sm:p-6 text-left shadow-xl transition-all"
+        :class="[
+          $slots.default ? modelClass : 'max-w-lg',
+          { 'animate-modal-open': modelValue }
+        ]"
         tabindex="-1"
       >
         <!-- Close button -->
@@ -55,11 +58,22 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { PropType } from 'vue' // Asegúrate de que Vue 3 esté correctamente instalado
 
-const props = defineProps<{
-  modelValue: boolean
-  title?: string
-}>()
+const props = defineProps({
+  modelValue: {
+    type: Boolean,
+    required: true
+  },
+  title: {
+    type: String as PropType<string | undefined>, // Ajusta la definición del tipo
+    required: false
+  },
+  modelClass: {
+    type: String,
+    default: ''
+  }
+})
 
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
@@ -132,6 +146,15 @@ onUnmounted(() => {
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+/* Mejoras responsive */
+@media (max-width: 640px) {
+  .modal-content {
+    margin: 0.5rem;
+    max-height: calc(100vh - 1rem);
+    padding: 1rem;
   }
 }
 </style>

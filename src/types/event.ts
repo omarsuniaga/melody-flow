@@ -11,6 +11,10 @@ export interface MusicEvent {
   provider: string;
   time: string;
   userIP: string;
+  userId: string;
+  isFixed: boolean;
+
+
 }
 
 export type EventFormData = Omit<MusicEvent, 'id' | 'createdAt' | 'createdBy' | 'userIP'>;

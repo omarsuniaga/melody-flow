@@ -1,11 +1,7 @@
-import { initializeApp } from 'firebase/app'
-import {
-  initializeFirestore,
-  persistentLocalCache,
-  persistentSingleTabManager
-} from 'firebase/firestore'
-import { getAnalytics } from "firebase/analytics"
-import { getAuth } from "firebase/auth"
+import { initializeApp, getApps } from 'firebase/app'
+import { getAuth } from 'firebase/auth'
+import { getMessaging, getToken } from 'firebase/messaging'
+import { getFirestore } from 'firebase/firestore'
 
 // Verificar que las variables de entorno requeridas estén definidas
 const requiredEnvVars = [
@@ -33,28 +29,24 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID // Añadir si usas Analytics
 }
 
-// Initialize Firebase
-export const app = initializeApp(firebaseConfig);
+// Inicializar Firebase solo si no hay una instancia existente
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0]
 
-// Initialize Firestore with persistent cache
-export const db = initializeFirestore(app, {
-  localCache: persistentLocalCache(
-    /*settings=*/{
-      tabManager: persistentSingleTabManager()
-    }
-  )
-});
+// Exportar servicios
+export const auth = getAuth(app)
+export const messaging = getMessaging(app)
+export const db = getFirestore(app)
+export { app }
 
-export const auth = getAuth(app);
-
-// Initialize Analytics only if we have all required configuration
-const canInitializeAnalytics = () => {
-  return import.meta.env.PROD &&
-         firebaseConfig.projectId &&
-         firebaseConfig.measurementId;
-};
-
-export const analytics = canInitializeAnalytics()
-  ? getAnalytics(app)
-  : null;
-
+// Función para obtener el token de FCM
+export async function getFCMToken() {
+  try {
+    const currentToken = await getToken(messaging, {
+      vapidKey: import.meta.env.VITE_FIREBASE_VAPIDKEY
+    });
+    return currentToken;
+  } catch (error) {
+    console.error('An error occurred while retrieving token.', error);
+    return null;
+  }
+}

@@ -2,20 +2,23 @@ import { createRouter, createWebHistory } from 'vue-router'
 import CalendarView from '../views/CalendarView.vue'
 import MonthlyBalanceView from '../views/MonthlyBalanceView.vue'
 import ProfileView from '../views/ProfileView.vue'
-import { auth } from '../firebase/config'
 import LoginView from '../views/LoginView.vue'
 import { useAuthStore } from '../stores/authStore'
 
 const routes = [
   {
     path: '/',
+    redirect: '/calendar' // Redirigir a /calendar por defecto
+  },
+  {
+    path: '/calendar',
     name: 'calendar',
     component: CalendarView,
     meta: { requiresAuth: true }
   },
   {
-    path: '/balance',
-    name: 'balance',
+    path: '/monthly-balance',
+    name: 'monthly-balance',
     component: MonthlyBalanceView,
     meta: { requiresAuth: true }
   },

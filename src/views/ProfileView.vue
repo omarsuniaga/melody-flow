@@ -92,22 +92,23 @@
           <!-- Alert Times -->
           <div class="space-y-4">
             <h4 class="font-medium text-gray-700">Alert Times</h4>
-            <div v-for="(alert, index) in notificationSettings.alertTimes"
+            <div
+              v-for="(alert, index) in notificationSettings.alertTimes"
               :key="index"
               class="flex items-center space-x-2"
             >
-              <input
-                type="time"
-                v-model="alert.time"
-                class="input"
-              />
+              <input type="time" v-model="alert.time" class="input" />
               <button @click="removeAlertTime(index)" class="text-red-600">
                 <TrashIcon class="h-5 w-5" />
               </button>
             </div>
-            <button @click="addAlertTime" class="btn btn-secondary">
-              Add Alert Time
-            </button>
+            <button @click="addAlertTime" class="btn btn-secondary">Add Alert Time</button>
+          </div>
+
+          <!-- Audio File Selection -->
+          <div class="mb-4">
+            <label class="block text-gray-700">Select Notification Sound</label>
+            <input type="file" @change="handleAudioFileChange" accept="audio/*" class="mt-2" />
           </div>
         </div>
 
@@ -126,9 +127,15 @@
                 step="5"
               />
             </div>
-            <button @click="logout" class="btn btn-primary bg-red-600 hover:bg-red-700">
-              Logout
-            </button>
+              <button
+                @click="logout"
+                class="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                <ArrowRightOnRectangleIcon class="h-5 w-5" />
+                <span>Cerrar Sesión</span>
+              </button>
+            <div class="mb-10">
+            </div>
           </div>
         </div>
       </div>
@@ -137,37 +144,71 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { TrashIcon } from '@heroicons/vue/24/outline' // or /solid
+import { TrashIcon } from '@heroicons/vue/24/outline'
 import { auth } from '../firebase/config'
 import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth'
+import { ArrowRightOnRectangleIcon } from '@heroicons/vue/24/outline'
+import { useNotificationStore } from '../stores/notificationStore'
+import { useAlertSystem } from '../composables/useAlertSystem'
+import { NotificationService } from '../services/notificationService'
 
 const router = useRouter()
+const notificationStore = useNotificationStore()
+const { requestNotificationPermission } = useAlertSystem()
 
+// Reactive references
 const passwordForm = ref({
   currentPassword: '',
   newPassword: '',
-  confirmPassword: ''
+  confirmPassword: '',
 })
 
 const currencySettings = ref({
-  exchangeRate: 60
+  exchangeRate: 60,
 })
 
-const notificationSettings = ref({
-  soundEnabled: true,
-  pushEnabled: true,
-  alertTimes: [
-    { time: '10:00' },
-    { time: '12:00' },
-    { time: '17:00' }
-  ]
-})
+const notificationSettings = ref(notificationStore.settings)
 
 const sessionSettings = ref({
-  timeoutMinutes: 30
+  timeoutMinutes: 30,
 })
+
+// Interval reference
+let checkInterval: number | undefined
+
+// Lifecycle hooks
+onMounted(() => {
+  try {
+    NotificationService.requestPermission()
+    checkInterval = window.setInterval(checkTime, 60000) // Check every minute
+  } catch (error) {
+    console.error('Error in onMounted:', error)
+  }
+})
+
+onUnmounted(() => {
+  if (checkInterval) {
+    clearInterval(checkInterval)
+  }
+})
+
+// Functions
+function checkTime() {
+  try {
+    const now = new Date()
+    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+
+    notificationSettings.value.alertTimes.forEach(alert => {
+      if (alert.time === currentTime) {
+        NotificationService.notifyUpcomingEvents()
+      }
+    })
+  } catch (error) {
+    console.error('Error in checkTime:', error)
+  }
+}
 
 async function updateUserPassword() {
   if (!auth.currentUser?.email) return
@@ -175,17 +216,16 @@ async function updateUserPassword() {
   try {
     const credential = EmailAuthProvider.credential(
       auth.currentUser.email,
-      passwordForm.value.currentPassword
+      passwordForm.value.currentPassword,
     )
 
     await reauthenticateWithCredential(auth.currentUser, credential)
     await updatePassword(auth.currentUser, passwordForm.value.newPassword)
 
-    // Reset form
     passwordForm.value = {
       currentPassword: '',
       newPassword: '',
-      confirmPassword: ''
+      confirmPassword: '',
     }
 
     alert('Password updated successfully')
@@ -200,12 +240,30 @@ function updateCurrencySettings() {
   alert('Currency settings updated')
 }
 
-function addAlertTime() {
-  notificationSettings.value.alertTimes.push({ time: '12:00' })
+async function updateNotificationSettings() {
+  try {
+    if (notificationSettings.value.pushEnabled) {
+      const permitted = await requestNotificationPermission()
+      if (!permitted) {
+        notificationSettings.value.pushEnabled = false
+        alert('Notification permission denied')
+        return
+      }
+    }
+    notificationStore.updateSettings(notificationSettings.value)
+  } catch (error) {
+    console.error('Error updating notification settings:', error)
+  }
 }
 
-function removeAlertTime(index) {
+function addAlertTime() {
+  notificationSettings.value.alertTimes.push({ time: '12:00' })
+  updateNotificationSettings()
+}
+
+function removeAlertTime(index: number) {
   notificationSettings.value.alertTimes.splice(index, 1)
+  updateNotificationSettings()
 }
 
 async function logout() {
@@ -214,6 +272,13 @@ async function logout() {
     router.push('/login')
   } catch (error) {
     console.error('Error signing out:', error)
+  }
+}
+
+function handleAudioFileChange(event: Event) {
+  const file = (event.target as HTMLInputElement).files?.[0]
+  if (file) {
+    NotificationService.setAudioFile(file)
   }
 }
 </script>
