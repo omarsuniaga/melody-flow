@@ -14,6 +14,38 @@ export class MessageParserService {
   private static readonly GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent';
   private static readonly GEMINI_API_KEY = config.GEMINI_API_KEY;
 
+  // Mover testConnection antes de parseSharedMessage para mejor organización
+  public static async testConnection(): Promise<boolean> {
+    try {
+      const response = await axios.post(
+        `${this.GEMINI_API_URL}?key=${this.GEMINI_API_KEY}`,
+        {
+          contents: [{
+            parts: [{
+              text: "Test connection"
+            }]
+          }],
+          generationConfig: {
+            temperature: 0.1,
+            topP: 1,
+            maxOutputTokens: 100
+          }
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      console.log('API Response:', response.status); // Para depuración
+      return response.status === 200;
+    } catch (error) {
+      console.error('Error en testConnection:', error);
+      return false;
+    }
+  }
+
   static async parseSharedMessage(message: string): Promise<ParsedEventData> {
     try {
       const prompt = `

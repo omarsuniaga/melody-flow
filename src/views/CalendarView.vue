@@ -382,6 +382,13 @@ async function handleSharedMessage() {
 
 onMounted(() => {
   handleSharedMessage()
+  // Escuchar mensajes del service worker
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (event.data.type === 'SHARED_CONTENT') {
+      sharedMessage.value = event.data.text;
+      isEventFormOpen.value = true;
+    }
+  });
 })
 </script>
 

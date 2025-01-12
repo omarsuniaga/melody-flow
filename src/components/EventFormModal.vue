@@ -1,6 +1,35 @@
 <template>
   <Modal :model-value="modelValue" @update:model-value="$emit('update:modelValue', $event)"
          :title="'Nuevo Evento'">
+    <!-- Agregar botón de prueba API -->
+    <div class="mb-4 flex justify-end">
+      <Button
+        variant="secondary"
+        size="sm"
+        @click="testGeminiAPI"
+        :disabled="isTestingAPI"
+      >
+        <template v-if="isTestingAPI">
+          <span class="inline-block animate-spin mr-2">⌛</span>
+          Probando API...
+        </template>
+        <template v-else>
+          🔍 Probar API
+        </template>
+      </Button>
+    </div>
+
+    <!-- Mostrar resultado de la prueba -->
+    <div v-if="apiTestResult !== null"
+         :class="[
+           'mb-4 p-2 rounded text-sm',
+           apiTestResult ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+         ]">
+      {{ apiTestResult
+          ? '✅ API funcionando correctamente'
+          : '❌ Error al conectar con la API' }}
+    </div>
+
     <form @submit.prevent="saveEvent" class="space-y-6">
       <!-- Tipo de Actividad -->
       <div class="space-y-2">
@@ -137,6 +166,9 @@ const eventForm = ref<EventFormData>({
 const providerSuggestions = ref<string[]>([])
 const descriptionSuggestions = ref<string[]>([])
 const locationSuggestions = ref<string[]>([])
+
+const isTestingAPI = ref(false)
+const apiTestResult = ref<boolean | null>(null)
 
 watch(() => props.selectedDate, (newDate) => {
   if (newDate) {
@@ -278,4 +310,22 @@ watch(() => props.sharedMessage, (newMessage) => {
     processSharedMessage(newMessage)
   }
 })
+
+async function testGeminiAPI() {
+  try {
+    isTestingAPI.value = true;
+    console.log('Iniciando prueba de API...'); // Para depuración
+    const result = await MessageParserService.testConnection();
+    console.log('Resultado de la prueba:', result); // Para depuración
+    apiTestResult.value = result;
+  } catch (error) {
+    console.error('Error al probar la API:', error);
+    apiTestResult.value = false;
+  } finally {
+    isTestingAPI.value = false;
+    setTimeout(() => {
+      apiTestResult.value = null;
+    }, 3000);
+  }
+}
 </script>
