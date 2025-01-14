@@ -8,15 +8,15 @@
             {{ format(currentDate, 'MMMM yyyy') }}
           </h2>
           <div class="flex gap-2">
-            <Button variant="secondary" class="p-1 sm:p-2" @click="previousMonth">
+            <ButtonComponent type="button" variant="secondary" class="p-1 sm:p-2" :loading="false" :disabled="false" @click="previousMonth">
               <ChevronLeftIcon class="h-4 w-4 sm:h-5 sm:w-5" />
-            </Button>
-            <Button variant="secondary" class="text-sm sm:text-base px-2 sm:px-4" @click="currentDate = new Date()">
+            </ButtonComponent>
+            <ButtonComponent type="button" variant="secondary" class="text-sm sm:text-base px-2 sm:px-4" :loading="false" :disabled="false" @click="currentDate = new Date()">
               Today
-            </Button>
-            <Button variant="secondary" class="p-1 sm:p-2" @click="nextMonth">
+            </ButtonComponent>
+            <ButtonComponent type="button" variant="secondary" class="p-1 sm:p-2" :loading="false" :disabled="false" @click="nextMonth">
               <ChevronRightIcon class="h-4 w-4 sm:h-5 sm:w-5" />
-            </Button>
+            </ButtonComponent>
           </div>
         </div>
 
@@ -34,7 +34,7 @@
             v-for="date in calendarDays"
             :key="date.toISOString()"
             :class="[
-              'p-1 sm:p-2 min-h-[60px] sm:min-h-[100px] border rounded-md relative',
+              'p-1 sm:p-2 min-h-[45px] sm:min-h-[80px] md:min-h-[100px] border rounded-md relative',
               isToday(date) ? 'border-blue-500' : 'border-gray-200',
               getDateEvents(date).length > 0 ? getDayColorClass(date) : '',
               'cursor-pointer hover:border-blue-300'
@@ -48,22 +48,22 @@
               ]">
                 {{ format(date, 'd') }}
               </span>
-              <!-- Badge de eventos mejorado -->
+              <!-- Badge de eventos optimizado para móvil -->
               <div v-if="getDateEvents(date).length > 0"
-                class="flex items-center justify-center min-w-[1.25rem] sm:min-w-[1.5rem] h-5 sm:h-6 px-1 sm:px-1.5 text-xs font-bold text-white bg-blue-500 rounded-full shadow-sm">
+                class="flex items-center justify-center min-w-[1rem] sm:min-w-[1.25rem] h-4 sm:h-5 px-1 text-[10px] sm:text-xs font-bold text-white bg-blue-500 rounded-full shadow-sm">
                 {{ getDateEvents(date).length }}
               </div>
             </div>
-            <!-- Vista previa de eventos -->
-            <div class="mt-1 space-y-1">
+            <!-- Vista previa de eventos optimizada -->
+            <div class="mt-0.5 sm:mt-1 space-y-0.5 sm:space-y-1">
               <div v-for="(event, index) in getDateEvents(date).slice(0, isMobile ? 1 : 2)"
                    :key="index"
-                   class="text-[10px] sm:text-xs truncate p-0.5 sm:p-1 rounded"
+                   class="text-[8px] sm:text-[10px] md:text-xs truncate p-0.5 rounded"
                    :class="event.paymentStatus === 'Pagado' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'">
                 {{ event.provider }}
               </div>
               <div v-if="getDateEvents(date).length > (isMobile ? 1 : 2)"
-                   class="text-[10px] sm:text-xs text-gray-500 pl-1">
+                   class="text-[8px] sm:text-[10px] md:text-xs text-gray-500 pl-0.5">
                 +{{ getDateEvents(date).length - (isMobile ? 1 : 2) }} más
               </div>
             </div>
@@ -73,16 +73,16 @@
     </div>
 
     <!-- Modales responsivos -->
-    <Modal v-if="selectedDateEvents.length > 0"
+    <ModalComponent v-if="selectedDateEvents.length > 0"
            v-model="isEventListModalOpen"
            :title="format(selectedDate, 'MMMM d, yyyy')"
            class="w-11/12 sm:w-3/4 md:w-2/3 lg:w-1/2">
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-lg font-medium">Eventos del día</h3>
-        <Button variant="primary" @click="openNewEventForm">
+        <ButtonComponent type="button" variant="primary" :loading="false" :disabled="false" @click="openNewEventForm">
           <PlusIcon class="h-5 w-5 mr-1" />
           Nuevo Evento
-        </Button>
+        </ButtonComponent>
       </div>
       <div class="mt-4 space-y-4">
         <div v-for="event in selectedDateEvents" :key="event.id"
@@ -120,20 +120,20 @@
                   class="h-6 w-6 text-red-600"
                 />
               </button>
-              <Button variant="secondary" @click="viewEvent(event)">
+              <ButtonComponent type="button" variant="secondary" :loading="false" :disabled="false" @click="viewEvent(event)">
                 <EyeIcon class="h-4 w-4" />
-              </Button>
-              <Button variant="secondary" @click="editEvent(event)">
+              </ButtonComponent>
+              <ButtonComponent type="button" variant="secondary" :loading="false" :disabled="false" @click="editEvent(event)">
                 <PencilIcon class="h-4 w-4" />
-              </Button>
-              <Button variant="danger" @click="confirmDelete(event)">
+              </ButtonComponent>
+              <ButtonComponent type="button" variant="danger" :loading="false" :disabled="false" @click="confirmDelete(event)">
                 <TrashIcon class="h-4 w-4" />
-              </Button>
+              </ButtonComponent>
             </div>
           </div>
         </div>
       </div>
-    </Modal>
+    </ModalComponent>
 
     <!-- Formulario de nuevo evento -->
     <EventFormModal
@@ -160,17 +160,17 @@
     />
 
     <!-- Delete Confirmation Modal -->
-    <Modal v-model="isDeleteModalOpen" title="Delete Event">
+    <ModalComponent v-model="isDeleteModalOpen" title="Delete Event">
       <p>Are you sure you want to delete this event? This action cannot be undone.</p>
       <template #footer>
-        <Button variant="secondary" @click="closeDeleteModal">
+        <ButtonComponent type="button" variant="secondary" :loading="false" :disabled="false" @click="closeDeleteModal">
           Cancel
-        </Button>
-        <Button variant="danger" @click="deleteEvent">
+        </ButtonComponent>
+        <ButtonComponent type="button" variant="danger" :loading="false" :disabled="false" @click="deleteEvent">
           Delete
-        </Button>
+        </ButtonComponent>
       </template>
-    </Modal>
+    </ModalComponent>
   </div>
 </template>
 
@@ -190,8 +190,8 @@ import {
 } from '@heroicons/vue/24/outline'
 import { useEventStore } from '../stores/eventStore'
 import type { MusicEvent } from '../types/event'
-import Modal from '../components/Modal.vue'
-import Button from '../components/Button.vue'
+import ModalComponent  from '../components/ModalComponent.vue'
+import ButtonComponent from '../components/ButtonComponent.vue'
 import EventFormModal from '../components/EventFormModal.vue'
 import EventViewModal from '../components/EventViewModal.vue'
 import EventEditModal from '../components/EventEditModal.vue'
@@ -423,5 +423,28 @@ onMounted(() => {
 /* Asegurar que el calendario ocupe todo el espacio disponible */
 .grid-cols-7 {
   grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+/* Optimizaciones adicionales para pantallas pequeñas */
+@media (max-height: 667px) {
+  .grid-cols-7 > div {
+    min-height: 40px !important;
+  }
+
+  .calendar-day-badge {
+    transform: translate(10%, -10%);
+  }
+}
+
+@media (max-height: 568px) {
+  .grid-cols-7 > div {
+    min-height: 35px !important;
+  }
+}
+
+/* Asegurar que el contenido se ajuste verticalmente */
+.min-h-screen {
+  min-height: 100vh;
+  height: 100%;
 }
 </style>

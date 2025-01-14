@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
+import { fileURLToPath, URL } from 'node:url'
 
 export default defineConfig({
   plugins: [
@@ -48,5 +49,35 @@ export default defineConfig({
         ]
       }
     })
-  ]
+  ],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url))
+    }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor': [
+            'vue',
+            'vue-router',
+            'pinia',
+            'date-fns'
+          ],
+          'calendar': [
+            '@fullcalendar/core',
+            '@fullcalendar/vue3',
+            '@fullcalendar/daygrid',
+            '@fullcalendar/interaction'
+          ],
+          'ui': [
+            '@heroicons/vue',
+            '@headlessui/vue'
+          ]
+        }
+      }
+    },
+    chunkSizeWarningLimit: 800
+  }
 })

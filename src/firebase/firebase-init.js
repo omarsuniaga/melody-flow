@@ -33,7 +33,6 @@ async function getRegistrationToken() {
 
         const currentToken = await getToken(messaging, { vapidKey });
         if (currentToken) {
-            console.log('Token:', currentToken);
             await sendTokenToServer(currentToken);
         } else {
             console.log('No registration token available.');

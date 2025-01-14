@@ -24,34 +24,32 @@
       </div>
 
       <!-- Calendar Days -->
-      <TransitionGroup name="calendar" tag="div" class="calendar-days">
-        <div
-          v-for="day in calendarDays"
-          :key="day.date.toISOString()"
-          role="gridcell"
-          :class="[
-            'calendar-day',
-            { 'current-month': day.isCurrentMonth },
-            { 'has-events': day.events.length > 0 }
-          ]"
-        >
-          <span class="day-number">{{ day.date.getDate() }}</span>
-          <div v-if="day.events.length > 0" class="event-indicator">
-            {{ day.events.length }}
-          </div>
+      <div
+        v-for="day in calendarDays"
+        :key="day.date.toISOString()"
+        role="gridcell"
+        :class="[
+          'calendar-day',
+          { 'current-month': day.isCurrentMonth },
+          { 'has-events': day.events.length > 0 }
+        ]"
+      >
+        <span class="day-number">{{ day.date.getDate() }}</span>
+        <div v-if="day.events.length > 0" class="event-indicator">
+          {{ day.events.length }}
         </div>
-      </TransitionGroup>
+      </div>
     </div>
 
     <!-- Loading State -->
-    <TransitionRoot show="isLoading" as="template">
+    <TransitionRoot :show="isLoading" as="template">
       <div class="loading-overlay">
         <LoadingSpinner />
       </div>
     </TransitionRoot>
 
     <!-- Error Message -->
-    <TransitionRoot show="error" as="template">
+    <TransitionRoot :show="!!error" as="template">
       <div class="error-message">
         {{ error }}
       </div>
@@ -59,10 +57,9 @@
   </div>
 </template>
 
-<script setup lang="ts">
-//import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/outline'
+<script lang="ts">
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/solid'
-import { TransitionRoot, TransitionGroup } from '@headlessui/vue'
+import { TransitionRoot } from '@headlessui/vue'
 import { useCalendar } from '../composables/useCalendar'
 import LoadingSpinner from './LoadingSpinner.vue'
 
@@ -78,6 +75,24 @@ const {
 } = useCalendar()
 
 const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+export default {
+  components: { LoadingSpinner, ChevronLeftIcon, ChevronRightIcon, TransitionRoot },
+  setup() {
+    return {
+      currentDate,
+      calendarDays,
+      currentMonth,
+      isDark,
+      isLoading,
+      error,
+      nextMonth,
+      previousMonth,
+      weekDays
+    }
+  }
+}
+
 </script>
 
 <style>

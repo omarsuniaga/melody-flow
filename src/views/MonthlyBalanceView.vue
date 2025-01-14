@@ -116,7 +116,7 @@
                 </div>
                 <div v-if="expandedProvider === provider" class="pl-4">
                   <div
-                    v-for="event in events"
+                    v-for="event in sortedEvents(events)"
                     :key="event.id"
                     class="flex justify-between items-center p-2 bg-gray-50 rounded"
                   >
@@ -158,7 +158,7 @@
                 </div>
                 <div v-if="expandedProvider === provider" class="pl-4">
                   <div
-                    v-for="event in events"
+                    v-for="event in sortedEvents(events)"
                     :key="event.id"
                     class="flex justify-between items-center p-2 bg-gray-50 rounded"
                   >
@@ -218,9 +218,9 @@ const showPendingPayments = ref(false)
 const showCompletedPayments = ref(false)
 const expandedProvider = ref<string | null>(null)
 
-const showProviderDistribution = ref(true)
-const showProviderRevenue = ref(true)
-const showTopLocations = ref(true)
+const showProviderDistribution = ref(false)
+const showProviderRevenue = ref(false)
+const showTopLocations = ref(false)
 
 const router = useRouter()
 
@@ -232,7 +232,7 @@ function toggleCompletedPayments() {
   showCompletedPayments.value = !showCompletedPayments.value
 }
 
-function toggleProvider(provider: string) {
+function toggleProvider(provider) {
   expandedProvider.value = expandedProvider.value === provider ? null : provider
 }
 
@@ -305,31 +305,47 @@ const completedPayments = computed(() =>
   monthEvents.value.filter((event) => event.paymentStatus === 'Pagado'),
 )
 
-// Group events by provider
+// Actualizar la definición del tipo MusicEvent para que coincida con la estructura real
+type MusicEvent = {
+  id: string  // Cambiado de number a string
+  date: string
+  location: string
+  amount: number
+  provider: string
+  paymentStatus: string
+  activityType: string
+  description: string
+  createdAt: string
+  updatedAt?: string
+  createdBy: string
+  time: string
+  userId: string
+  isFixed: boolean
+}
+
+type EventGroups = {
+  [key: string]: MusicEvent[]
+}
+
+// Group events by provider con el tipo correcto
 const groupedPendingPayments = computed(() => {
-  return pendingPayments.value.reduce(
-    (groups, event) => {
-      if (!groups[event.provider]) {
-        groups[event.provider] = []
-      }
-      groups[event.provider].push(event)
-      return groups
-    },
-    {} as Record<string, typeof pendingPayments.value>,
-  )
+  return pendingPayments.value.reduce((groups: EventGroups, event) => {
+    if (!groups[event.provider]) {
+      groups[event.provider] = []
+    }
+    groups[event.provider].push(event)
+    return groups
+  }, {})
 })
 
 const groupedCompletedPayments = computed(() => {
-  return completedPayments.value.reduce(
-    (groups, event) => {
-      if (!groups[event.provider]) {
-        groups[event.provider] = []
-      }
-      groups[event.provider].push(event)
-      return groups
-    },
-    {} as Record<string, typeof completedPayments.value>,
-  )
+  return completedPayments.value.reduce((groups: EventGroups, event) => {
+    if (!groups[event.provider]) {
+      groups[event.provider] = []
+    }
+    groups[event.provider].push(event)
+    return groups
+  }, {})
 })
 
 // Calculate locations with most activities
@@ -381,5 +397,12 @@ function handleLogout() {
   // Por ejemplo, limpiar el localStorage, estado, etc.
   localStorage.removeItem('userToken') // o el nombre que uses para tu token
   router.push('/login') // o la ruta que uses para tu login
+}
+
+// Añadir función para ordenar eventos
+function sortedEvents(events: any[]) {
+  return [...events].sort((a, b) => {
+    return new Date(b.date).getTime() - new Date(a.date).getTime()
+  })
 }
 </script>

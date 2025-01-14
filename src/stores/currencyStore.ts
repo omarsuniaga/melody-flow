@@ -171,5 +171,5 @@ export const useCurrencyStore = defineStore('currency', {
     }
   },
 
-  persist: true
+  // persist: true
 })

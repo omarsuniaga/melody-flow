@@ -66,7 +66,7 @@ const props = defineProps({
     required: true
   },
   title: {
-    type: String as PropType<string | undefined>, // Ajusta la definición del tipo
+    type: (String as unknown) as PropType<string | undefined>, // Ajusta la definición del tipo
     required: false
   },
   modelClass: {
@@ -131,6 +131,17 @@ onUnmounted(() => {
   document.removeEventListener('keydown', handleTab)
   document.body.style.overflow = ''
 })
+
+// Añadir nombre y exportación del componente
+defineOptions({
+  name: 'ModalComponent'
+})
+</script>
+
+<script lang="ts">
+export default {
+  name: 'ModalComponent'
+}
 </script>
 
 <style>

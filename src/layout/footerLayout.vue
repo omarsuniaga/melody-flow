@@ -17,7 +17,7 @@
   </nav>
 </template>
 
-<script setup >
+<script setup lang="ts">
 import { useRoute } from 'vue-router'
 import { CalendarIcon, ChartBarIcon, UserIcon } from '@heroicons/vue/24/outline'
 
@@ -26,6 +26,10 @@ const route = useRoute()
 function isActive(path) {
   return route.path === path
 }
+
+defineOptions({
+  name: 'footerLayout'
+})
 </script>
 
 <style scoped>

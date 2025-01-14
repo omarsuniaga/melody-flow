@@ -81,7 +81,7 @@ export class NotificationService {
           start: notificationTime,
           end: addMinutes(notificationTime, 1)
         })) {
-          this.sendNotification(event, minutes)
+          this.sendNotification(event, minutes.minutes)
         }
       })
     })
@@ -144,13 +144,12 @@ export class NotificationService {
         body: this.getNotificationBody(event, minutesBefore, isFinalAlert),
         icon: notificationConfig.icon,
         tag: `event-${event.id}-${minutesBefore}`,
-        renotify: true,
         requireInteraction: true,
         silent: false
       }
 
       if (settingsStore.notificationSettings.vibration) {
-        notificationOptions.vibrate = isFinalAlert ?
+        (notificationOptions as any).vibrate = isFinalAlert ?
           [200, 100, 200, 100, 200] : // Vibración más intensa para alarma final
           [200, 100, 200]
       }
@@ -223,6 +222,19 @@ export class NotificationService {
     }
   }
 
+  private async wakeScreen() {
+    try {
+      if ('wakeLock' in navigator) {
+        const wakeLock = await (navigator as any).wakeLock.request('screen');
+        wakeLock.addEventListener('release', () => {
+          console.log('Screen Wake Lock released:', wakeLock.released);
+        });
+      }
+    } catch (error) {
+      console.error('Error waking screen:', error);
+    }
+  }
+
   private flashLED(isFinalAlert: boolean = false) {
     if ('setAppBadge' in navigator) {
       if (isFinalAlert) {
@@ -253,7 +265,7 @@ export class NotificationService {
       time: new Date().toTimeString().split(' ')[0]
     }
 
-    await this.sendNotification(testEvent)
+    await this.sendNotification(testEvent, 0)
   }
 
   // Método para probar notificación programada
@@ -290,5 +302,3 @@ export class NotificationService {
     }
   }
 }
-
-export default NotificationService

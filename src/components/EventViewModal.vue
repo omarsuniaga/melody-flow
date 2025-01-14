@@ -1,5 +1,5 @@
 <template>
-  <Modal :model-value="modelValue" @update:model-value="$emit('update:modelValue', $event)"
+  <ModalComponent :model-value="modelValue" @update:model-value="$emit('update:modelValue', $event)"
          :title="'Detalles del Evento'">
     <div class="space-y-4">
       <div class="grid grid-cols-2 gap-4">
@@ -52,53 +52,61 @@
           <p>Creado: {{ formatDateTime(event.createdAt) }}</p>
         </div>
         <div>
-          <p>Actualizado: {{ formatDateTime(event.updatedAt) }}</p>
+          <p>Actualizado: {{ event.updatedAt ? formatDateTime(event.updatedAt) : 'N/A' }}</p>
         </div>
       </div>
     </div>
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <Button variant="secondary" @click="$emit('edit')">Editar</Button>
-        <Button variant="primary" @click="close">Cerrar</Button>
+        <ButtonComponent variant="secondary" @click="$emit('edit')">Editar</ButtonComponent>
+        <ButtonComponent variant="primary" @click="close">Cerrar</ButtonComponent>
       </div>
     </template>
-  </Modal>
+  </ModalComponent>
 </template>
 
-<script setup lang="ts">
-import { format } from 'date-fns'
-import Modal from './Modal.vue'
-import Button from './Button.vue'
-import type { MusicEvent } from '../types/event'
+<script lang="ts">
+import { defineComponent } from 'vue';
+import { format } from 'date-fns';
+import ModalComponent from './ModalComponent.vue';
+import ButtonComponent from './ButtonComponent.vue';
+import { MusicEvent } from '../types/event';
 
-const props = defineProps<{
-  modelValue: boolean
-  event: MusicEvent
-}>()
-
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: boolean): void
-  (e: 'edit'): void
-}>()
-
-function formatDate(date: string) {
-  return format(new Date(date), 'dd/MM/yyyy')
-}
-
-function formatDateTime(date: string | undefined) {
-  if (!date) return 'N/A'
-  return format(new Date(date), 'dd/MM/yyyy HH:mm')
-}
-
-function formatCurrency(amount: number) {
-  return new Intl.NumberFormat('es-DO', {
-    style: 'currency',
-    currency: 'DOP'
-  }).format(amount)
-}
-
-function close() {
-  emit('update:modelValue', false)
-}
+export default defineComponent({
+  name: 'EventDetailsModal',
+  components: {
+    ModalComponent,
+    ButtonComponent,
+  },
+  props: {
+    modelValue: {
+      type: Boolean,
+      required: true,
+    },
+    event: {
+      type: Object as () => MusicEvent,
+      required: true,
+    },
+  },
+  emits: ['update:modelValue', 'edit'],
+  methods: {
+    formatDate(date: string): string {
+      return format(new Date(date), 'dd/MM/yyyy');
+    },
+    formatDateTime(date?: string): string {
+      if (!date) return 'N/A';
+      return format(new Date(date), 'dd/MM/yyyy HH:mm');
+    },
+    formatCurrency(amount: number): string {
+      return new Intl.NumberFormat('es-DO', {
+        style: 'currency',
+        currency: 'DOP',
+      }).format(amount);
+    },
+    close(): void {
+      this.$emit('update:modelValue', false);
+    },
+  },
+});
 </script>

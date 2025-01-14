@@ -4,6 +4,7 @@ interface AlertTime {
   minutes: number;
   type: 'early' | 'standard' | 'final';
   enabled: boolean;
+
 }
 
 interface NotificationSettings {

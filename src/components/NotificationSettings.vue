@@ -35,25 +35,14 @@
         <span>Vibración</span>
       </label>
 
-      <div class="flex items-center space-x-2">
-        <label>Notificar antes del evento:</label>
-        <select
-          v-model="settings.threshold"
-          class="form-select"
-          :disabled="!settings.enabled"
-          @change="saveSettings"
-        >
-          <option value="15">15 minutos</option>
-          <option value="30">30 minutos</option>
-          <option value="60">1 hora</option>
-        </select>
-      </div>
+      <!-- Eliminar o ajustar la referencia a 'threshold' -->
+      <!-- Por ejemplo: <input v-model="settings.threshold" /> para comentarlo o quitarlo -->
     </div>
 
     <div class="mt-4">
-      <Button variant="secondary" @click="testNotification" :disabled="!settings.enabled">
+      <ButtonComponent variant="secondary" @click="testNotification" :disabled="!settings.enabled">
         Probar Notificación
-      </Button>
+      </ButtonComponent>
     </div>
   </div>
 </template>
@@ -61,8 +50,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useSettingsStore } from '../stores/settingsStore'
-import NotificationService from '../services/NotificationService' // Actualizado
-import Button from './Button.vue'
+import { NotificationService } from '../services/NotificationService'
+import ButtonComponent from './ButtonComponent.vue'
 
 const settingsStore = useSettingsStore()
 const settings = ref(settingsStore.notificationSettings)

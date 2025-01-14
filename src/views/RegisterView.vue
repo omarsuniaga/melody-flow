@@ -350,7 +350,7 @@ async function handleRegister() {
     })
 
     router.push('/')
-  } catch (error: any) {
+  } catch (error) {
     logEvent('registration_failure', {
       error: error.code,
       email: form.value.email

@@ -295,34 +295,39 @@
 
 <script setup lang="ts">
 import { ChevronDownIcon } from '@heroicons/vue/24/outline'
-// ...existing imports...
 import { useCurrencyStore } from '../stores/currencyStore'
-
-// Estado para secciones colapsables
-const sections = ref({
-  password: false,
-  currency: false,
-  notifications: true // Abierto por defecto
-})
-
-// Función para alternar secciones
-function toggleSection(section: keyof typeof sections.value) {
-  sections.value[section] = !sections.value[section]
-}
-
-// ...existing script...
-
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { TrashIcon, BellIcon } from '@heroicons/vue/24/outline'
 import { auth } from '../firebase/config'
 import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth'
 import { ArrowRightOnRectangleIcon } from '@heroicons/vue/24/outline'
 import { useNotificationStore } from '../stores/notificationStore'
 import { NotificationService } from '../services/NotificationService'
 import { useSettingsStore } from '../stores/settingsStore'
-import { ClockIcon } from '@heroicons/vue/24/outline'
 import { ArrowPathIcon } from '@heroicons/vue/24/outline'
+import { TrashIcon } from '@heroicons/vue/24/outline'
+
+type Sections = {
+  password: boolean;
+  currency: boolean;
+  notifications: boolean;
+}
+
+
+// Estado para secciones colapsables
+const sections = ref<Sections>({
+  password: false,
+  currency: false,
+  notifications: true // Abierto por defecto
+})
+
+// Función para alternar secciones
+function toggleSection(section: keyof Sections) {
+  sections.value[section] = !sections.value[section]
+}
+
+// ...existing script...
+
 
 const router = useRouter()
 const notificationStore = useNotificationStore()
@@ -341,9 +346,14 @@ const currencySettings = ref({
   exchangeRate: 60,
 })
 
-const notificationSettings = ref<NotificationOptions>({
+const notificationSettings = ref({
   ...settingsStore.notificationSettings,
-  pushEnabled: true // or false, depending on your default value
+  soundEnabled: settingsStore.notificationSettings.sound,
+  pushEnabled: settingsStore.notificationSettings.enabled,
+  alertTimes: settingsStore.notificationSettings.alertTimes.map(alert => ({
+    ...alert,
+    time: formatAlertTime(alert.minutes)
+  }))
 })
 
 const isTestScheduled = ref(false)
@@ -399,7 +409,7 @@ onMounted(async () => {
   }
 
   // Inicializar tasas de cambio
-  await currencyStore.initializeExchangeRates()
+  await currencyStore.updateExchangeRate()
 })
 
 onUnmounted(() => {

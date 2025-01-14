@@ -1,5 +1,5 @@
 <template>
-  <Modal :model-value="modelValue" @update:model-value="$emit('update:modelValue', $event)"
+  <ModalComponent :model-value="modelValue" @update:model-value="$emit('update:modelValue', $event)"
          :title="'Editar Evento'">
     <form @submit.prevent="saveEvent" class="space-y-6">
       <!-- Tipo de Actividad -->
@@ -77,17 +77,17 @@
       </div>
 
       <div class="flex justify-end gap-3">
-        <Button variant="secondary" @click="close">Cancelar</Button>
-        <Button type="submit" variant="primary">Guardar Cambios</Button>
+        <ButtonComponent variant="secondary" @click="close">Cancelar</ButtonComponent>
+        <ButtonComponent type="submit" variant="primary">Guardar Cambios</ButtonComponent>
       </div>
     </form>
-  </Modal>
+  </ModalComponent>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import Modal from './Modal.vue'
-import Button from './Button.vue'
+import ModalComponent from './ModalComponent.vue'
+import ButtonComponent from './ButtonComponent.vue'
 import { useEventStore } from '../stores/eventStore'
 import type { MusicEvent, EventFormData } from '../types/event'
 
@@ -103,6 +103,7 @@ const emit = defineEmits<{
 
 const eventStore = useEventStore()
 const eventForm = ref<EventFormData>({
+  id: props.event.id,
   activityType: props.event.activityType,
   paymentStatus: props.event.paymentStatus,
   provider: props.event.provider,
@@ -113,7 +114,6 @@ const eventForm = ref<EventFormData>({
   amount: props.event.amount,
   userId: props.event.userId,
   isFixed: props.event.isFixed,
-
 })
 
 async function saveEvent() {

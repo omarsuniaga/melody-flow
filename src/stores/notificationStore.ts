@@ -9,6 +9,7 @@ interface NotificationSettings {
   soundEnabled: boolean
   pushEnabled: boolean
   alertTimes: AlertTime[]
+
 }
 
 export const useNotificationStore = defineStore('notification', () => {

@@ -1,37 +1,41 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import type { RouteRecordRaw } from 'vue-router'
 import CalendarView from '../views/CalendarView.vue'
 import MonthlyBalanceView from '../views/MonthlyBalanceView.vue'
 import ProfileView from '../views/ProfileView.vue'
 import LoginView from '../views/LoginView.vue'
 import { useAuthStore } from '../stores/authStore'
 
-const routes = [
+const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    redirect: '/calendar' // Redirigir a /calendar por defecto
-  },
-  {
-    path: '/calendar',
-    name: 'calendar',
-    component: CalendarView,
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/monthly-balance',
-    name: 'monthly-balance',
-    component: MonthlyBalanceView,
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/profile',
-    name: 'profile',
-    component: ProfileView,
-    meta: { requiresAuth: true }
+    component: () => import('../layouts/DefaultLayout.vue'),
+    children: [
+      { path: '', redirect: '/calendar' },
+      {
+        path: '/calendar',
+        name: 'calendar',
+        component: () => import('../views/CalendarView.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/monthly-balance',
+        name: 'monthly-balance',
+        component: () => import('../views/MonthlyBalanceView.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: '/profile',
+        name: 'profile',
+        component: () => import('../views/ProfileView.vue'),
+        meta: { requiresAuth: true }
+      }
+    ]
   },
   {
     path: '/login',
     name: 'login',
-    component: LoginView
+    component: () => import('../views/LoginView.vue')
   }
 ]
 
