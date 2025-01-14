@@ -14,7 +14,7 @@
                 <ChevronLeftIcon class="h-5 w-5" />
               </button>
               <button @click="selectedMonth = new Date()" class="btn btn-secondary">
-                Current Month
+                Mes Actual
               </button>
               <button @click="nextMonth" class="btn btn-secondary">
                 <ChevronRightIcon class="h-5 w-5" />
@@ -26,17 +26,17 @@
         <!-- Key Metrics -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div class="bg-blue-50 p-4 rounded-lg">
-            <h3 class="text-lg font-medium text-blue-900">Total Events</h3>
+            <h3 class="text-lg font-medium text-blue-900">Eventos Totales</h3>
             <p class="text-3xl font-bold text-blue-600">{{ monthlyStats.totalEvents }}</p>
           </div>
           <div class="bg-green-50 p-4 rounded-lg">
-            <h3 class="text-lg font-medium text-green-900">Total Revenue</h3>
+            <h3 class="text-lg font-medium text-green-900">Ingresos Totales</h3>
             <p class="text-3xl font-bold text-green-600">
               {{ formatCurrency(monthlyStats.totalRevenue) }}
             </p>
           </div>
           <div class="bg-purple-50 p-4 rounded-lg">
-            <h3 class="text-lg font-medium text-purple-900">Average per Event</h3>
+            <h3 class="text-lg font-medium text-purple-900">Promedio por Evento</h3>
             <p class="text-3xl font-bold text-purple-600">
               {{ formatCurrency(monthlyStats.averagePerEvent) }}
             </p>
@@ -51,7 +51,7 @@
               class="text-lg font-medium text-gray-900 mb-4 cursor-pointer flex items-center"
               @click="toggleProviderDistribution"
             >
-              Provider Distribution
+              Distribución por Proveedor
               <ChevronDownIcon class="h-5 w-5 ml-2" />
             </h3>
             <div
@@ -64,7 +64,7 @@
                 class="flex justify-between items-center"
               >
                 <span class="text-gray-700">{{ provider.name }}</span>
-                <span class="font-medium">{{ provider.eventCount }} events</span>
+                <span class="font-medium">{{ provider.eventCount }} eventos</span>
               </div>
             </div>
           </div>
@@ -75,7 +75,7 @@
               class="text-lg font-medium text-gray-900 mb-4 cursor-pointer flex items-center"
               @click="toggleProviderRevenue"
             >
-              Revenue by Provider
+              Ingresos por Proveedor
               <ChevronDownIcon class="h-5 w-5 ml-2" />
             </h3>
             <div v-if="showProviderRevenue" class="space-y-2 max-h-64 overflow-y-auto">
@@ -110,7 +110,7 @@
                 >
                   <div>
                     <p class="font-medium">{{ provider }}</p>
-                    <p class="text-sm text-gray-600">{{ events.length }} events</p>
+                    <p class="text-sm text-gray-600">{{ events.length }} eventos</p>
                   </div>
                   <span class="font-medium text-red-600">{{
                     formatCurrency(events.reduce((sum, event) => sum + event.amount, 0))
@@ -143,7 +143,7 @@
               class="text-lg font-medium text-green-900 mb-4 cursor-pointer flex items-center"
               @click="toggleCompletedPayments"
             >
-              Eventos Pagados({{ formatCurrency(totalCompletedAmount) }})
+              Eventos Pagados ({{ formatCurrency(totalCompletedAmount) }})
               <ChevronDownIcon class="h-5 w-5 ml-2" />
             </h3>
             <div v-if="showCompletedPayments" class="space-y-2 max-h-64 overflow-y-auto">
@@ -154,7 +154,7 @@
                 >
                   <div>
                     <p class="font-medium">{{ provider }}</p>
-                    <p class="text-sm text-gray-600">{{ events.length }} events</p>
+                    <p class="text-sm text-gray-600">{{ events.length }} eventos</p>
                   </div>
                   <span class="font-medium text-green-600">{{
                     formatCurrency(events.reduce((sum, event) => sum + event.amount, 0))
@@ -188,7 +188,7 @@
             class="text-lg font-medium text-gray-900 mb-4 cursor-pointer flex items-center"
             @click="toggleTopLocations"
           >
-            Top Locations
+            Ubicaciones Principales
             <ChevronDownIcon class="h-5 w-5 ml-2" />
           </h3>
           <div v-if="showTopLocations" class="space-y-2 max-h-64 overflow-y-auto">
@@ -198,7 +198,7 @@
               class="flex justify-between items-center"
             >
               <span class="text-gray-700">{{ location.name }}</span>
-              <span class="font-medium">{{ location.count }} activities</span>
+              <span class="font-medium">{{ location.count }} actividades</span>
             </div>
           </div>
         </div>

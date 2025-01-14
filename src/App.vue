@@ -1,7 +1,6 @@
 <template>
   <div v-if="authStore.initialized">
     <RouterView />
-    <footerLayout />
   </div>
   <div v-else class="min-h-screen flex items-center justify-center">
     <div
@@ -15,7 +14,6 @@ import { RouterView } from "vue-router";
 import { useAuthStore } from "./stores/authStore";
 import { onMounted, onUnmounted } from "vue";
 import { useEventStore } from "./stores/eventStore";
-import footerLayout from "./layouts/footerLayout.vue";
 import { NotificationService } from "./services/NotificationService";
 
 const authStore = useAuthStore();

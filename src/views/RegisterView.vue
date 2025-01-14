@@ -264,7 +264,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
-import { EyeIcon, EyeSlashIcon } from "@heroicons/vue";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/vue/24/solid"; // Corregir la importación
 import { auth } from "../firebase/config";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { useAnalytics } from "../composables/useAnalytics";

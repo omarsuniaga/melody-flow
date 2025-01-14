@@ -1,5 +1,5 @@
 <template>
-  <div :class="['calendar-container', { 'dark': isDark }]">
+  <div :class="['calendar-container', { dark: isDark }]">
     <!-- Calendar Header -->
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-2xl font-semibold">{{ currentMonth }}</h2>
@@ -7,9 +7,7 @@
         <button @click="previousMonth" class="btn-nav">
           <ChevronLeftIcon class="h-5 w-5" />
         </button>
-        <button @click="currentDate = new Date()" class="btn-today">
-          Today
-        </button>
+        <button @click="currentDate = new Date()" class="btn-today">Hoy</button>
         <button @click="nextMonth" class="btn-nav">
           <ChevronRightIcon class="h-5 w-5" />
         </button>
@@ -31,7 +29,7 @@
         :class="[
           'calendar-day',
           { 'current-month': day.isCurrentMonth },
-          { 'has-events': day.events.length > 0 }
+          { 'has-events': day.events.length > 0 },
         ]"
       >
         <span class="day-number">{{ day.date.getDate() }}</span>
@@ -58,10 +56,10 @@
 </template>
 
 <script lang="ts">
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/solid'
-import { TransitionRoot } from '@headlessui/vue'
-import { useCalendar } from '../composables/useCalendar'
-import LoadingSpinner from './LoadingSpinner.vue'
+import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/vue/solid";
+import { TransitionRoot } from "@headlessui/vue";
+import { useCalendar } from "../composables/useCalendar";
+import LoadingSpinner from "./LoadingSpinner.vue";
 
 const {
   currentDate,
@@ -71,10 +69,10 @@ const {
   isLoading,
   error,
   nextMonth,
-  previousMonth
-} = useCalendar()
+  previousMonth,
+} = useCalendar();
 
-const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export default {
   components: { LoadingSpinner, ChevronLeftIcon, ChevronRightIcon, TransitionRoot },
@@ -88,11 +86,10 @@ export default {
       error,
       nextMonth,
       previousMonth,
-      weekDays
-    }
-  }
-}
-
+      weekDays,
+    };
+  },
+};
 </script>
 
 <style>

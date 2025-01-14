@@ -36,6 +36,12 @@ const routes: RouteRecordRaw[] = [
     path: '/login',
     name: 'login',
     component: () => import('../views/LoginView.vue')
+  },
+  // Añadir la ruta de registro
+  {
+    path: '/register',
+    name: 'register',
+    component: () => import('../views/RegisterView.vue')
   }
 ]
 

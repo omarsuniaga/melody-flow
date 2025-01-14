@@ -25,9 +25,6 @@
                   class="input pl-10"
                   placeholder="tu@email.com"
                 />
-                <EnvelopeIcon
-                  class="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                />
               </div>
             </div>
 
@@ -45,9 +42,7 @@
                   class="input pl-10"
                   placeholder="••••••••"
                 />
-                <KeyIcon
-                  class="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                />
+
                 <button
                   type="button"
                   @click="showPassword = !showPassword"
