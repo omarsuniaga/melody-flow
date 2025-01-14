@@ -411,47 +411,57 @@ function closeDeleteModal() {
 
 async function deleteEvent() {
   const eventToDeleteValue = eventToDelete.value;
-  if (!eventToDeleteValue) return;
 
-  const {
-    id,
-    date,
-    isFixed,
-    provider,
-    description,
-    location,
-    time,
-    amount,
-  } = eventToDeleteValue;
-  if (!id) return;
-
-  const eventDate = new Date(date);
-  const dayOfWeek = getDay(eventDate);
-
-  // Eliminar eventos fijos para el resto del mes
-  if (isFixed) {
-    const eventsToDelete = eventStore.events.filter(
-      (e) =>
-        e.provider === provider &&
-        e.description === description &&
-        e.location === location &&
-        e.time === time &&
-        e.amount === amount &&
-        getDay(new Date(e.date)) === dayOfWeek &&
-        isSameMonth(new Date(e.date), eventDate)
-    );
-
-    for (const event of eventsToDelete) {
-      if (event.id) {
-        await eventStore.deleteEvent(event.id);
-      }
-    }
-  } else {
-    await eventStore.deleteEvent(id);
+  // Verificar que el evento existe y tiene todas las propiedades necesarias
+  if (!eventToDeleteValue || !isMusicEvent(eventToDeleteValue)) {
+    console.error("Evento inválido o incompleto");
+    return;
   }
 
-  closeDeleteModal();
+  try {
+    const { id, date, isFixed } = eventToDeleteValue;
+    const eventDate = new Date(date);
+    const dayOfWeek = getDay(eventDate);
+
+    if (isFixed) {
+      const similarEvents = findSimilarEvents.value;
+      await Promise.all(
+        similarEvents.map(async (event) => {
+          if (event.id) {
+            await eventStore.deleteEvent(event.id);
+          }
+        })
+      );
+    } else {
+      await eventStore.deleteEvent(id);
+    }
+
+    closeDeleteModal();
+  } catch (error) {
+    console.error("Error al eliminar el evento:", error);
+  }
 }
+
+const findSimilarEvents = computed(() => {
+  const eventToDeleteValue = eventToDelete.value;
+
+  if (!eventToDeleteValue || !isMusicEvent(eventToDeleteValue)) {
+    return [];
+  }
+
+  const { provider, description, location, time, amount, date } = eventToDeleteValue;
+  const eventDate = new Date(date);
+
+  return eventStore.events.filter(
+    (e) =>
+      e.provider === provider &&
+      e.description === description &&
+      e.location === location &&
+      e.time === time &&
+      e.amount === amount &&
+      getDay(new Date(e.date)) === getDay(eventDate)
+  );
+});
 
 async function togglePaymentStatus(event: MusicEvent) {
   if (event.id) {
@@ -497,24 +507,6 @@ onMounted(() => {
       isEventFormOpen.value = true;
     }
   });
-});
-
-const findSimilarEvents = computed(() => {
-  const eventToDeleteValue = eventToDelete.value;
-  if (!eventToDeleteValue) {
-    return [];
-  }
-
-  const eventDate = new Date(eventToDeleteValue.date);
-  return eventStore.events.filter(
-    (e) =>
-      e.provider === eventToDeleteValue.provider &&
-      e.description === eventToDeleteValue.description &&
-      e.location === eventToDeleteValue.location &&
-      e.time === eventToDeleteValue.time &&
-      e.amount === eventToDeleteValue.amount &&
-      getDay(new Date(e.date)) === getDay(eventDate)
-  );
 });
 </script>
 
