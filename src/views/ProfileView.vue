@@ -1,8 +1,11 @@
 <template>
-  <div class="min-h-screen p-4">
+  <div class="min-h-screen p-2 sm:p-4">
     <div class="max-w-3xl mx-auto">
-      <div class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-2xl font-bold text-gray-800 mb-6">Configuración de Perfil</h2>
+      <div class="bg-white rounded-lg shadow p-3 sm:p-6">
+        <div class="flex items-center gap-2 mb-6">
+          <UserCircleIcon class="h-8 w-8 text-blue-600" />
+          <h2 class="text-2xl font-bold text-gray-800">Configuración de Perfil</h2>
+        </div>
 
         <!-- Secciones Colapsables -->
         <div class="space-y-4">
@@ -306,6 +309,7 @@ import { NotificationService } from '../services/NotificationService'
 import { useSettingsStore } from '../stores/settingsStore'
 import { ArrowPathIcon } from '@heroicons/vue/24/outline'
 import { TrashIcon } from '@heroicons/vue/24/outline'
+import { UserCircleIcon } from '@heroicons/vue/24/outline'
 
 type Sections = {
   password: boolean;

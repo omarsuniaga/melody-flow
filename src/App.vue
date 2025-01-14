@@ -4,32 +4,34 @@
     <footerLayout />
   </div>
   <div v-else class="min-h-screen flex items-center justify-center">
-    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+    <div
+      class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"
+    ></div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
-import { useAuthStore } from './stores/authStore'
-import { onMounted, onUnmounted } from 'vue'
-import { useEventStore } from './stores/eventStore'
-import footerLayout from './layout/footerLayout.vue'
-import { NotificationService } from './services/NotificationService'
+import { RouterView } from "vue-router";
+import { useAuthStore } from "./stores/authStore";
+import { onMounted, onUnmounted } from "vue";
+import { useEventStore } from "./stores/eventStore";
+import footerLayout from "./layouts/footerLayout.vue";
+import { NotificationService } from "./services/NotificationService";
 
-const authStore = useAuthStore()
-const eventStore = useEventStore()
+const authStore = useAuthStore();
+const eventStore = useEventStore();
 
 // Inicializar auth al montar la aplicación
-authStore.initializeAuth()
+authStore.initializeAuth();
 
 onMounted(async () => {
-  await eventStore.fetchEvents()
-  const notificationService = NotificationService.getInstance()
-  notificationService.startMonitoring()
-})
+  await eventStore.fetchEvents();
+  const notificationService = NotificationService.getInstance();
+  notificationService.startMonitoring();
+});
 
 onUnmounted(() => {
-  const notificationService = NotificationService.getInstance()
-  notificationService.stopMonitoring()
-})
+  const notificationService = NotificationService.getInstance();
+  notificationService.stopMonitoring();
+});
 </script>
