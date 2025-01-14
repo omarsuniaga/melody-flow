@@ -40,7 +40,11 @@
     </div>
 
     <div class="mt-4">
-      <ButtonComponent variant="secondary" @click="testNotification" :disabled="!settings.enabled">
+      <ButtonComponent
+        variant="secondary"
+        @click="testNotification"
+        :disabled="!settings.enabled"
+      >
         Probar Notificación
       </ButtonComponent>
     </div>
@@ -48,30 +52,30 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useSettingsStore } from '../stores/settingsStore'
-import { NotificationService } from '../services/NotificationService'
-import ButtonComponent from './ButtonComponent.vue'
+import { ref, onMounted } from "vue";
+import { useSettingsStore } from "../stores/settingsStore";
+import { NotificationService } from "../services/NotificationService";
+import ButtonComponent from "./ButtonComponent.vue";
 
-const settingsStore = useSettingsStore()
-const settings = ref(settingsStore.notificationSettings)
+const settingsStore = useSettingsStore();
+const settings = ref(settingsStore.notificationSettings);
 
 function saveSettings() {
-  settingsStore.updateNotificationSettings(settings.value)
+  settingsStore.updateNotificationSettings(settings.value);
 }
 
 async function testNotification() {
-  const notificationService = NotificationService.getInstance()
-  await notificationService.testNotification()
+  const notificationService = NotificationService.getInstance();
+  await notificationService.testNotification();
 }
 
 onMounted(async () => {
-  if ('Notification' in window) {
-    const permission = await Notification.requestPermission()
-    if (permission === 'granted') {
-      settings.value.enabled = true
-      saveSettings()
+  if ("Notification" in window) {
+    const permission = await Notification.requestPermission();
+    if (permission === "granted") {
+      settings.value.enabled = true;
+      saveSettings();
     }
   }
-})
+});
 </script>

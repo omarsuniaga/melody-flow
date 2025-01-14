@@ -17,7 +17,10 @@
             >
               <h3 class="text-lg font-medium text-gray-900">Gestión de Contraseña</h3>
               <ChevronDownIcon
-                :class="['h-5 w-5 transition-transform', sections.password ? 'transform rotate-180' : '']"
+                :class="[
+                  'h-5 w-5 transition-transform',
+                  sections.password ? 'transform rotate-180' : '',
+                ]"
               />
             </button>
             <div v-show="sections.password" class="p-4">
@@ -43,7 +46,9 @@
                   />
                 </div>
                 <div>
-                  <label for="confirmPassword" class="label">Confirmar Nueva Contraseña</label>
+                  <label for="confirmPassword" class="label"
+                    >Confirmar Nueva Contraseña</label
+                  >
                   <input
                     type="password"
                     id="confirmPassword"
@@ -52,7 +57,9 @@
                     required
                   />
                 </div>
-                <button type="submit" class="btn btn-primary">Actualizar Contraseña</button>
+                <button type="submit" class="btn btn-primary">
+                  Actualizar Contraseña
+                </button>
               </form>
             </div>
           </div>
@@ -65,7 +72,10 @@
             >
               <h3 class="text-lg font-medium text-gray-900">Configuración de Moneda</h3>
               <ChevronDownIcon
-                :class="['h-5 w-5 transition-transform', sections.currency ? 'transform rotate-180' : '']"
+                :class="[
+                  'h-5 w-5 transition-transform',
+                  sections.currency ? 'transform rotate-180' : '',
+                ]"
               />
             </button>
             <div v-show="sections.currency" class="p-4">
@@ -114,7 +124,10 @@
                     class="btn btn-secondary flex items-center gap-2"
                     :disabled="currencyStore.isLoading"
                   >
-                    <ArrowPathIcon class="h-4 w-4" :class="{ 'animate-spin': currencyStore.isLoading }" />
+                    <ArrowPathIcon
+                      class="h-4 w-4"
+                      :class="{ 'animate-spin': currencyStore.isLoading }"
+                    />
                     Actualizar Tasa
                   </button>
                 </div>
@@ -147,10 +160,12 @@
                   />
                   <select v-model="calculatorCurrency" class="input w-32">
                     <option :value="currencyStore.settings.nativeCurrency.code">
-                      {{ currencyStore.settings.nativeCurrency.flag }} {{ currencyStore.settings.nativeCurrency.code }}
+                      {{ currencyStore.settings.nativeCurrency.flag }}
+                      {{ currencyStore.settings.nativeCurrency.code }}
                     </option>
                     <option :value="currencyStore.settings.foreignCurrency.code">
-                      {{ currencyStore.settings.foreignCurrency.flag }} {{ currencyStore.settings.foreignCurrency.code }}
+                      {{ currencyStore.settings.foreignCurrency.flag }}
+                      {{ currencyStore.settings.foreignCurrency.code }}
                     </option>
                   </select>
                   <span>=</span>
@@ -168,9 +183,172 @@
               @click="toggleSection('notifications')"
               class="w-full px-4 py-3 flex justify-between items-center bg-gray-50 hover:bg-gray-100"
             >
-              <h3 class="text-lg font-medium text-gray-900">Preferencias de Notificaciones</h3>
+              <h3 class="text-lg font-medium text-gray-900">
+                Preferencias de Notificaciones
+              </h3>
               <ChevronDownIcon
-                :class="['h-5 w-5 transition-transform', sections.notifications ? 'transform rotate-180' : '']"
+                :class="[
+                  'h-5 w-5 transition-transform',
+                  sections.notifications ? 'transform rotate-180' : '',
+                ]"
+              />
+            </button>
+            <div v-show="sections.notifications" class="p-4 max-h-[70vh] overflow-y-auto">
+              <!-- Configuración General -->
+              <div class="space-y-4 mb-6">
+                <h4 class="font-medium mb-4">Configuración General</h4>
+                <label class="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    v-model="notificationSettings.enabled"
+                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span>Activar Notificaciones</span>
+                </label>
+                <label class="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    v-model="notificationSettings.sound"
+                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span>Activar Sonidos</span>
+                </label>
+                <label class="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    v-model="notificationSettings.vibration"
+                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span>Activar Vibración</span>
+                </label>
+                <label class="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    v-model="notificationSettings.screen"
+                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span>Activar Pantalla en Alerta</span>
+                </label>
+                <label class="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    v-model="notificationSettings.led"
+                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span>Activar Notificaciones LED</span>
+                </label>
+              </div>
+
+              <!-- Configuración de Sonido Personalizado -->
+              <div class="space-y-4 mb-6">
+                <h4 class="font-medium">Sonido de Notificación</h4>
+                <div class="flex flex-col gap-4">
+                  <!-- Selector de sonidos predeterminados -->
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                      Sonidos predeterminados
+                    </label>
+                    <select
+                      v-model="selectedDefaultSound"
+                      class="input"
+                      @change="handleDefaultSoundChange"
+                    >
+                      <option value="">Seleccionar sonido</option>
+                      <option
+                        v-for="sound in notificationConfig.defaultSounds"
+                        :key="sound.path"
+                        :value="sound.path"
+                      >
+                        {{ sound.name }}
+                      </option>
+                    </select>
+                  </div>
+
+                  <!-- Subir sonido personalizado -->
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                      O sube tu propio sonido
+                    </label>
+                    <input
+                      type="file"
+                      accept="audio/*"
+                      @change="handleAudioFileChange"
+                      class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    />
+                  </div>
+
+                  <!-- Botones de prueba -->
+                  <div class="flex gap-2">
+                    <button
+                      @click="testNotificationSound"
+                      class="btn btn-secondary flex items-center gap-2"
+                      :disabled="!notificationSettings.sound"
+                    >
+                      <span>Probar Sonido</span>
+                      <SpeakerWaveIcon class="h-5 w-5" />
+                    </button>
+
+                    <button
+                      @click="startNotificationTest"
+                      class="btn btn-primary flex items-center gap-2"
+                      :disabled="isTestingNotification"
+                    >
+                      <span>
+                        {{
+                          isTestingNotification
+                            ? `Probando en ${countdownSeconds}s`
+                            : "Probar Todo"
+                        }}
+                      </span>
+                      <BellIcon class="h-5 w-5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Prueba de Sistema de Notificaciones -->
+              <div class="space-y-4">
+                <h4 class="font-medium">Prueba del Sistema</h4>
+                <div class="flex flex-col gap-4">
+                  <button
+                    @click="sendTestNotification"
+                    class="btn btn-primary flex items-center justify-center gap-2"
+                    :disabled="!notificationSettings.enabled"
+                  >
+                    <BellIcon class="h-5 w-5" />
+                    <span>Probar Notificación Completa</span>
+                  </button>
+                  <button
+                    @click="scheduleTestNotification"
+                    class="btn btn-secondary flex items-center justify-center gap-2"
+                    :disabled="isTestScheduled || !notificationSettings.enabled"
+                  >
+                    <ClockIcon class="h-5 w-5" />
+                    <span>{{
+                      isTestScheduled
+                        ? "Notificación programada..."
+                        : "Programar Notificación de Prueba"
+                    }}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Preferencias de Notificaciones -->
+          <div class="border rounded-lg overflow-hidden">
+            <button
+              @click="toggleSection('notifications')"
+              class="w-full px-4 py-3 flex justify-between items-center bg-gray-50 hover:bg-gray-100"
+            >
+              <h3 class="text-lg font-medium text-gray-900">
+                Preferencias de Notificaciones
+              </h3>
+              <ChevronDownIcon
+                :class="[
+                  'h-5 w-5 transition-transform',
+                  sections.notifications ? 'transform rotate-180' : '',
+                ]"
               />
             </button>
             <div v-show="sections.notifications" class="p-4 max-h-[70vh] overflow-y-auto">
@@ -225,10 +403,7 @@
                       min="15"
                       step="15"
                     />
-                    <button
-                      @click="updateFinalAlert"
-                      class="btn btn-secondary"
-                    >
+                    <button @click="updateFinalAlert" class="btn btn-secondary">
                       Actualizar
                     </button>
                   </div>
@@ -247,10 +422,7 @@
                       min="1"
                       step="1"
                     />
-                    <button
-                      @click="addNewAlert"
-                      class="btn btn-secondary"
-                    >
+                    <button @click="addNewAlert" class="btn btn-secondary">
                       Agregar
                     </button>
                   </div>
@@ -259,8 +431,11 @@
                 <!-- Lista de Alertas Actuales -->
                 <div class="space-y-2">
                   <h4 class="font-medium text-gray-700">Alertas Configuradas</h4>
-                  <div v-for="alert in sortedAlerts" :key="alert.minutes"
-                       class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                  <div
+                    v-for="alert in sortedAlerts"
+                    :key="alert.minutes"
+                    class="flex items-center justify-between p-2 bg-gray-50 rounded"
+                  >
                     <span>
                       {{ formatAlertTime(alert.minutes) }}
                       <span v-if="alert.type === 'final'" class="text-red-600 ml-2">
@@ -297,358 +472,477 @@
 </template>
 
 <script setup lang="ts">
-import { ChevronDownIcon } from '@heroicons/vue/24/outline'
-import { useCurrencyStore } from '../stores/currencyStore'
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import { auth } from '../firebase/config'
-import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth'
-import { ArrowRightOnRectangleIcon } from '@heroicons/vue/24/outline'
-import { useNotificationStore } from '../stores/notificationStore'
-import { NotificationService } from '../services/NotificationService'
-import { useSettingsStore } from '../stores/settingsStore'
-import { ArrowPathIcon } from '@heroicons/vue/24/outline'
-import { TrashIcon } from '@heroicons/vue/24/outline'
-import { UserCircleIcon } from '@heroicons/vue/24/outline'
+import {
+  ChevronDownIcon,
+  ArrowRightOnRectangleIcon,
+  ArrowPathIcon,
+  TrashIcon,
+  UserCircleIcon,
+  SpeakerWaveIcon, // Cambio de VolumeUpIcon a SpeakerWaveIcon
+  BellIcon,
+  ClockIcon,
+} from "@heroicons/vue/24/outline";
+import { useCurrencyStore } from "../stores/currencyStore";
+import { ref, onMounted, onUnmounted, computed, watch } from "vue";
+import { useRouter } from "vue-router";
+import { auth } from "../firebase/config";
+import {
+  updatePassword,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
+} from "firebase/auth";
+import { useNotificationStore } from "../stores/notificationStore";
+import { NotificationService } from "../services/NotificationService";
+import { useSettingsStore } from "../stores/settingsStore";
+import { notificationConfig } from "../config/notification";
 
 type Sections = {
   password: boolean;
   currency: boolean;
   notifications: boolean;
-}
-
+};
 
 // Estado para secciones colapsables
 const sections = ref<Sections>({
   password: false,
   currency: false,
-  notifications: true // Abierto por defecto
-})
+  notifications: true, // Abierto por defecto
+});
 
 // Función para alternar secciones
 function toggleSection(section: keyof Sections) {
-  sections.value[section] = !sections.value[section]
+  sections.value[section] = !sections.value[section];
 }
 
 // ...existing script...
 
-
-const router = useRouter()
-const notificationStore = useNotificationStore()
-const notificationService = NotificationService.getInstance()
-const settingsStore = useSettingsStore()
-const currencyStore = useCurrencyStore()
+const router = useRouter();
+const notificationStore = useNotificationStore();
+const notificationService = NotificationService.getInstance();
+const settingsStore = useSettingsStore();
+const currencyStore = useCurrencyStore();
 
 // Reactive references
 const passwordForm = ref({
-  currentPassword: '',
-  newPassword: '',
-  confirmPassword: '',
-})
+  currentPassword: "",
+  newPassword: "",
+  confirmPassword: "",
+});
 
 const currencySettings = ref({
   exchangeRate: 60,
-})
+});
 
 const notificationSettings = ref({
   ...settingsStore.notificationSettings,
   soundEnabled: settingsStore.notificationSettings.sound,
   pushEnabled: settingsStore.notificationSettings.enabled,
-  alertTimes: settingsStore.notificationSettings.alertTimes.map(alert => ({
+  alertTimes: settingsStore.notificationSettings.alertTimes.map((alert) => ({
     ...alert,
-    time: formatAlertTime(alert.minutes)
-  }))
-})
+    time: formatAlertTime(alert.minutes),
+  })),
+});
 
-const isTestScheduled = ref(false)
+const isTestScheduled = ref(false);
 
-const finalAlertMinutes = ref(60)
-const newAlertHours = ref(2)
+const finalAlertMinutes = ref(60);
+const newAlertHours = ref(2);
 
 // Computed property para ordenar las alertas
 const sortedAlerts = computed(() => {
-  return settingsStore.notificationSettings.alertTimes.sort((a, b) => b.minutes - a.minutes)
-})
+  return settingsStore.notificationSettings.alertTimes.sort(
+    (a, b) => b.minutes - a.minutes
+  );
+});
 
 function formatAlertTime(minutes: number): string {
-  const hours = Math.floor(minutes / 60)
-  const mins = minutes % 60
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
   if (hours > 0) {
-    return `${hours}h${mins > 0 ? ` ${mins}m` : ''}`
+    return `${hours}h${mins > 0 ? ` ${mins}m` : ""}`;
   }
-  return `${mins}m`
+  return `${mins}m`;
 }
 
 function updateFinalAlert() {
   if (finalAlertMinutes.value < 15) {
-    alert('La alarma final debe ser al menos 15 minutos antes del evento')
-    return
+    alert("La alarma final debe ser al menos 15 minutos antes del evento");
+    return;
   }
-  settingsStore.setDefaultFinalAlert(finalAlertMinutes.value)
+  settingsStore.setDefaultFinalAlert(finalAlertMinutes.value);
 }
 
 function addNewAlert() {
   if (newAlertHours.value < 1) {
-    alert('Las alertas deben ser al menos 1 hora antes del evento')
-    return
+    alert("Las alertas deben ser al menos 1 hora antes del evento");
+    return;
   }
-  settingsStore.addCustomAlertTime(newAlertHours.value)
+  settingsStore.addCustomAlertTime(newAlertHours.value);
 }
 
 function removeAlert(minutes: number) {
-  settingsStore.removeCustomAlertTime(minutes)
+  settingsStore.removeCustomAlertTime(minutes);
 }
 
 // Interval reference
-let checkInterval: number | undefined
+let checkInterval: number | undefined;
 
 // Lifecycle hooks
 onMounted(async () => {
   try {
-    await notificationService.requestNotificationPermission()
-    notificationService.startMonitoring() // Iniciamos el monitoreo
-    checkInterval = window.setInterval(checkTime, 60000) // Check every minute
+    await notificationService.requestNotificationPermission();
+    notificationService.startMonitoring(); // Iniciamos el monitoreo
+    checkInterval = window.setInterval(checkTime, 60000); // Check every minute
   } catch (error) {
-    console.error('Error in onMounted:', error)
+    console.error("Error in onMounted:", error);
   }
 
   // Inicializar tasas de cambio
-  await currencyStore.updateExchangeRate()
-})
+  await currencyStore.updateExchangeRate();
+});
 
 onUnmounted(() => {
   if (checkInterval) {
-    clearInterval(checkInterval)
+    clearInterval(checkInterval);
   }
-  notificationService.stopMonitoring() // Aseguramos detener el monitoreo
-})
+  notificationService.stopMonitoring(); // Aseguramos detener el monitoreo
+  if (countdownInterval) {
+    clearInterval(countdownInterval);
+  }
+});
 
 // Functions
 function checkTime() {
   try {
-    const now = new Date()
-    const currentTime = now.toLocaleTimeString('en-US', {
+    const now = new Date();
+    const currentTime = now.toLocaleTimeString("en-US", {
       hour12: false,
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+      hour: "2-digit",
+      minute: "2-digit",
+    });
 
-    notificationSettings.value.alertTimes.forEach(alert => {
-      if (alert.minutes === parseInt(currentTime.replace(':', ''), 10)) {
-        notificationService.testNotification() // Usando el método existente para pruebas
+    notificationSettings.value.alertTimes.forEach((alert) => {
+      if (alert.minutes === parseInt(currentTime.replace(":", ""), 10)) {
+        notificationService.testNotification(); // Usando el método existente para pruebas
       }
-    })
+    });
   } catch (error) {
-    console.error('Error in checkTime:', error)
+    console.error("Error in checkTime:", error);
   }
 }
 
 async function updateUserPassword() {
-  if (!auth.currentUser?.email) return
+  if (!auth.currentUser?.email) return;
 
   try {
     const credential = EmailAuthProvider.credential(
       auth.currentUser.email,
-      passwordForm.value.currentPassword,
-    )
+      passwordForm.value.currentPassword
+    );
 
-    await reauthenticateWithCredential(auth.currentUser, credential)
-    await updatePassword(auth.currentUser, passwordForm.value.newPassword)
+    await reauthenticateWithCredential(auth.currentUser, credential);
+    await updatePassword(auth.currentUser, passwordForm.value.newPassword);
 
     passwordForm.value = {
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: '',
-    }
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    };
 
-    alert('Password updated successfully')
+    alert("Password updated successfully");
   } catch (error) {
-    console.error('Error updating password:', error)
-    alert('Failed to update password')
+    console.error("Error updating password:", error);
+    alert("Failed to update password");
   }
 }
 
 function updateCurrencySettings() {
   // TODO: Implement currency settings update
-  alert('Currency settings updated')
+  alert("Currency settings updated");
 }
 
 async function updateNotificationSettings() {
   try {
-    const permitted = await notificationService.requestNotificationPermission()
+    const permitted = await notificationService.requestNotificationPermission();
     if (!permitted) {
-      alert('Notification permission denied')
-      return
+      alert("Notification permission denied");
+      return;
     }
-    notificationStore.updateSettings(notificationSettings.value)
+    notificationStore.updateSettings(notificationSettings.value);
   } catch (error) {
-    console.error('Error updating notification settings:', error)
+    console.error("Error updating notification settings:", error);
   }
 }
 
 async function logout() {
   try {
-    await auth.signOut()
-    router.push('/login')
+    await auth.signOut();
+    router.push("/login");
   } catch (error) {
-    console.error('Error al cerrar sesión:', error)
-    alert('Error al cerrar sesión. Por favor, intente nuevamente.')
+    console.error("Error al cerrar sesión:", error);
+    alert("Error al cerrar sesión. Por favor, intente nuevamente.");
   }
 }
 
 async function handleAudioFileChange(event: Event) {
-  const file = (event.target as HTMLInputElement).files?.[0]
-  if (!file) return
+  const file = (event.target as HTMLInputElement).files?.[0];
+  if (!file) return;
 
   try {
     // Validar que sea un archivo de audio
-    if (!file.type.startsWith('audio/')) {
-      throw new Error('El archivo debe ser un archivo de audio')
+    if (!file.type.startsWith("audio/")) {
+      throw new Error("El archivo debe ser un archivo de audio");
     }
 
     // Crear URL para el archivo
-    const audioUrl = URL.createObjectURL(file)
+    const audioUrl = URL.createObjectURL(file);
 
     // Probar que el audio se puede reproducir
-    const audio = new Audio(audioUrl)
+    const audio = new Audio(audioUrl);
     await new Promise((resolve, reject) => {
-      audio.oncanplaythrough = resolve
-      audio.onerror = reject
-      audio.load()
-    })
+      audio.oncanplaythrough = resolve;
+      audio.onerror = reject;
+      audio.load();
+    });
 
     // Reproducir brevemente y pausar
-    await audio.play()
+    await audio.play();
     setTimeout(() => {
-      audio.pause()
-      audio.currentTime = 0
-    }, 500)
+      audio.pause();
+      audio.currentTime = 0;
+    }, 500);
 
     // Actualizar el store y el servicio
     settingsStore.updateNotificationSettings({
       customAudioUrl: audioUrl,
-      sound: true // Activar el sonido automáticamente
-    })
-    notificationService.setCustomAudioUrl(audioUrl)
+      sound: true, // Activar el sonido automáticamente
+    });
+    notificationService.setCustomAudioUrl(audioUrl);
 
-    alert('Sonido de notificación actualizado correctamente')
+    alert("Sonido de notificación actualizado correctamente");
   } catch (error) {
-    console.error('Error al cargar el archivo de audio:', error)
-    alert('Error al cargar el archivo de audio. Se usará el sonido predeterminado.')
+    console.error("Error al cargar el archivo de audio:", error);
+    alert("Error al cargar el archivo de audio. Se usará el sonido predeterminado.");
 
     // Resetear a valores por defecto
     settingsStore.updateNotificationSettings({
-      customAudioUrl: null
-    })
-    notificationService.setCustomAudioUrl(null)
+      customAudioUrl: null,
+    });
+    notificationService.setCustomAudioUrl(null);
 
     // Limpiar el input
-    const input = event.target as HTMLInputElement
-    input.value = ''
+    const input = event.target as HTMLInputElement;
+    input.value = "";
   }
 }
 
 async function sendTestNotification() {
   try {
-    const permitted = await notificationService.requestNotificationPermission()
+    const permitted = await notificationService.requestNotificationPermission();
     if (!permitted) {
-      alert('Se requiere permiso para enviar notificaciones')
-      return
+      alert("Se requiere permiso para enviar notificaciones");
+      return;
     }
-    await notificationService.testNotification()
+    await notificationService.testNotification();
   } catch (error) {
-    console.error('Error al enviar notificación de prueba:', error)
-    alert('Error al enviar la notificación')
+    console.error("Error al enviar notificación de prueba:", error);
+    alert("Error al enviar la notificación");
   }
 }
 
 async function scheduleTestNotification() {
   try {
-    const permitted = await notificationService.requestNotificationPermission()
+    const permitted = await notificationService.requestNotificationPermission();
     if (!permitted) {
-      alert('Se requiere permiso para enviar notificaciones')
-      return
+      alert("Se requiere permiso para enviar notificaciones");
+      return;
     }
 
-    isTestScheduled.value = true
+    isTestScheduled.value = true;
 
     // Mostrar notificación previa
-    new Notification('Notificación Programada', {
-      body: 'La notificación se mostrará en 30 segundos',
-      silent: true
-    })
+    new Notification("Notificación Programada", {
+      body: "La notificación se mostrará en 30 segundos",
+      silent: true,
+    });
 
     // Programar la notificación
     setTimeout(async () => {
-      await notificationService.sendScheduledTestNotification()
-      isTestScheduled.value = false
-    }, 30000)
+      await notificationService.sendScheduledTestNotification();
+      isTestScheduled.value = false;
+    }, 30000);
   } catch (error) {
-    console.error('Error programando notificación:', error)
-    alert('Error al programar la notificación')
-    isTestScheduled.value = false
+    console.error("Error programando notificación:", error);
+    alert("Error al programar la notificación");
+    isTestScheduled.value = false;
   }
 }
 
 // Para la calculadora de cambio
-const calculatorAmount = ref(0)
-const calculatorCurrency = ref('USD')
+const calculatorAmount = ref(0);
+const calculatorCurrency = ref("USD");
 
 function formatConvertedAmount(amount: number, fromCurrency: string): string {
-  if (!amount) return currencyStore.formatAmount(0)
+  if (!amount) return currencyStore.formatAmount(0);
 
-  const nativeAmount = fromCurrency === currencyStore.settings.nativeCurrency.code
-    ? amount
-    : currencyStore.convertToNative(amount, fromCurrency)
+  const nativeAmount =
+    fromCurrency === currencyStore.settings.nativeCurrency.code
+      ? amount
+      : currencyStore.convertToNative(amount, fromCurrency);
 
-  return currencyStore.formatAmount(nativeAmount)
+  return currencyStore.formatAmount(nativeAmount);
 }
 
 async function updateExchangeRate() {
   try {
-    await currencyStore.updateExchangeRate()
-    alert('Tasa de cambio actualizada correctamente')
+    await currencyStore.updateExchangeRate();
+    alert("Tasa de cambio actualizada correctamente");
   } catch (error) {
     // Mostrar mensaje más específico
-    const errorMessage = error instanceof Error ? error.message : 'Error al actualizar la tasa de cambio'
-    alert(errorMessage)
+    const errorMessage =
+      error instanceof Error ? error.message : "Error al actualizar la tasa de cambio";
+    alert(errorMessage);
   }
 }
 
 // Referencias reactivas para los códigos de moneda
-const localCurrencyCode = ref('DOP')
-const foreignCurrencyCode = ref('USD')
+const localCurrencyCode = ref("DOP");
+const foreignCurrencyCode = ref("USD");
 
 // Observadores para actualizar el store cuando cambien los códigos
 watch(localCurrencyCode, (newCode) => {
-  const upperCode = newCode.toUpperCase()
-  localCurrencyCode.value = upperCode
+  const upperCode = newCode.toUpperCase();
+  localCurrencyCode.value = upperCode;
   currencyStore.updateCurrencySettings({
     nativeCurrency: {
       ...currencyStore.settings.nativeCurrency,
       code: upperCode,
-      flag: currencyStore.getFlagEmoji(upperCode)
-    }
-  })
-})
+      flag: currencyStore.getFlagEmoji(upperCode),
+    },
+  });
+});
 
 watch(foreignCurrencyCode, (newCode) => {
-  const upperCode = newCode.toUpperCase()
-  foreignCurrencyCode.value = upperCode
+  const upperCode = newCode.toUpperCase();
+  foreignCurrencyCode.value = upperCode;
   currencyStore.updateCurrencySettings({
     foreignCurrency: {
       ...currencyStore.settings.foreignCurrency,
       code: upperCode,
-      flag: currencyStore.getFlagEmoji(upperCode)
-    }
-  })
-})
+      flag: currencyStore.getFlagEmoji(upperCode),
+    },
+  });
+});
 
 // Inicializar valores desde el store
 onMounted(() => {
-  localCurrencyCode.value = currencyStore.settings.nativeCurrency.code
-  foreignCurrencyCode.value = currencyStore.settings.foreignCurrency.code
-})
+  localCurrencyCode.value = currencyStore.settings.nativeCurrency.code;
+  foreignCurrencyCode.value = currencyStore.settings.foreignCurrency.code;
+});
+
+async function testNotificationSound() {
+  try {
+    if (!notificationSettings.value.sound) {
+      alert("El sonido está desactivado en la configuración");
+      return;
+    }
+
+    const audio = new Audio(
+      settingsStore.notificationSettings.customAudioUrl || notificationConfig.sound
+    );
+    await audio.play();
+
+    setTimeout(() => {
+      audio.pause();
+      audio.currentTime = 0;
+    }, 2000);
+  } catch (error) {
+    console.error("Error al reproducir el sonido:", error);
+    alert("Error al reproducir el sonido de notificación");
+  }
+}
+
+// Agregar estas referencias
+const selectedDefaultSound = ref(notificationConfig.defaultSound);
+const isTestingNotification = ref(false);
+const countdownSeconds = ref(10);
+let countdownInterval: number | undefined;
+
+// Agregar estas funciones
+function handleDefaultSoundChange() {
+  if (selectedDefaultSound.value) {
+    settingsStore.updateNotificationSettings({
+      customAudioUrl: selectedDefaultSound.value,
+      sound: true,
+    });
+    notificationService.setCustomAudioUrl(selectedDefaultSound.value);
+  }
+}
+
+async function startNotificationTest() {
+  if (isTestingNotification.value) return;
+
+  isTestingNotification.value = true;
+  countdownSeconds.value = 10;
+
+  countdownInterval = window.setInterval(() => {
+    countdownSeconds.value--;
+
+    if (countdownSeconds.value <= 0) {
+      clearInterval(countdownInterval);
+      testFullNotification();
+      isTestingNotification.value = false;
+    }
+  }, 1000);
+}
+
+async function testFullNotification() {
+  try {
+    const permitted = await notificationService.requestNotificationPermission();
+    if (!permitted) {
+      alert("Se requiere permiso para enviar notificaciones");
+      return;
+    }
+
+    // Activar todas las características seleccionadas
+    if (notificationSettings.value.sound) {
+      const audio = new Audio(
+        settingsStore.notificationSettings.customAudioUrl ||
+          notificationConfig.defaultSound
+      );
+      await audio.play();
+      setTimeout(() => {
+        audio.pause();
+        audio.currentTime = 0;
+      }, 2000);
+    }
+
+    // Enviar notificación push
+    const notification = new Notification("Prueba de Notificación", {
+      body: "¡Sistema de notificaciones funcionando correctamente!",
+      icon: notificationConfig.icon,
+      silent: true, // Silenciar porque ya manejamos el audio por separado
+    });
+
+    // Activar vibración si está habilitada
+    if (notificationSettings.value.vibration && navigator.vibrate) {
+      navigator.vibrate([200, 100, 200]);
+    }
+
+    // Activar LED si está habilitado
+    if (notificationSettings.value.led) {
+      notificationService.flashLED();
+    }
+
+    // Activar pantalla si está habilitado
+    if (notificationSettings.value.screen) {
+      await notificationService.wakeScreen();
+    }
+  } catch (error) {
+    console.error("Error en prueba de notificación:", error);
+    alert("Error al probar el sistema de notificaciones");
+  }
+}
 </script>
 
 <style scoped>
