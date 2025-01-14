@@ -210,12 +210,9 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { format, addMonths, subMonths, startOfMonth, endOfMonth } from "date-fns";
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  ChevronDownIcon,
-  ChartBarIcon,
-} from "@heroicons/vue/24/outline";
+import ChevronLeftIcon from "@heroicons/vue/24/outline/ChevronLeftIcon";
+import ChevronRightIcon from "@heroicons/vue/24/outline/ChevronRightIcon";
+import { ChevronDownIcon, ChartBarIcon } from "@heroicons/vue/24/outline";
 import { useEventStore } from "../stores/eventStore";
 import { useRouter } from "vue-router";
 

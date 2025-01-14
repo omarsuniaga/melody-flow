@@ -223,7 +223,7 @@ import ModalComponent from './ModalComponent.vue'
 import ButtonComponent from './ButtonComponent.vue'
 import { useEventStore } from '../stores/eventStore'
 import { useUserStore } from '../stores/userStore'
-import { addWeeks, isSameMonth, getDay } from 'date-fns'
+import { addWeeks, isSameMonth, getDay, format } from 'date-fns'
 import { MessageParserService } from '../services/MessageParserService'
 import EventFormModal from './EventFormModal.vue';
 import { EventFormData } from '../types/event'
@@ -254,18 +254,18 @@ const userStore = useUserStore()
 /**
  * Formulario por defecto
  */
-const defaultFormValues = {
+const defaultFormValues: EventFormData = {
   id: '',
+  title: '',        // Añadido
+  type: '',         // Añadido
   activityType: 'Eventual',
   paymentStatus: 'Pendiente' as const,
   provider: '',
   description: '',
   location: '',
-  date: props.selectedDate
-    ? props.selectedDate.toISOString().split('T')[0]
-    : '',
-  time: '19:00',
-  amount: 6000,
+  date: format(new Date(), 'yyyy-MM-dd'),
+  time: format(new Date(), 'HH:mm'),
+  amount: 0,
   userId: userStore.currentUser?.uid || '',
   isFixed: false,
 }

@@ -19,6 +19,7 @@ export const notificationConfig = {
     }
   ],
   defaultSound: '/audios/notification-sound.mp3',
+  sound: '/audios/notification-sound.mp3', // Agregamos esta línea para mantener compatibilidad
   defaultSettings: {
     timeThreshold: 30,
     enableSound: true,

@@ -280,7 +280,7 @@ import {
   ClockIcon,
   MapPinIcon,
   PlusIcon,
-} from "@heroicons/vue/24/outline";
+} from "@heroicons/vue/24/outline/index.js";
 import { useEventStore } from "../stores/eventStore";
 import type { MusicEvent } from "../types/event";
 import ModalComponent from "../components/ModalComponent.vue";
@@ -410,33 +410,47 @@ function closeDeleteModal() {
 }
 
 async function deleteEvent() {
-  if (eventToDelete.value?.id) {
-    const eventDate = new Date(eventToDelete.value.date);
-    const dayOfWeek = getDay(eventDate);
+  const eventToDeleteValue = eventToDelete.value;
+  if (!eventToDeleteValue) return;
 
-    // Eliminar eventos fijos para el resto del mes
-    if (eventToDelete.value.isFixed) {
-      const eventsToDelete = eventStore.events.filter(
-        (e) =>
-          e.provider === eventToDelete.value.provider &&
-          e.description === eventToDelete.value.description &&
-          e.location === eventToDelete.value.location &&
-          e.time === eventToDelete.value.time &&
-          e.amount === eventToDelete.value.amount &&
-          getDay(new Date(e.date)) === dayOfWeek &&
-          isSameMonth(new Date(e.date), eventDate)
-      );
-      for (const event of eventsToDelete) {
-        if (event.id) {
-          await eventStore.deleteEvent(event.id);
-        }
+  const {
+    id,
+    date,
+    isFixed,
+    provider,
+    description,
+    location,
+    time,
+    amount,
+  } = eventToDeleteValue;
+  if (!id) return;
+
+  const eventDate = new Date(date);
+  const dayOfWeek = getDay(eventDate);
+
+  // Eliminar eventos fijos para el resto del mes
+  if (isFixed) {
+    const eventsToDelete = eventStore.events.filter(
+      (e) =>
+        e.provider === provider &&
+        e.description === description &&
+        e.location === location &&
+        e.time === time &&
+        e.amount === amount &&
+        getDay(new Date(e.date)) === dayOfWeek &&
+        isSameMonth(new Date(e.date), eventDate)
+    );
+
+    for (const event of eventsToDelete) {
+      if (event.id) {
+        await eventStore.deleteEvent(event.id);
       }
-    } else {
-      await eventStore.deleteEvent(eventToDelete.value.id);
     }
-
-    closeDeleteModal();
+  } else {
+    await eventStore.deleteEvent(id);
   }
+
+  closeDeleteModal();
 }
 
 async function togglePaymentStatus(event: MusicEvent) {
@@ -483,6 +497,24 @@ onMounted(() => {
       isEventFormOpen.value = true;
     }
   });
+});
+
+const findSimilarEvents = computed(() => {
+  const eventToDeleteValue = eventToDelete.value;
+  if (!eventToDeleteValue) {
+    return [];
+  }
+
+  const eventDate = new Date(eventToDeleteValue.date);
+  return eventStore.events.filter(
+    (e) =>
+      e.provider === eventToDeleteValue.provider &&
+      e.description === eventToDeleteValue.description &&
+      e.location === eventToDeleteValue.location &&
+      e.time === eventToDeleteValue.time &&
+      e.amount === eventToDeleteValue.amount &&
+      getDay(new Date(e.date)) === getDay(eventDate)
+  );
 });
 </script>
 

@@ -264,13 +264,14 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import { useRouter } from "vue-router";
-import { EyeIcon, EyeSlashIcon } from "@heroicons/vue/24/solid"; // Corregir la importación
+import EyeIcon from "@heroicons/vue/24/outline/EyeIcon";
+import EyeSlashIcon from "@heroicons/vue/24/outline/EyeSlashIcon";
+import UserPlusIcon from "@heroicons/vue/24/outline/UserPlusIcon";
 import { auth } from "../firebase/config";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { useAnalytics } from "../composables/useAnalytics";
 import { useDeviceInfo } from "../composables/useDeviceInfo";
 import { useI18n } from "../composables/useI18n";
-import { UserPlusIcon } from "@heroicons/vue/24/outline";
 
 const router = useRouter();
 const { logEvent } = useAnalytics();
@@ -367,7 +368,7 @@ watch(
   }
 );
 
-async function handleRegister() {
+const handleRegister = async () => {
   if (!isFormValid.value) return;
 
   loading.value = true;
@@ -393,7 +394,12 @@ async function handleRegister() {
     });
 
     router.push("/");
-  } catch (error) {
+  } catch (error: any) {
+    console.error({
+      message: "Error al registrar usuario",
+      error: error.code,
+    });
+
     logEvent("registration_failure", {
       error: error.code,
       email: form.value.email,
@@ -411,5 +417,5 @@ async function handleRegister() {
   } finally {
     loading.value = false;
   }
-}
+};
 </script>

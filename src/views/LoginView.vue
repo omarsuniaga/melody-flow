@@ -83,17 +83,13 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase/config";
-import {
-  UserIcon,
-  AtSymbolIcon,
-  EnvelopeIcon,
-  LockClosedIcon,
-  KeyIcon,
-  EyeIcon,
-  EyeSlashIcon,
-  ArrowRightOnRectangleIcon,
-  UserPlusIcon,
-} from "@heroicons/vue/24/outline";
+import UserIcon from "@heroicons/vue/24/outline/UserIcon";
+import AtSymbolIcon from "@heroicons/vue/24/outline/AtSymbolIcon";
+import LockClosedIcon from "@heroicons/vue/24/outline/LockClosedIcon";
+import EyeIcon from "@heroicons/vue/24/outline/EyeIcon";
+import EyeSlashIcon from "@heroicons/vue/24/outline/EyeSlashIcon";
+import ArrowRightOnRectangleIcon from "@heroicons/vue/24/outline/ArrowRightOnRectangleIcon";
+import UserPlusIcon from "@heroicons/vue/24/outline/UserPlusIcon";
 
 const router = useRouter();
 const email = ref("");

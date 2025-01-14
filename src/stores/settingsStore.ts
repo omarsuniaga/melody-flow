@@ -4,7 +4,6 @@ interface AlertTime {
   minutes: number;
   type: 'early' | 'standard' | 'final';
   enabled: boolean;
-
 }
 
 interface NotificationSettings {
@@ -20,6 +19,11 @@ interface NotificationSettings {
   defaultFinalAlert: number; // minutos para la alarma final
 }
 
+interface NotificationConfig {
+  // ...existing properties...
+  sound: string;
+}
+
 export const useSettingsStore = defineStore('settings', {
   state: () => ({
     notificationSettings: {
@@ -31,10 +35,10 @@ export const useSettingsStore = defineStore('settings', {
       customAudioUrl: localStorage.getItem('customAudioUrl') || null,
       finalAlarmSound: '/audios/final-alarm.mp3',
       alertTimes: [
-        { minutes: 360, type: 'early', enabled: true },    // 6 horas antes
-        { minutes: 240, type: 'early', enabled: true },    // 4 horas antes
-        { minutes: 120, type: 'early', enabled: true },    // 2 horas antes
-        { minutes: 60, type: 'final', enabled: true }      // 1 hora antes (alarma final)
+        { minutes: 360, type: 'early' as const, enabled: true },    // 6 horas antes
+        { minutes: 240, type: 'early' as const, enabled: true },    // 4 horas antes
+        { minutes: 120, type: 'early' as const, enabled: true },    // 2 horas antes
+        { minutes: 60, type: 'final' as const, enabled: true }      // 1 hora antes (alarma final)
       ],
       customAlertTimes: [],
       defaultFinalAlert: 60, // por defecto 1 hora
@@ -57,7 +61,7 @@ export const useSettingsStore = defineStore('settings', {
 
     addAlertTime(minutes: number) {
       if (!this.notificationSettings.alertTimes.some(alert => alert.minutes === minutes)) {
-        this.notificationSettings.alertTimes.push({ minutes, type: 'standard', enabled: true })
+        this.notificationSettings.alertTimes.push({ minutes, type: 'standard' as const, enabled: true })
         this.notificationSettings.alertTimes.sort((a, b) => b.minutes - a.minutes)
       }
     },
@@ -77,7 +81,7 @@ export const useSettingsStore = defineStore('settings', {
       if (!this.notificationSettings.customAlertTimes.some(alert => alert.minutes === minutes)) {
         this.notificationSettings.customAlertTimes.push({
           minutes,
-          type: 'early',
+          type: 'early' as const,
           enabled: true
         });
         this.updateAlertTimes();
@@ -91,8 +95,7 @@ export const useSettingsStore = defineStore('settings', {
     },
 
     updateAlertTimes() {
-      // Combinar alertas personalizadas con la alerta final
-      const allAlerts = [
+      const allAlerts: AlertTime[] = [
         ...this.notificationSettings.customAlertTimes,
         {
           minutes: this.notificationSettings.defaultFinalAlert,
@@ -101,7 +104,6 @@ export const useSettingsStore = defineStore('settings', {
         }
       ];
 
-      // Ordenar por tiempo (más lejano primero)
       this.notificationSettings.alertTimes = allAlerts.sort((a, b) => b.minutes - a.minutes);
     }
   }

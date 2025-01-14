@@ -44,12 +44,12 @@ export const useEventStore = defineStore('events', () => {
       await updateDoc(eventRef, {
         ...eventData,
         updatedAt: new Date().toISOString(),
-        userId: auth.currentUser?.uid // Ensure userId is updated
+        userId: auth.currentUser!.uid // Ensure userId is updated
       })
 
       const index = events.value.findIndex(e => e.id === id)
       if (index !== -1) {
-        events.value[index] = { ...events.value[index], ...eventData, userId: auth.currentUser?.uid }
+        events.value[index] = { ...events.value[index], ...eventData, userId: auth.currentUser!.uid }
       }
     } catch (err) {
       error.value = 'Failed to update event'

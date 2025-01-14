@@ -104,7 +104,7 @@ export class NotificationService {
       }
 
       // Si no hay audio personalizado o falló, usar el audio por defecto
-      const defaultAudio = new Audio(notificationConfig.sound)
+      const defaultAudio = new Audio(notificationConfig.defaultSound) // Cambiamos a defaultSound
       await defaultAudio.play()
     } catch (error) {
       console.warn('Error reproduciendo sonido:', error)
@@ -222,7 +222,7 @@ export class NotificationService {
     }
   }
 
-  private async wakeScreen() {
+  public async wakeScreen(): Promise<void> {
     try {
       if ('wakeLock' in navigator) {
         const wakeLock = await (navigator as any).wakeLock.request('screen');
@@ -235,7 +235,7 @@ export class NotificationService {
     }
   }
 
-  private flashLED(isFinalAlert: boolean = false) {
+  public async flashLED(isFinalAlert: boolean = false): Promise<void> {
     if ('setAppBadge' in navigator) {
       if (isFinalAlert) {
         // Para la alarma final, hacer parpadear el LED
