@@ -16,10 +16,14 @@
       "@/*": ["./src/*"]
     },
     "types": [
-      "vite/client",
-      "@heroicons/vue"
+      "vite/client"
     ],
-    "allowJs": true
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/types"
+    ],
+    "allowJs": true,
+    "noImplicitAny": false
   },
   "include": [
     "src/**/*.ts",

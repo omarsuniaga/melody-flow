@@ -25,3 +25,5 @@ dist-ssr
 .env.local
 .env
 
+# Asegúrate que no haya una línea que excluya *.toml
+

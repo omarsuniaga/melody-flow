@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
-    "lint": "eslint --ext .vue,.ts,.js src/"
+    "lint": "eslint --ext .vue,.ts,.js src/",
+    "postinstall": "vue-tsc --declaration --emitDeclarationOnly"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.15",
@@ -21,6 +22,10 @@
     "pinia": "^2.1.7",
     "vue": "^3.4.15",
     "vue-router": "^4.5.0"
+  },
+  "engines": {
+    "node": ">=18.17.0",
+    "npm": ">=9.6.7"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^8.20.0",
@@ -40,4 +45,3 @@
     "vue-tsc": "^2.2.0"
   }
 }
-
