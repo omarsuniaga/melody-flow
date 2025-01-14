@@ -35,7 +35,7 @@ import { CalendarIcon, ChartBarIcon, UserIcon } from "@heroicons/vue/24/outline"
 
 const route = useRoute();
 
-function isActive(path) {
+function isActive(path: string): boolean {
   return route.path === path;
 }
 

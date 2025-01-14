@@ -177,7 +177,7 @@
             </div>
           </div>
 
-          <!-- Preferencias de Notificaciones -->
+          <!-- Preferencias de Notificaciones (Sección Unificada) -->
           <div class="border rounded-lg overflow-hidden">
             <button
               @click="toggleSection('notifications')"
@@ -239,7 +239,7 @@
                 </label>
               </div>
 
-              <!-- Configuración de Sonido Personalizado -->
+              <!-- Configuración de Sonido -->
               <div class="space-y-4 mb-6">
                 <h4 class="font-medium">Sonido de Notificación</h4>
                 <div class="flex flex-col gap-4">
@@ -276,120 +276,12 @@
                       class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                     />
                   </div>
-
-                  <!-- Botones de prueba -->
-                  <div class="flex gap-2">
-                    <button
-                      @click="testNotificationSound"
-                      class="btn btn-secondary flex items-center gap-2"
-                      :disabled="!notificationSettings.sound"
-                    >
-                      <span>Probar Sonido</span>
-                      <SpeakerWaveIcon class="h-5 w-5" />
-                    </button>
-
-                    <button
-                      @click="startNotificationTest"
-                      class="btn btn-primary flex items-center gap-2"
-                      :disabled="isTestingNotification"
-                    >
-                      <span>
-                        {{
-                          isTestingNotification
-                            ? `Probando en ${countdownSeconds}s`
-                            : "Probar Todo"
-                        }}
-                      </span>
-                      <BellIcon class="h-5 w-5" />
-                    </button>
-                  </div>
                 </div>
-              </div>
-
-              <!-- Prueba de Sistema de Notificaciones -->
-              <div class="space-y-4">
-                <h4 class="font-medium">Prueba del Sistema</h4>
-                <div class="flex flex-col gap-4">
-                  <button
-                    @click="sendTestNotification"
-                    class="btn btn-primary flex items-center justify-center gap-2"
-                    :disabled="!notificationSettings.enabled"
-                  >
-                    <BellIcon class="h-5 w-5" />
-                    <span>Probar Notificación Completa</span>
-                  </button>
-                  <button
-                    @click="scheduleTestNotification"
-                    class="btn btn-secondary flex items-center justify-center gap-2"
-                    :disabled="isTestScheduled || !notificationSettings.enabled"
-                  >
-                    <ClockIcon class="h-5 w-5" />
-                    <span>{{
-                      isTestScheduled
-                        ? "Notificación programada..."
-                        : "Programar Notificación de Prueba"
-                    }}</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Preferencias de Notificaciones -->
-          <div class="border rounded-lg overflow-hidden">
-            <button
-              @click="toggleSection('notifications')"
-              class="w-full px-4 py-3 flex justify-between items-center bg-gray-50 hover:bg-gray-100"
-            >
-              <h3 class="text-lg font-medium text-gray-900">
-                Preferencias de Notificaciones
-              </h3>
-              <ChevronDownIcon
-                :class="[
-                  'h-5 w-5 transition-transform',
-                  sections.notifications ? 'transform rotate-180' : '',
-                ]"
-              />
-            </button>
-            <div v-show="sections.notifications" class="p-4 max-h-[70vh] overflow-y-auto">
-              <!-- Configuración General -->
-              <div class="space-y-4 mb-6">
-                <label class="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    v-model="notificationSettings.sound"
-                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span>Activar Sonidos</span>
-                </label>
-                <label class="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    v-model="notificationSettings.vibration"
-                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span>Activar Vibración</span>
-                </label>
-                <label class="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    v-model="notificationSettings.screen"
-                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span>Activar Pantalla en Alerta</span>
-                </label>
-                <label class="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    v-model="notificationSettings.led"
-                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span>Activar Notificaciones LED</span>
-                </label>
               </div>
 
               <!-- Configuración de Tiempos de Alerta -->
-              <div class="space-y-4">
+              <div class="space-y-4 mb-6">
+                <h4 class="font-medium">Tiempos de Alerta</h4>
                 <!-- Configuración de Alarma Final -->
                 <div class="mb-4">
                   <label class="block text-sm font-medium text-gray-700">
@@ -452,8 +344,35 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Pruebas del Sistema -->
+              <div class="space-y-4">
+                <h4 class="font-medium">Pruebas del Sistema</h4>
+                <div class="flex flex-wrap gap-2">
+                  <button
+                    @click="testNotificationSound"
+                    class="btn btn-secondary flex items-center gap-2"
+                    :disabled="!notificationSettings.sound"
+                  >
+                    <span>Probar Sonido</span>
+                    <SpeakerWaveIcon class="h-5 w-5" />
+                  </button>
+
+                  <button
+                    @click="startNotificationTest"
+                    class="btn btn-primary flex items-center gap-2"
+                    :disabled="isTestingNotification"
+                  >
+                    <span>
+                      {{ isTestingNotification ? `Probando en ${countdownSeconds}s` : 'Probar Todo' }}
+                    </span>
+                    <BellIcon class="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
+
         </div>
 
         <!-- Cerrar Sesión -->

@@ -56,7 +56,7 @@
 </template>
 
 <script lang="ts">
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/vue/solid";
+import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/vue/24/solid";
 import { TransitionRoot } from "@headlessui/vue";
 import { useCalendar } from "../composables/useCalendar";
 import LoadingSpinner from "./LoadingSpinner.vue";
