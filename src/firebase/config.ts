@@ -1,5 +1,5 @@
 import { initializeApp, getApps } from 'firebase/app'
-import { getAuth } from 'firebase/auth'
+import { getAuth, GoogleAuthProvider } from 'firebase/auth'
 import { getMessaging, getToken } from 'firebase/messaging'
 import { getFirestore } from 'firebase/firestore'
 
@@ -32,11 +32,18 @@ const firebaseConfig = {
 // Inicializar Firebase solo si no hay una instancia existente
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0]
 
-// Exportar servicios
-export const auth = getAuth(app)
-export const messaging = getMessaging(app)
-export const db = getFirestore(app)
-export { app }
+// Crear y configurar el proveedor de Google
+const _googleProvider = new GoogleAuthProvider();
+_googleProvider.setCustomParameters({
+  prompt: 'select_account'
+});
+
+// Exportaciones
+export const auth = getAuth(app);
+export const googleProvider = _googleProvider;
+export const messaging = getMessaging(app);
+export const db = getFirestore(app);
+export default app;
 
 // Función para obtener el token de FCM
 export async function getFCMToken() {

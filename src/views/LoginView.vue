@@ -62,6 +62,24 @@
             <ArrowRightOnRectangleIcon class="h-5 w-5" />
             Iniciar sesión
           </button>
+
+          <div class="relative my-4">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-gray-300"></div>
+            </div>
+            <div class="relative flex justify-center text-sm">
+              <span class="px-2 bg-white text-gray-500">O continuar con</span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            @click="handleGoogleLogin"
+            class="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <img src="https://www.google.com/favicon.ico" alt="Google" class="w-5 h-5" />
+            Continuar con Google
+          </button>
         </form>
 
         <div class="mt-6 text-center text-sm">
@@ -81,8 +99,12 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebase/config";
+import {
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+} from "firebase/auth";
+import { auth } from "@/firebase/config"; // Asegúrate de usar @/ para la ruta
 import UserIcon from "@heroicons/vue/24/outline/UserIcon";
 import AtSymbolIcon from "@heroicons/vue/24/outline/AtSymbolIcon";
 import LockClosedIcon from "@heroicons/vue/24/outline/LockClosedIcon";
@@ -95,6 +117,7 @@ const router = useRouter();
 const email = ref("");
 const password = ref("");
 const showPassword = ref(false);
+const googleProvider = new GoogleAuthProvider();
 
 const handleLogin = async () => {
   try {
@@ -102,6 +125,15 @@ const handleLogin = async () => {
     router.push("/");
   } catch (error) {
     console.error("Error al iniciar sesión:", error);
+  }
+};
+
+const handleGoogleLogin = async () => {
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    router.push("/");
+  } catch (error) {
+    console.error("Error al iniciar sesión con Google:", error);
   }
 };
 </script>

@@ -212,6 +212,30 @@
                 </div>
               </div>
 
+              <div class="relative my-6">
+                <div class="absolute inset-0 flex items-center">
+                  <div class="w-full border-t border-gray-300"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                  <span class="px-2 bg-white text-gray-500">{{
+                    t("register.orContinueWith")
+                  }}</span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                @click="handleGoogleSignup"
+                class="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <img
+                  src="https://www.google.com/favicon.ico"
+                  alt="Google"
+                  class="w-5 h-5"
+                />
+                {{ t("register.continueWithGoogle") }}
+              </button>
+
               <!-- Submit Button -->
               <div>
                 <button
@@ -267,7 +291,8 @@ import { useRouter } from "vue-router";
 import EyeIcon from "@heroicons/vue/24/outline/EyeIcon";
 import EyeSlashIcon from "@heroicons/vue/24/outline/EyeSlashIcon";
 import UserPlusIcon from "@heroicons/vue/24/outline/UserPlusIcon";
-import { auth } from "../firebase/config";
+import { auth } from "@/firebase/config";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { useAnalytics } from "../composables/useAnalytics";
 import { useDeviceInfo } from "../composables/useDeviceInfo";
@@ -297,6 +322,8 @@ const errors = ref({
 
 const loading = ref(false);
 const showPassword = ref(false);
+
+const googleProvider = new GoogleAuthProvider();
 
 // Password strength calculation
 const passwordStrength = computed(() => {
@@ -414,6 +441,31 @@ const handleRegister = async () => {
     } else {
       errors.value.email = t("register.errors.generic");
     }
+  } finally {
+    loading.value = false;
+  }
+};
+
+const handleGoogleSignup = async () => {
+  loading.value = true;
+  try {
+    const deviceInfo = await collectDeviceInfo();
+    logEvent("google_registration_attempt", { deviceInfo });
+
+    const result = await signInWithPopup(auth, googleProvider);
+
+    logEvent("registration_success", {
+      userId: result.user.uid,
+      method: "google",
+      deviceInfo,
+    });
+
+    router.push("/");
+  } catch (error: any) {
+    console.error("Error al registrarse con Google:", error);
+    logEvent("google_registration_failure", {
+      error: error.code,
+    });
   } finally {
     loading.value = false;
   }

@@ -10,9 +10,9 @@
         <span class="text-xs">Calendario</span>
       </router-link>
       <router-link
-        to="/monthly-balance"
+        to="/balance"
         class="flex flex-col items-center"
-        :class="{ 'text-blue-600': isActive('/monthly-balance') }"
+        :class="{ 'text-blue-600': isActive('/balance') }"
       >
         <ChartBarIcon class="h-6 w-6" />
         <span class="text-xs">Balance</span>

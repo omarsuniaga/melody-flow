@@ -442,6 +442,22 @@ async function deleteEvent() {
   }
 }
 
+// Añadir esta función de verificación de tipo antes de la función deleteEvent
+function isMusicEvent(event: any): event is MusicEvent {
+  return (
+    event &&
+    typeof event === 'object' &&
+    'id' in event &&
+    'date' in event &&
+    'provider' in event &&
+    'description' in event &&
+    'location' in event &&
+    'time' in event &&
+    'amount' in event &&
+    'isFixed' in event
+  );
+}
+
 const findSimilarEvents = computed(() => {
   const eventToDeleteValue = eventToDelete.value;
 
