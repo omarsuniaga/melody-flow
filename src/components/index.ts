@@ -9,3 +9,6 @@ export { default as CalendarEventComponent } from './CalendarEventComponent.vue'
 export { default as CalendarHeaderComponent } from './CalendarHeaderComponent.vue';
 export { default as CalendarWeekComponent } from './CalendarWeekComponent.vue';
 export { default as CalendarWeekdayComponent } from './CalendarWeekdayComponent.vue';
+export { default as CalendarWeekHeaderComponent } from './CalendarWeekHeaderComponent.vue';
+export { default as CalendarWeekHeaderDayComponent } from './CalendarWeekHeaderDayComponent.vue';
+

@@ -68,12 +68,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
-import { useRouter, useRoute } from "vue-router";
-import ChevronLeftIcon from "@heroicons/vue/24/outline/ChevronLeftIcon";
-import ChevronRightIcon from "@heroicons/vue/24/outline/ChevronRightIcon";
-import CalendarIcon from "@heroicons/vue/24/outline/CalendarIcon";
-import ChartBarIcon from "@heroicons/vue/24/outline/ChartBarIcon";
-import UserIcon from "@heroicons/vue/24/outline/UserIcon";
+import { ChevronLeftIcon, ChevronRightIcon, CalendarIcon } from "../utils/icons";
 import { useEventStore } from "../stores/eventStore";
 import { format, isToday, startOfDay, endOfDay, parseISO } from "date-fns";
 import FooterLayout from "./footerLayout.vue";
@@ -98,15 +93,10 @@ const todayEvents = computed(() => {
   const startOfToday = startOfDay(today);
   const endOfToday = endOfDay(today);
 
-  console.log("Fecha actual:", today.toISOString());
-  console.log("Inicio del día:", startOfToday.toISOString());
-  console.log("Fin del día:", endOfToday.toISOString());
-
   return eventStore.events
     .filter((event) => {
       // Convertir la fecha del evento a objeto Date
       const eventDate = parseISO(event.date);
-      console.log("Fecha del evento:", event.description, eventDate.toISOString());
 
       // Comparar si el evento está dentro del día actual
       const isToday = eventDate >= startOfToday && eventDate <= endOfToday;

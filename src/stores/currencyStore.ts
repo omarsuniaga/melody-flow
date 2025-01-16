@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import type { Currency, CurrencySettings } from '../types/currency'
 import axios from 'axios'
-import * as countryFlagIcons from 'country-flag-icons/unicode'
+import { getUnicodeFlagIcon } from 'country-flag-icons/unicode'
 
 const EXCHANGE_API_URL = 'https://api.exchangerate-api.com/v4/latest/'
 
@@ -115,14 +115,14 @@ export const useCurrencyStore = defineStore('currency', {
       try {
         // Primero intentar obtener del mapeo predeterminado
         if (defaultFlags[currencyCode]) {
-          return defaultFlags[currencyCode]
+          return defaultFlags[currencyCode];
         }
 
         // Luego intentar convertir el código de moneda a código de país
-        const countryCode = this.getCurrencyCountry(currencyCode)
+        const countryCode = this.getCurrencyCountry(currencyCode);
 
-        // Obtener el emoji de la bandera usando el código del país
-        return countryFlagIcons.default[countryCode] || '🏳️'
+        // Usar getUnicodeFlagIcon en lugar de acceder directamente
+        return getUnicodeFlagIcon(countryCode) || '🏳️';
       } catch {
         return '🏳️' // Bandera neutral como fallback
       }

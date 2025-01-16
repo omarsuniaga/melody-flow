@@ -18,17 +18,19 @@ export const useEventStore = defineStore('events', () => {
 
     try {
       loading.value = true
+      const docRef = await addDoc(collection(db, 'actividades'), {
+        ...eventData
+      })
       const newEvent: MusicEvent = {
         ...eventData,
+        id: docRef.id,
         createdAt: new Date().toISOString(),
         createdBy: auth.currentUser.displayName || auth.currentUser.email || 'Unknown',
         userIP: '', // Add IP address here
         userId: auth.currentUser.uid
-
       }
 
-      const docRef = await addDoc(collection(db, 'actividades'), newEvent)
-      events.value.push({ ...newEvent, id: docRef.id })
+      events.value.push(newEvent)
     } catch (err) {
       error.value = 'Failed to add event'
       throw err
@@ -61,16 +63,16 @@ export const useEventStore = defineStore('events', () => {
 
   const deleteEvent = async (id: string) => {
     try {
-      loading.value = true
-      await deleteDoc(doc(db, 'actividades', id))
-      events.value = events.value.filter(e => e.id !== id)
+      loading.value = true;
+      await deleteDoc(doc(db, 'actividades', id)); // Eliminar de Firestore
+      events.value = events.value.filter(e => e.id !== id); // Actualizar estado local
     } catch (err) {
-      error.value = 'Failed to delete event'
-      throw err
+      error.value = 'Failed to delete event';
+      throw err;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
-  }
+  };
 
   const fetchEvents = async () => {
     if (!auth.currentUser) return

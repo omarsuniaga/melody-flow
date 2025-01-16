@@ -1,24 +1,15 @@
-import { defineStore } from 'pinia'
+import { defineStore } from 'pinia';
+import { ref } from 'vue';
 
-interface UserState {
-  currentUser: {
-    uid?: string;
-    email?: string;
-  } | null;
-}
+export const useUserStore = defineStore('user', () => {
+  const artistName = ref('');
 
-export const useUserStore = defineStore('user', {
-  state: (): UserState => ({
-    currentUser: null
-  }),
+  const setArtistName = (name: string) => {
+    artistName.value = name;
+  };
 
-  actions: {
-    setCurrentUser(user: UserState['currentUser']) {
-      this.currentUser = user
-    },
-
-    clearCurrentUser() {
-      this.currentUser = null
-    }
-  }
-})
+  return {
+    artistName,
+    setArtistName
+  };
+});

@@ -128,26 +128,69 @@ const handleLogin = async () => {
   }
 };
 
+const isFirebaseError = (error: unknown): boolean => {
+  return typeof error === "object" && error !== null && "code" in error;
+};
+
 const handleGoogleLogin = async () => {
   try {
-    const result = await signInWithPopup(auth, googleProvider);
+    await signInWithPopup(auth, googleProvider);
     router.push("/");
   } catch (error) {
     console.error("Error al iniciar sesión con Google:", error);
+    let errorMessage = "Error al iniciar sesión con Google";
+
+    if ((error as { code: string }).code === "auth/operation-not-allowed") {
+      errorMessage =
+        "La autenticación con Google no está habilitada. Por favor, contacta al administrador.";
+    } else if ((error as { code: string }).code === "auth/popup-blocked") {
+      errorMessage =
+        "El popup fue bloqueado por el navegador. Por favor, permite ventanas emergentes.";
+    }
+
+    // Aquí puedes mostrar el error al usuario usando tu sistema de notificaciones
+    alert(errorMessage);
   }
 };
 </script>
 
 <style scoped>
 .input {
-  @apply appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm;
+  appearance: none;
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  color: #1f2937;
+  border-radius: 0.375rem;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+  font-size: 0.875rem;
+}
+
+.input::placeholder {
+  color: #6b7280;
 }
 
 .btn {
-  @apply py-2 px-4 border border-transparent text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors;
+  padding: 0.5rem 1rem;
+  border: 1px solid transparent;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+  transition: background-color 0.2s;
 }
 
 .btn-primary {
-  @apply text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500;
+  color: #fff;
+  background-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+.btn-primary:hover {
+  background-color: #1d4ed8;
 }
 </style>

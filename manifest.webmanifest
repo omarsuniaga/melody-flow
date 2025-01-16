@@ -5,6 +5,15 @@
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",
+  "permissions": [
+    "notifications",
+    "wake-lock",
+    "vibrate"
+  ],
+  "background": {
+    "scripts": ["sw.js"],
+    "persistent": false
+  },
   "icons": [
     {
       "src": "/icons/icon-192x192.png",

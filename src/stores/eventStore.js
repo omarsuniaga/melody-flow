@@ -9,16 +9,30 @@ export const useEventStore = defineStore('events', () => {
     const getEventsByDate = computed(() => (date) => {
         return events.value.filter(event => event.date === date);
     });
+
+    const getUserIP = async () => {
+        try {
+            const response = await fetch('https://api.ipify.org?format=json');
+            const data = await response.json();
+            return data.ip;
+        } catch (err) {
+            console.error('Error al obtener IP:', err);
+            return 'Unknown IP';
+        }
+    };
+
     const addEvent = async (eventData) => {
         if (!auth.currentUser)
             throw new Error('User not authenticated');
         try {
             loading.value = true;
+            const userIP = await getUserIP();
+            const userEmail = auth.currentUser.email;
             const newEvent = {
                 ...eventData,
                 createdAt: new Date().toISOString(),
-                createdBy: auth.currentUser.displayName || auth.currentUser.email || 'Unknown',
-                userIP: '', // Add IP address here
+                createdBy: userEmail, // Usar directamente el email
+                userIP: userIP,
                 userId: auth.currentUser.uid
             };
             const docRef = await addDoc(collection(db, 'actividades'), newEvent);
@@ -55,16 +69,17 @@ export const useEventStore = defineStore('events', () => {
         }
     };
     const deleteEvent = async (id) => {
+        if (!id) throw new Error('ID is required to delete event');
         try {
             loading.value = true;
-            await deleteDoc(doc(db, 'actividades', id));
+            const eventRef = doc(db, 'actividades', id); // Aseguramos que la referencia sea correcta
+            await deleteDoc(eventRef);
             events.value = events.value.filter(e => e.id !== id);
-        }
-        catch (err) {
+        } catch (err) {
             error.value = 'Failed to delete event';
+            console.error('Error deleting event:', err);
             throw err;
-        }
-        finally {
+        } finally {
             loading.value = false;
         }
     };
@@ -73,7 +88,11 @@ export const useEventStore = defineStore('events', () => {
             return;
         try {
             loading.value = true;
-            const q = query(collection(db, 'actividades'), where('userId', '==', auth.currentUser.uid));
+            const userEmail = auth.currentUser.email;
+            const q = query(
+                collection(db, 'actividades'),
+                where('createdBy', '==', userEmail)
+            );
             const querySnapshot = await getDocs(q);
             events.value = querySnapshot.docs.map(doc => ({
                 id: doc.id,
@@ -90,10 +109,34 @@ export const useEventStore = defineStore('events', () => {
     };
     const togglePaymentStatus = async (id) => {
         const event = events.value.find(e => e.id === id);
-        if (!event)
-            return;
-        const newPaymentStatus = event.paymentStatus === 'Pendiente' ? 'Pagado' : 'Pendiente';
-        await updateEvent(id, { paymentStatus: newPaymentStatus });
+        if (!event) return;
+
+        try {
+            loading.value = true;
+            const newPaymentStatus = event.paymentStatus === 'Pendiente' ? 'Pagado' : 'Pendiente';
+
+            // Actualizar en Firestore
+            const eventRef = doc(db, 'actividades', id);
+            await updateDoc(eventRef, {
+                paymentStatus: newPaymentStatus,
+                updatedAt: new Date().toISOString()
+            });
+
+            // Actualizar en el estado local
+            const index = events.value.findIndex(e => e.id === id);
+            if (index !== -1) {
+                events.value[index] = {
+                    ...events.value[index],
+                    paymentStatus: newPaymentStatus,
+                    updatedAt: new Date().toISOString()
+                };
+            }
+        } catch (err) {
+            error.value = 'Failed to update payment status';
+            throw err;
+        } finally {
+            loading.value = false;
+        }
     };
     return {
         events,

@@ -7,15 +7,15 @@ export const notificationConfig = {
     },
     {
       name: 'Alarma de Alerta',
-      path: '/audios/alert-sound.mp3'
+      path: '/audios/level-up-2-199574.mp3'
     },
     {
       name: 'Campana Suave',
-      path: '/audios/soft-bell.mp3'
+      path: '/audios/level-up-3-199576.mp3'
     },
     {
       name: 'Alarma de Urgencia',
-      path: '/audios/urgent-alarm.mp3'
+      path: '/audios/siren-alert-96052.mp3'
     }
   ],
   defaultSound: '/audios/notification-sound.mp3',

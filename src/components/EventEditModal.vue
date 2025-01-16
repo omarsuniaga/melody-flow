@@ -132,7 +132,7 @@ import { ref } from "vue";
 import ModalComponent from "./ModalComponent.vue";
 import ButtonComponent from "./ButtonComponent.vue";
 import { useEventStore } from "../stores/eventStore";
-import type { MusicEvent, EventFormData } from "../types/event";
+import { MusicEvent, EventFormData } from "../types/event";
 
 const props = defineProps<{
   modelValue: boolean;
@@ -147,8 +147,6 @@ const emit = defineEmits<{
 const eventStore = useEventStore();
 const eventForm = ref<EventFormData>({
   id: props.event.id,
-  title: props.event.description, // Usar description como title
-  type: props.event.activityType, // Usar activityType como type
   activityType: props.event.activityType,
   paymentStatus: props.event.paymentStatus,
   provider: props.event.provider,

@@ -1,6 +1,9 @@
 <template>
-  <ModalComponent :model-value="modelValue" @update:model-value="$emit('update:modelValue', $event)"
-         :title="'Detalles del Evento'">
+  <ModalComponent
+    :model-value="modelValue"
+    @update:model-value="$emit('update:modelValue', $event)"
+    :title="'Detalles del Evento'"
+  >
     <div class="space-y-4">
       <div class="grid grid-cols-2 gap-4">
         <div>
@@ -9,10 +12,14 @@
         </div>
         <div>
           <h4 class="text-sm font-medium text-gray-500">Estado de Pago</h4>
-          <p :class="{
-            'text-green-600': event.paymentStatus === 'Pagado',
-            'text-yellow-600': event.paymentStatus === 'Pendiente'
-          }">{{ event.paymentStatus }}</p>
+          <p
+            :class="{
+              'text-green-600': event.paymentStatus === 'Pagado',
+              'text-red-600': event.paymentStatus === 'Pendiente',
+            }"
+          >
+            {{ event.paymentStatus }}
+          </p>
         </div>
       </div>
 
@@ -52,14 +59,18 @@
           <p>Creado: {{ formatDateTime(event.createdAt) }}</p>
         </div>
         <div>
-          <p>Actualizado: {{ event.updatedAt ? formatDateTime(event.updatedAt) : 'N/A' }}</p>
+          <p>
+            Actualizado: {{ event.updatedAt ? formatDateTime(event.updatedAt) : "N/A" }}
+          </p>
         </div>
       </div>
     </div>
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <ButtonComponent variant="secondary" @click="$emit('edit')">Editar</ButtonComponent>
+        <ButtonComponent variant="secondary" @click="$emit('edit')"
+          >Editar</ButtonComponent
+        >
         <ButtonComponent variant="primary" @click="close">Cerrar</ButtonComponent>
       </div>
     </template>
@@ -67,14 +78,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
-import { format } from 'date-fns';
-import ModalComponent from './ModalComponent.vue';
-import ButtonComponent from './ButtonComponent.vue';
-import { MusicEvent } from '../types/event';
+import { defineComponent } from "vue";
+import { format } from "date-fns";
+import ModalComponent from "./ModalComponent.vue";
+import ButtonComponent from "./ButtonComponent.vue";
+import { MusicEvent } from "../types/event";
 
 export default defineComponent({
-  name: 'EventDetailsModal',
+  name: "EventDetailsModal",
   components: {
     ModalComponent,
     ButtonComponent,
@@ -89,23 +100,23 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: ['update:modelValue', 'edit'],
+  emits: ["update:modelValue", "edit"],
   methods: {
     formatDate(date: string): string {
-      return format(new Date(date), 'dd/MM/yyyy');
+      return format(new Date(date), "dd/MM/yyyy");
     },
     formatDateTime(date?: string): string {
-      if (!date) return 'N/A';
-      return format(new Date(date), 'dd/MM/yyyy HH:mm');
+      if (!date) return "N/A";
+      return format(new Date(date), "dd/MM/yyyy HH:mm");
     },
     formatCurrency(amount: number): string {
-      return new Intl.NumberFormat('es-DO', {
-        style: 'currency',
-        currency: 'DOP',
+      return new Intl.NumberFormat("es-DO", {
+        style: "currency",
+        currency: "DOP",
       }).format(amount);
     },
     close(): void {
-      this.$emit('update:modelValue', false);
+      this.$emit("update:modelValue", false);
     },
   },
 });

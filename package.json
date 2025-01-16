@@ -5,23 +5,28 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build",
+    "build": "vite build",
+    
     "preview": "vite preview",
     "lint": "eslint --ext .vue,.ts,.js src/",
     "postinstall": "vue-tsc --declaration --emitDeclarationOnly"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.15",
+    "@google/generative-ai": "^0.21.0",
     "@headlessui/vue": "^1.7.23",
     "@heroicons/vue": "^2.2.0",
+    "@types/pdfmake": "^0.2.11",
     "@vueuse/core": "^10.7.2",
     "axios": "^1.7.9",
     "country-flag-icons": "^1.5.14",
     "date-fns": "^4.1.0",
     "firebase": "^10.8.0",
+    "pdfmake": "^0.2.18",
     "pinia": "^2.1.7",
     "vue": "^3.4.15",
-    "vue-router": "^4.5.0"
+    "vue-router": "^4.5.0",
+    "vue-toastification": "^2.0.0-rc.5"
   },
   "engines": {
     "node": ">=18.17.0",

@@ -16,9 +16,7 @@
           <span class="inline-block animate-spin mr-2">⌛</span>
           Probando API...
         </template>
-        <template v-else>
-          🔍 Probar API
-        </template>
+        <template v-else> 🔍 Probar API </template>
       </ButtonComponent>
     </div>
 
@@ -27,14 +25,13 @@
       v-if="apiTestResult !== null"
       :class="[
         'mb-4 p-2 rounded text-sm',
-        apiTestResult
-          ? 'bg-green-100 text-green-700'
-          : 'bg-red-100 text-red-700'
+        apiTestResult ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700',
       ]"
     >
-      {{ apiTestResult
-        ? '✅ API funcionando correctamente'
-        : '❌ Error al conectar con la API'
+      {{
+        apiTestResult
+          ? "✅ API funcionando correctamente"
+          : "❌ Error al conectar con la API"
       }}
     </div>
 
@@ -83,7 +80,7 @@
               type="radio"
               v-model="eventForm.paymentStatus"
               value="Pendiente"
-              class="form-radio text-yellow-600"
+              class="form-radio text-red-600"
             />
             <span class="ml-2">Pendiente</span>
           </label>
@@ -101,8 +98,7 @@
             required
             @focus="fetchSuggestions('provider')"
             list="provider-list"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
-                   focus:border-blue-500 focus:ring-blue-500"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
           <datalist id="provider-list">
             <option
@@ -122,8 +118,7 @@
             required
             @focus="fetchSuggestions('description')"
             list="description-list"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
-                   focus:border-blue-500 focus:ring-blue-500"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
           <datalist id="description-list">
             <option
@@ -143,8 +138,7 @@
             required
             @focus="fetchSuggestions('location')"
             list="location-list"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm
-                   focus:border-blue-500 focus:ring-blue-500"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
           <datalist id="location-list">
             <option
@@ -163,8 +157,7 @@
               v-model="eventForm.date"
               type="date"
               required
-              class="mt-1 block w-full rounded-md border-gray-300
-                     shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
           <div>
@@ -173,8 +166,7 @@
               v-model="eventForm.time"
               type="time"
               required
-              class="mt-1 block w-full rounded-md border-gray-300
-                     shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
         </div>
@@ -186,27 +178,17 @@
             v-model.number="eventForm.amount"
             type="number"
             required
-            class="mt-1 block w-full rounded-md border-gray-300
-                   shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
       </div>
 
       <!-- Botones de Acción -->
       <div class="flex justify-end gap-3">
-        <ButtonComponent
-          type="button"
-          variant="secondary"
-          @click="close"
-        >
+        <ButtonComponent type="button" variant="secondary" @click="close">
           Cancelar
         </ButtonComponent>
-        <ButtonComponent
-          type="submit"
-          variant="primary"
-        >
-          Guardar
-        </ButtonComponent>
+        <ButtonComponent type="submit" variant="primary"> Guardar </ButtonComponent>
         <!--
         <ButtonComponent variant="danger" @click="deleteEvent">
           Eliminar
@@ -218,104 +200,105 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import ModalComponent from './ModalComponent.vue'
-import ButtonComponent from './ButtonComponent.vue'
-import { useEventStore } from '../stores/eventStore'
-import { useUserStore } from '../stores/userStore'
-import { addWeeks, isSameMonth, getDay, format } from 'date-fns'
-import { MessageParserService } from '../services/MessageParserService'
-import EventFormModal from './EventFormModal.vue';
-import { EventFormData } from '../types/event'
+import { ref, watch } from "vue";
+import ModalComponent from "./ModalComponent.vue";
+import ButtonComponent from "./ButtonComponent.vue";
+import { useEventStore } from "../stores/eventStore";
+import { useUserStore } from "../stores/userStore";
+import { addWeeks, isSameMonth, getDay, format } from "date-fns";
+import { MessageParserService } from "../services/MessageParserService";
+import { EventFormData } from "../types/event";
+import { useAuthStore } from "../stores/authStore";
 
 /**
  * Props
  */
 const props = defineProps<{
-  modelValue: boolean
-  selectedDate?: Date
-  sharedMessage?: string
-}>()
+  modelValue: boolean;
+  selectedDate?: Date;
+  sharedMessage?: string;
+}>();
 
 /**
  * Emits
  */
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: boolean): void
-  (e: 'saved'): void
-}>()
+  (e: "update:modelValue", value: boolean): void;
+  (e: "saved"): void;
+}>();
 
 /**
  * Stores
  */
-const eventStore = useEventStore()
-const userStore = useUserStore()
-
+const eventStore = useEventStore();
+const userStore = useUserStore();
+const authStore = useAuthStore();
 /**
  * Formulario por defecto
  */
 const defaultFormValues: EventFormData = {
-  id: '',
-  title: '',        // Añadido
-  type: '',         // Añadido
-  activityType: 'Eventual',
-  paymentStatus: 'Pendiente' as const,
-  provider: '',
-  description: '',
-  location: '',
-  date: format(new Date(), 'yyyy-MM-dd'),
-  time: format(new Date(), 'HH:mm'),
+  id: "",
+  activityType: "Eventual",
+  paymentStatus: "Pendiente" as const,
+  provider: "",
+  description: "",
+  location: "",
+  date: format(new Date(), "yyyy-MM-dd"),
+  time: format(new Date(), "HH:mm"),
   amount: 0,
-  userId: userStore.currentUser?.uid || '',
+  userId: authStore.user?.uid || "",
   isFixed: false,
-}
+};
 
 /**
  * Estado Reactivo del Form
  */
-const eventForm = ref<EventFormData>({ ...defaultFormValues })
+const eventForm = ref<EventFormData>({ ...defaultFormValues });
 
 /**
  * Sugerencias (localStorage)
  */
-const providerSuggestions = ref<string[]>([])
-const descriptionSuggestions = ref<string[]>([])
-const locationSuggestions = ref<string[]>([])
+const providerSuggestions = ref<string[]>([]);
+const descriptionSuggestions = ref<string[]>([]);
+const locationSuggestions = ref<string[]>([]);
 
 /**
  * Estado del Test de API
  */
-const isTestingAPI = ref(false)
-const apiTestResult = ref<boolean | null>(null)
+const isTestingAPI = ref(false);
+const apiTestResult = ref<boolean | null>(null);
 
 /**
  * Watcher para el cambio de fecha seleccionada
  */
-watch(() => props.selectedDate, (newDate) => {
-  if (newDate) {
-    eventForm.value.date = newDate.toISOString().split('T')[0]
+watch(
+  () => props.selectedDate,
+  (newDate) => {
+    if (newDate) {
+      eventForm.value.date = newDate.toISOString().split("T")[0];
+    }
   }
-})
+);
 
 /**
  * Manejo de sugerencias desde localStorage
  */
 function fetchSuggestions(field: string) {
-  const suggestions = JSON.parse(localStorage.getItem(field) || '[]')
-  if (field === 'provider') {
-    providerSuggestions.value = suggestions
-  } else if (field === 'description') {
-    descriptionSuggestions.value = suggestions
-  } else if (field === 'location') {
-    locationSuggestions.value = suggestions
+  const suggestions = JSON.parse(localStorage.getItem(field) || "[]");
+  if (field === "provider") {
+    providerSuggestions.value = suggestions;
+  } else if (field === "description") {
+    descriptionSuggestions.value = suggestions;
+  } else if (field === "location") {
+    locationSuggestions.value = suggestions;
   }
 }
 
 function saveSuggestions(field: string, value: string) {
-  const suggestions = JSON.parse(localStorage.getItem(field) || '[]')
+  const suggestions = JSON.parse(localStorage.getItem(field) || "[]");
   if (!suggestions.includes(value)) {
-    suggestions.push(value)
-    localStorage.setItem(field, JSON.stringify(suggestions))
+    suggestions.push(value);
+    localStorage.setItem(field, JSON.stringify(suggestions));
   }
 }
 
@@ -324,30 +307,30 @@ function saveSuggestions(field: string, value: string) {
  */
 async function saveEvent() {
   try {
-    await eventStore.addEvent(eventForm.value)
-    saveSuggestions('provider', eventForm.value.provider)
-    saveSuggestions('description', eventForm.value.description)
-    saveSuggestions('location', eventForm.value.location)
+    await eventStore.addEvent(eventForm.value);
+    saveSuggestions("provider", eventForm.value.provider);
+    saveSuggestions("description", eventForm.value.description);
+    saveSuggestions("location", eventForm.value.location);
 
     // Duplicar evento si es 'Fija'
-    if (eventForm.value.activityType === 'Fija') {
-      let nextDate = addWeeks(new Date(eventForm.value.date), 1)
+    if (eventForm.value.activityType === "Fija") {
+      let nextDate = addWeeks(new Date(eventForm.value.date), 1);
       while (isSameMonth(nextDate, new Date(eventForm.value.date))) {
         await eventStore.addEvent({
           ...eventForm.value,
-          date: nextDate.toISOString().split('T')[0],
-        })
-        nextDate = addWeeks(nextDate, 1)
+          date: nextDate.toISOString().split("T")[0],
+        });
+        nextDate = addWeeks(nextDate, 1);
       }
     }
 
     // Resetear el formulario
-    eventForm.value = { ...defaultFormValues }
+    eventForm.value = { ...defaultFormValues };
 
-    emit('saved')
-    close()
+    emit("saved");
+    close();
   } catch (error) {
-    console.error('Error al guardar el evento:', error)
+    console.error("Error al guardar el evento:", error);
   }
 }
 
@@ -356,31 +339,32 @@ async function saveEvent() {
  */
 async function deleteEvent() {
   try {
-    const eventDate = new Date(eventForm.value.date)
-    const dayOfWeek = getDay(eventDate)
+    const eventDate = new Date(eventForm.value.date);
+    const dayOfWeek = getDay(eventDate);
 
     // Eliminar eventos fijos para el resto del mes
-    if (eventForm.value.activityType === 'Fija') {
-      const eventsToDelete = eventStore.events.filter(e =>
-        e.provider === eventForm.value.provider &&
-        e.description === eventForm.value.description &&
-        e.location === eventForm.value.location &&
-        e.time === eventForm.value.time &&
-        e.amount === eventForm.value.amount &&
-        getDay(new Date(e.date)) === dayOfWeek &&
-        isSameMonth(new Date(e.date), eventDate)
-      )
+    if (eventForm.value.activityType === "Fija") {
+      const eventsToDelete = eventStore.events.filter(
+        (e) =>
+          e.provider === eventForm.value.provider &&
+          e.description === eventForm.value.description &&
+          e.location === eventForm.value.location &&
+          e.time === eventForm.value.time &&
+          e.amount === eventForm.value.amount &&
+          getDay(new Date(e.date)) === dayOfWeek &&
+          isSameMonth(new Date(e.date), eventDate)
+      );
       for (const evt of eventsToDelete) {
-        await eventStore.deleteEvent(evt.id)
+        await eventStore.deleteEvent(evt.id);
       }
     } else if (eventForm.value.id) {
-      await eventStore.deleteEvent(eventForm.value.id)
+      await eventStore.deleteEvent(eventForm.value.id);
     }
 
-    emit('saved')
-    close()
+    emit("saved");
+    close();
   } catch (error) {
-    console.error('Error al eliminar el evento:', error)
+    console.error("Error al eliminar el evento:", error);
   }
 }
 
@@ -389,37 +373,38 @@ async function deleteEvent() {
  */
 async function editEvent() {
   try {
-    await eventStore.updateEvent(eventForm.value.id, eventForm.value)
-    const eventDate = new Date(eventForm.value.date)
-    const dayOfWeek = getDay(eventDate)
+    await eventStore.updateEvent(eventForm.value.id, eventForm.value);
+    const eventDate = new Date(eventForm.value.date);
+    const dayOfWeek = getDay(eventDate);
 
     // Editar eventos fijos para el resto del mes
-    if (eventForm.value.activityType === 'Fija') {
-      const eventsToEdit = eventStore.events.filter(e =>
-        e.provider === eventForm.value.provider &&
-        e.description === eventForm.value.description &&
-        e.location === eventForm.value.location &&
-        e.time === eventForm.value.time &&
-        e.amount === eventForm.value.amount &&
-        getDay(new Date(e.date)) === dayOfWeek &&
-        isSameMonth(new Date(e.date), eventDate)
-      )
+    if (eventForm.value.activityType === "Fija") {
+      const eventsToEdit = eventStore.events.filter(
+        (e) =>
+          e.provider === eventForm.value.provider &&
+          e.description === eventForm.value.description &&
+          e.location === eventForm.value.location &&
+          e.time === eventForm.value.time &&
+          e.amount === eventForm.value.amount &&
+          getDay(new Date(e.date)) === dayOfWeek &&
+          isSameMonth(new Date(e.date), eventDate)
+      );
       for (const evt of eventsToEdit) {
         await eventStore.updateEvent(evt.id, {
           ...evt,
           ...eventForm.value,
-        })
+        });
       }
     } else if (eventForm.value.id) {
       await eventStore.updateEvent(eventForm.value.id, {
         ...eventForm.value,
-      })
+      });
     }
 
-    emit('saved')
-    close()
+    emit("saved");
+    close();
   } catch (error) {
-    console.error('Error al editar el evento:', error)
+    console.error("Error al editar el evento:", error);
   }
 }
 
@@ -427,7 +412,7 @@ async function editEvent() {
  * Cerrar el modal
  */
 function close() {
-  emit('update:modelValue', false)
+  emit("update:modelValue", false);
 }
 
 /**
@@ -435,47 +420,50 @@ function close() {
  */
 async function processSharedMessage(message: string) {
   try {
-    const parsedData = await MessageParserService.parseSharedMessage(message)
+    const parsedData = await MessageParserService.parseSharedMessage(message);
 
     // Actualizar el formulario con los datos extraídos
-    if (parsedData.provider) eventForm.value.provider = parsedData.provider
-    if (parsedData.description) eventForm.value.description = parsedData.description
-    if (parsedData.location) eventForm.value.location = parsedData.location
-    if (parsedData.date) eventForm.value.date = parsedData.date
-    if (parsedData.time) eventForm.value.time = parsedData.time
-    if (parsedData.amount) eventForm.value.amount = parsedData.amount
+    if (parsedData.provider) eventForm.value.provider = parsedData.provider;
+    if (parsedData.description) eventForm.value.description = parsedData.description;
+    if (parsedData.location) eventForm.value.location = parsedData.location;
+    if (parsedData.date) eventForm.value.date = parsedData.date;
+    if (parsedData.time) eventForm.value.time = parsedData.time;
+    if (parsedData.amount) eventForm.value.amount = parsedData.amount;
   } catch (error) {
-    console.error('Error processing shared message:', error)
+    console.error("Error processing shared message:", error);
   }
 }
 
 /**
  * Watch para sharedMessage (si se provee)
  */
-watch(() => props.sharedMessage, (newMessage) => {
-  if (newMessage) {
-    processSharedMessage(newMessage)
+watch(
+  () => props.sharedMessage,
+  (newMessage) => {
+    if (newMessage) {
+      processSharedMessage(newMessage);
+    }
   }
-})
+);
 
 /**
  * Test de API (Gemini)
  */
 async function testGeminiAPI() {
   try {
-    isTestingAPI.value = true
-    console.log('Iniciando prueba de API...')
-    const result = await MessageParserService.testConnection()
-    console.log('Resultado de la prueba:', result)
-    apiTestResult.value = result
+    isTestingAPI.value = true;
+    console.log("Iniciando prueba de API...");
+    const result = await MessageParserService.testConnection();
+    console.log("Resultado de la prueba:", result);
+    apiTestResult.value = result;
   } catch (error) {
-    console.error('Error al probar la API:', error)
-    apiTestResult.value = false
+    console.error("Error al probar la API:", error);
+    apiTestResult.value = false;
   } finally {
-    isTestingAPI.value = false
+    isTestingAPI.value = false;
     setTimeout(() => {
-      apiTestResult.value = null
-    }, 3000)
+      apiTestResult.value = null;
+    }, 3000);
   }
 }
 </script>

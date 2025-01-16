@@ -109,148 +109,31 @@
       </div>
     </div>
 
-    <!-- Modales responsivos -->
-    <ModalComponent
-      v-if="selectedDateEvents.length > 0"
-      v-model="isEventListModalOpen"
-      :title="format(selectedDate, 'MMMM d, yyyy')"
-      class="w-11/12 sm:w-3/4 md:w-2/3 lg:w-1/2"
-    >
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-medium">Eventos del día</h3>
-        <ButtonComponent
-          type="button"
-          variant="primary"
-          :loading="false"
-          :disabled="false"
-          @click="openNewEventForm"
-        >
-          <PlusIcon class="h-5 w-5 mr-1" />
-          Nuevo Evento
-        </ButtonComponent>
-      </div>
-      <div class="mt-4 space-y-4">
-        <div
-          v-for="event in selectedDateEvents"
-          :key="event.id"
-          class="p-4 rounded-lg border"
-          :class="{
-            'bg-green-50': event.paymentStatus === 'Pagado',
-            'bg-yellow-50': event.paymentStatus === 'Pendiente',
-          }"
-        >
-          <div class="flex justify-between items-start">
-            <div class="space-y-1">
-              <h4 class="font-medium text-lg">{{ event.provider }}</h4>
-              <p class="text-sm text-gray-600">{{ event.description }}</p>
-              <div class="flex items-center gap-2 text-sm text-gray-600">
-                <MapPinIcon class="h-4 w-4" />
-                {{ event.location }}
-              </div>
-              <div class="flex items-center gap-2 text-sm text-gray-600">
-                <ClockIcon class="h-4 w-4" />
-                {{ event.time }}
-              </div>
-            </div>
-            <div class="flex gap-2">
-              <button
-                @click="togglePaymentStatus(event)"
-                class="p-2 rounded-full hover:bg-gray-100 transition-colors"
-                :title="
-                  event.paymentStatus === 'Pagado'
-                    ? 'Marcar como Pendiente'
-                    : 'Marcar como Pagado'
-                "
-              >
-                <CheckCircleIcon
-                  v-if="event.paymentStatus === 'Pendiente'"
-                  class="h-6 w-6 text-green-600"
-                />
-                <ClockIcon v-else class="h-6 w-6 text-red-600" />
-              </button>
-              <ButtonComponent
-                type="button"
-                variant="secondary"
-                :loading="false"
-                :disabled="false"
-                @click="viewEvent(event)"
-              >
-                <EyeIcon class="h-4 w-4" />
-              </ButtonComponent>
-              <ButtonComponent
-                type="button"
-                variant="secondary"
-                :loading="false"
-                :disabled="false"
-                @click="editEvent(event)"
-              >
-                <PencilIcon class="h-4 w-4" />
-              </ButtonComponent>
-              <ButtonComponent
-                type="button"
-                variant="danger"
-                :loading="false"
-                :disabled="false"
-                @click="confirmDelete(event)"
-              >
-                <TrashIcon class="h-4 w-4" />
-              </ButtonComponent>
-            </div>
-          </div>
-        </div>
-      </div>
-    </ModalComponent>
-
-    <!-- Formulario de nuevo evento -->
-    <EventFormModal
-      v-model="isEventFormOpen"
+    <!-- Reemplazar los modales antiguos con el nuevo componente -->
+    <CalendarModal
+      :selected-date-events="selectedDateEvents"
       :selected-date="selectedDate"
+      :selected-event="selectedEvent"
+      :is-event-list-modal-open="isEventListModalOpen"
+      :is-event-form-open="isEventFormOpen"
+      :is-view-modal-open="isViewModalOpen"
+      :is-edit-modal-open="isEditModalOpen"
+      :is-delete-modal-open="isDeleteModalOpen"
       :shared-message="sharedMessage"
-      @saved="handleEventSaved"
+      :is-deleting="isDeleting"
+      @update:is-event-list-modal-open="isEventListModalOpen = $event"
+      @update:is-event-form-open="isEventFormOpen = $event"
+      @update:is-view-modal-open="isViewModalOpen = $event"
+      @update:is-edit-modal-open="isEditModalOpen = $event"
+      @update:is-delete-modal-open="isDeleteModalOpen = $event"
+      @view-event="viewEvent"
+      @edit-event="editEvent"
+      @confirm-delete="confirmDelete"
+      @edit-from-view="handleEditEvent"
+      @event-saved="handleEventSaved"
+      @delete-event="handleDeleteEvent"
+      @toggle-payment-status="togglePaymentStatus"
     />
-
-    <!-- Event View Modal -->
-    <EventViewModal
-      v-if="selectedEvent"
-      v-model="isViewModalOpen"
-      :event="selectedEvent"
-      @edit="handleEditEvent"
-    />
-
-    <!-- Event Edit Modal -->
-    <EventEditModal
-      v-if="selectedEvent"
-      v-model="isEditModalOpen"
-      :event="selectedEvent"
-      @saved="handleEventSaved"
-    />
-
-    <!-- Delete Confirmation Modal -->
-    <ModalComponent v-model="isDeleteModalOpen" title="Eliminar Evento">
-      <p>
-        ¿Está seguro que desea eliminar este evento? Esta acción no se puede deshacer.
-      </p>
-      <template #footer>
-        <ButtonComponent
-          type="button"
-          variant="secondary"
-          :loading="false"
-          :disabled="false"
-          @click="closeDeleteModal"
-        >
-          Cancelar
-        </ButtonComponent>
-        <ButtonComponent
-          type="button"
-          variant="danger"
-          :loading="false"
-          :disabled="false"
-          @click="deleteEvent"
-        >
-          Eliminar
-        </ButtonComponent>
-      </template>
-    </ModalComponent>
   </div>
 </template>
 
@@ -280,14 +163,11 @@ import {
   ClockIcon,
   MapPinIcon,
   PlusIcon,
-} from "@heroicons/vue/24/outline/index.js";
+} from "../utils/icons";
 import { useEventStore } from "../stores/eventStore";
-import type { MusicEvent } from "../types/event";
-import ModalComponent from "../components/ModalComponent.vue";
+import { MusicEvent } from "../types/event";
 import ButtonComponent from "../components/ButtonComponent.vue";
-import EventFormModal from "../components/EventFormModal.vue";
-import EventViewModal from "../components/EventViewModal.vue";
-import EventEditModal from "../components/EventEditModal.vue";
+import CalendarModal from "../components/CalendarModal.vue";
 
 const eventStore = useEventStore();
 const currentDate = ref(new Date());
@@ -299,8 +179,9 @@ const isEventFormOpen = ref(false);
 const isViewModalOpen = ref(false);
 const isEditModalOpen = ref(false);
 const selectedEvent = ref<MusicEvent | null>(null);
+const isDeleting = ref(false); // Agregar estado isDeleting
 
-const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const weekDays = ["Dom", "Lun", "Mar", "Mier", "Jue", "Vie", "Sab"];
 
 const calendarDays = computed(() => {
   const start = startOfWeek(startOfMonth(currentDate.value));
@@ -400,7 +281,8 @@ function editEvent(event: MusicEvent) {
 }
 
 function confirmDelete(event: MusicEvent) {
-  eventToDelete.value = event;
+  // Asignar el evento a eliminar antes de abrir el modal
+  selectedEvent.value = event;
   isDeleteModalOpen.value = true;
 }
 
@@ -412,18 +294,13 @@ function closeDeleteModal() {
 async function deleteEvent() {
   const eventToDeleteValue = eventToDelete.value;
 
-  // Verificar que el evento existe y tiene todas las propiedades necesarias
-  if (!eventToDeleteValue || !isMusicEvent(eventToDeleteValue)) {
-    console.error("Evento inválido o incompleto");
+  if (!eventToDeleteValue?.id) {
+    console.error("ID de evento no válido");
     return;
   }
 
   try {
-    const { id, date, isFixed } = eventToDeleteValue;
-    const eventDate = new Date(date);
-    const dayOfWeek = getDay(eventDate);
-
-    if (isFixed) {
+    if (eventToDeleteValue.isFixed) {
       const similarEvents = findSimilarEvents.value;
       await Promise.all(
         similarEvents.map(async (event) => {
@@ -433,10 +310,12 @@ async function deleteEvent() {
         })
       );
     } else {
-      await eventStore.deleteEvent(id);
+      await eventStore.deleteEvent(eventToDeleteValue.id);
     }
 
     closeDeleteModal();
+    // Actualizar la lista de eventos después de eliminar
+    await eventStore.fetchEvents();
   } catch (error) {
     console.error("Error al eliminar el evento:", error);
   }
@@ -446,15 +325,15 @@ async function deleteEvent() {
 function isMusicEvent(event: any): event is MusicEvent {
   return (
     event &&
-    typeof event === 'object' &&
-    'id' in event &&
-    'date' in event &&
-    'provider' in event &&
-    'description' in event &&
-    'location' in event &&
-    'time' in event &&
-    'amount' in event &&
-    'isFixed' in event
+    typeof event === "object" &&
+    "id" in event &&
+    "date" in event &&
+    "provider" in event &&
+    "description" in event &&
+    "location" in event &&
+    "time" in event &&
+    "amount" in event &&
+    "isFixed" in event
   );
 }
 
@@ -480,12 +359,14 @@ const findSimilarEvents = computed(() => {
 });
 
 async function togglePaymentStatus(event: MusicEvent) {
-  if (event.id) {
-    try {
-      await eventStore.togglePaymentStatus(event.id);
-    } catch (error) {
-      console.error("Error al actualizar el estado de pago:", error);
-    }
+  if (!event.id) return;
+
+  try {
+    await eventStore.togglePaymentStatus(event.id);
+    // Actualizar la lista de eventos después del toggle
+    await eventStore.fetchEvents();
+  } catch (error) {
+    console.error("Error al actualizar el estado de pago:", error);
   }
 }
 
@@ -524,6 +405,29 @@ onMounted(() => {
     }
   });
 });
+
+async function handleDeleteEvent(event: MusicEvent) {
+  if (!event?.id) {
+    console.error("No hay ID de evento para eliminar");
+    return;
+  }
+
+  try {
+    isDeleting.value = true; // Iniciar estado de eliminación
+    console.log("Eliminando evento:", event.id);
+    await eventStore.deleteEvent(event.id); // Llamar al store para eliminar
+    isDeleteModalOpen.value = false;
+    isEventListModalOpen.value = false;
+    selectedEvent.value = null;
+    eventToDelete.value = null;
+    await eventStore.fetchEvents(); // Actualizar la lista de eventos
+  } catch (error) {
+    console.error("Error al eliminar el evento:", error);
+    alert("Error al eliminar el evento."); // Notificar al usuario
+  } finally {
+    isDeleting.value = false; // Finalizar estado de eliminación
+  }
+}
 </script>
 
 <style>
@@ -553,29 +457,24 @@ onMounted(() => {
     font-size: 16px;
   }
 }
-
 /* Asegurar que el calendario ocupe todo el espacio disponible */
 .grid-cols-7 {
   grid-template-columns: repeat(7, minmax(0, 1fr));
 }
-
 /* Optimizaciones adicionales para pantallas pequeñas */
 @media (max-height: 667px) {
   .grid-cols-7 > div {
     min-height: 40px !important;
   }
-
   .calendar-day-badge {
     transform: translate(10%, -10%);
   }
 }
-
 @media (max-height: 568px) {
   .grid-cols-7 > div {
     min-height: 35px !important;
   }
 }
-
 /* Asegurar que el contenido se ajuste verticalmente */
 .min-h-screen {
   min-height: 100vh;

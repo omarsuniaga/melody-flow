@@ -1,98 +1,148 @@
 <template>
-  <div :class="['calendar-container', { dark: isDark }]">
-    <!-- Calendar Header -->
-    <div class="flex justify-between items-center mb-6">
-      <h2 class="text-2xl font-semibold">{{ currentMonth }}</h2>
-      <div class="flex gap-2">
-        <button @click="previousMonth" class="btn-nav">
-          <ChevronLeftIcon class="h-5 w-5" />
-        </button>
-        <button @click="currentDate = new Date()" class="btn-today">Hoy</button>
-        <button @click="nextMonth" class="btn-nav">
-          <ChevronRightIcon class="h-5 w-5" />
-        </button>
-      </div>
-    </div>
-
-    <!-- Calendar Grid -->
-    <div role="grid" class="calendar-grid">
-      <!-- Weekday Headers -->
-      <div v-for="day in weekDays" :key="day" role="columnheader" class="weekday-header">
-        {{ day }}
-      </div>
-
-      <!-- Calendar Days -->
-      <div
-        v-for="day in calendarDays"
-        :key="day.date.toISOString()"
-        role="gridcell"
-        :class="[
-          'calendar-day',
-          { 'current-month': day.isCurrentMonth },
-          { 'has-events': day.events.length > 0 },
-        ]"
-      >
-        <span class="day-number">{{ day.date.getDate() }}</span>
-        <div v-if="day.events.length > 0" class="event-indicator">
-          {{ day.events.length }}
+  <div class="calendar-component">
+    <div :class="['calendar-container', { dark: isDark }]">
+      <!-- Calendar Header -->
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-semibold">{{ currentMonthName }}</h2>
+        <div class="flex gap-2">
+          <button @click="previousMonth" class="btn-nav">
+            <ChevronLeftIcon class="h-5 w-5" />
+          </button>
+          <button @click="currentDate = new Date()" class="btn-today">Hoy</button>
+          <button @click="nextMonth" class="btn-nav">
+            <ChevronRightIcon class="h-5 w-5" />
+          </button>
         </div>
       </div>
+
+      <!-- Calendar Grid -->
+      <div role="grid" class="calendar-grid">
+        <!-- Weekday Headers -->
+        <div
+          v-for="day in weekDays"
+          :key="day"
+          role="columnheader"
+          class="weekday-header"
+        >
+          {{ day }}
+        </div>
+
+        <!-- Calendar Days -->
+        <div
+          v-for="day in calendarDays"
+          :key="day.date.toISOString()"
+          role="gridcell"
+          :class="[
+            'calendar-day',
+            { 'current-month': day.isCurrentMonth },
+            { 'has-events': day.events.length > 0 },
+          ]"
+        >
+          <span class="day-number">{{ day.date.getDate() }}</span>
+          <div v-if="day.events.length > 0" class="event-indicator">
+            {{ day.events.length }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <TransitionRoot :show="isLoading" as="template">
+        <div class="loading-overlay">
+          <LoadingSpinner />
+        </div>
+      </TransitionRoot>
+
+      <!-- Error Message -->
+      <TransitionRoot :show="!!error" as="template">
+        <div class="error-message">
+          {{ error }}
+        </div>
+      </TransitionRoot>
     </div>
-
-    <!-- Loading State -->
-    <TransitionRoot :show="isLoading" as="template">
-      <div class="loading-overlay">
-        <LoadingSpinner />
-      </div>
-    </TransitionRoot>
-
-    <!-- Error Message -->
-    <TransitionRoot :show="!!error" as="template">
-      <div class="error-message">
-        {{ error }}
-      </div>
-    </TransitionRoot>
   </div>
 </template>
 
-<script lang="ts">
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/vue/24/solid";
-import { TransitionRoot } from "@headlessui/vue";
-import { useCalendar } from "../composables/useCalendar";
-import LoadingSpinner from "./LoadingSpinner.vue";
+<script setup lang="ts">
+import { ref, computed, defineProps, defineExpose } from "vue";
+import { format, addMonths, subMonths } from "date-fns";
+import type { MusicEvent } from "../types/event";
+import ChevronLeftIcon from "@heroicons/vue/24/outline/ChevronLeftIcon";
+import ChevronRightIcon from "@heroicons/vue/24/outline/ChevronRightIcon";
 
-const {
-  currentDate,
-  calendarDays,
-  currentMonth,
-  isDark,
-  isLoading,
-  error,
-  nextMonth,
-  previousMonth,
-} = useCalendar();
+// Props
+const props = defineProps<{
+  events: MusicEvent[];
+  isDark?: boolean; // Añadimos la prop isDark como opcional
+}>();
 
-const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const currentDate = ref(new Date());
+const weekDays = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+const isLoading = ref(false); // Add this line to define isLoading
+const error = ref<string | null>(null); // Add this line to define error
 
-export default {
-  components: { LoadingSpinner, ChevronLeftIcon, ChevronRightIcon, TransitionRoot },
-  setup() {
-    return {
-      currentDate,
-      calendarDays,
-      currentMonth,
-      isDark,
-      isLoading,
-      error,
-      nextMonth,
-      previousMonth,
-      weekDays,
-    };
-  },
-};
+// Métodos expuestos
+function previousMonth() {
+  currentDate.value = subMonths(currentDate.value, 1);
+}
+
+function nextMonth() {
+  currentDate.value = addMonths(currentDate.value, 1);
+}
+
+function getCurrentDate() {
+  return currentDate.value;
+}
+
+// Exponer métodos
+defineExpose({ previousMonth, nextMonth, getCurrentDate });
+
+// Computed properties
+const currentMonthName = computed(() => {
+  return format(currentDate.value, "MMMM yyyy");
+});
+
+const calendarDays = computed(() => {
+  const startOfMonth = new Date(
+    currentDate.value.getFullYear(),
+    currentDate.value.getMonth(),
+    1
+  );
+  const endOfMonth = new Date(
+    currentDate.value.getFullYear(),
+    currentDate.value.getMonth() + 1,
+    0
+  );
+  const days = [];
+  for (let i = startOfMonth.getDate(); i <= endOfMonth.getDate(); i++) {
+    days.push({
+      date: new Date(currentDate.value.getFullYear(), currentDate.value.getMonth(), i),
+      isCurrentMonth: true,
+      events: props.events.filter(
+        (event) =>
+          new Date(event.date).toDateString() ===
+          new Date(
+            currentDate.value.getFullYear(),
+            currentDate.value.getMonth(),
+            i
+          ).toDateString()
+      ),
+    });
+  }
+  return days;
+});
+
+// ...rest of your component logic...
 </script>
 
-<style>
+<style scoped>
 .calendar-container {
   @apply p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg;
 }

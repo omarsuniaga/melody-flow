@@ -105,16 +105,38 @@
             <div v-if="showPendingPayments" class="space-y-2 max-h-64 overflow-y-auto">
               <div v-for="(events, provider) in groupedPendingPayments" :key="provider">
                 <div
-                  class="flex justify-between items-center p-2 bg-white rounded cursor-pointer"
-                  @click="toggleProvider(provider)"
+                  class="flex items-center p-2 bg-white rounded cursor-pointer"
+                  @click="toggleProvider(String(provider))"
                 >
-                  <div>
+                  <div class="flex-none w-48">
                     <p class="font-medium">{{ provider }}</p>
                     <p class="text-sm text-gray-600">{{ events.length }} eventos</p>
                   </div>
-                  <span class="font-medium text-red-600">{{
-                    formatCurrency(events.reduce((sum, event) => sum + event.amount, 0))
-                  }}</span>
+                  <div class="flex-grow text-center">
+                    <span class="font-medium text-red-600">{{
+                      formatCurrency(events.reduce((sum, event) => sum + event.amount, 0))
+                    }}</span>
+                  </div>
+                  <button
+                    @click.stop="generateProviderPDF(String(provider), events)"
+                    class="flex-none text-blue-600 hover:text-blue-800 p-2"
+                    title="Descargar PDF"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                  </button>
                 </div>
                 <div v-if="expandedProvider === provider" class="pl-4">
                   <div
@@ -124,7 +146,7 @@
                   >
                     <div>
                       <p class="text-sm text-gray-600">
-                        {{ format(new Date(event.date), "MMM d, yyyy") }}
+                        {{ format(parseISO(event.date), "MMM d, yyyy") }}
                       </p>
                       <p class="text-sm text-gray-600">{{ event.location }}</p>
                     </div>
@@ -150,7 +172,7 @@
               <div v-for="(events, provider) in groupedCompletedPayments" :key="provider">
                 <div
                   class="flex justify-between items-center p-2 bg-white rounded cursor-pointer"
-                  @click="toggleProvider(provider)"
+                  @click="toggleProvider(String(provider))"
                 >
                   <div>
                     <p class="font-medium">{{ provider }}</p>
@@ -168,7 +190,7 @@
                   >
                     <div>
                       <p class="text-sm text-gray-600">
-                        {{ format(new Date(event.date), "MMM d, yyyy") }}
+                        {{ format(parseISO(event.date), "MMM d, yyyy") }}
                       </p>
                       <p class="text-sm text-gray-600">{{ event.location }}</p>
                     </div>
@@ -209,12 +231,25 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { format, addMonths, subMonths, startOfMonth, endOfMonth } from "date-fns";
+import { useToast } from "vue-toastification"; // Cambiar esta línea
+import {
+  format,
+  addMonths,
+  subMonths,
+  startOfMonth,
+  endOfMonth,
+  parseISO,
+} from "date-fns";
 import ChevronLeftIcon from "@heroicons/vue/24/outline/ChevronLeftIcon";
 import ChevronRightIcon from "@heroicons/vue/24/outline/ChevronRightIcon";
 import { ChevronDownIcon, ChartBarIcon } from "@heroicons/vue/24/outline";
 import { useEventStore } from "../stores/eventStore";
 import { useRouter } from "vue-router";
+import { getPendingEventsTemplate } from "../utils/pdfTemplates";
+import { useUserStore } from "../stores/userStore";
+import { initializePdfMake } from "../utils/pdfMakeConfig";
+
+const toast = useToast(); // Agregar esta línea
 
 const eventStore = useEventStore();
 const selectedMonth = ref(new Date());
@@ -227,6 +262,7 @@ const showProviderRevenue = ref(false);
 const showTopLocations = ref(false);
 
 const router = useRouter();
+const userStore = useUserStore();
 
 function togglePendingPayments() {
   showPendingPayments.value = !showPendingPayments.value;
@@ -236,7 +272,7 @@ function toggleCompletedPayments() {
   showCompletedPayments.value = !showCompletedPayments.value;
 }
 
-function toggleProvider(provider) {
+function toggleProvider(provider: string): void {
   expandedProvider.value = expandedProvider.value === provider ? null : provider;
 }
 
@@ -396,17 +432,47 @@ function formatCurrency(amount: number) {
   }).format(amount);
 }
 
-function handleLogout() {
-  // Aquí puedes agregar la lógica de cierre de sesión
-  // Por ejemplo, limpiar el localStorage, estado, etc.
-  localStorage.removeItem("userToken"); // o el nombre que uses para tu token
-  router.push("/login"); // o la ruta que uses para tu login
-}
-
 // Añadir función para ordenar eventos
 function sortedEvents(events: any[]) {
   return [...events].sort((a, b) => {
     return new Date(b.date).getTime() - new Date(a.date).getTime();
   });
+}
+
+// Modificar la función generateProviderPDF
+const generateProviderPDF = async (provider: string, events: any[]) => {
+  try {
+    const pdfMake = await initializePdfMake();
+    toast.info("Generando PDF..."); // Cambiado a .info para mostrar un loading más simple
+
+    const docDefinition = await getPendingEventsTemplate(provider, events);
+
+    pdfMake
+      .createPdf(docDefinition)
+      .download(`eventos_${provider}_${format(new Date(), "yyyyMMdd")}.pdf`);
+
+    toast.success("PDF generado correctamente");
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    toast.error("Error al generar el PDF");
+  }
+};
+
+// Actualiza las interfaces de tipos
+interface ProviderStats {
+  name: string;
+  eventCount: number;
+  revenue: number;
+}
+
+interface LocationStats {
+  name: string;
+  count: number;
+}
+
+interface MonthlyStats {
+  totalEvents: number;
+  totalRevenue: number;
+  averagePerEvent: number;
 }
 </script>

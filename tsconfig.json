@@ -3,7 +3,7 @@
     "target": "ESNext",
     "useDefineForClassFields": true,
     "module": "ESNext",
-    "moduleResolution": "Bundler",
+    "moduleResolution": "Node",
     "strict": true,
     "jsx": "preserve",
     "resolveJsonModule": true,
@@ -11,29 +11,12 @@
     "esModuleInterop": true,
     "lib": ["ESNext", "DOM"],
     "skipLibCheck": true,
+    "noEmit": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
-    },
-    "types": [
-      "vite/client"
-    ],
-    "typeRoots": [
-      "./node_modules/@types",
-      "./src/types"
-    ],
-    "allowJs": true,
-    "noImplicitAny": false
-  },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.d.ts",
-    "src/**/*.tsx",
-    "src/**/*.vue"
-  ],
-  "references": [
-    {
-      "path": "./tsconfig.node.json"
+      "@/*": ["src/*"]
     }
-  ]
+  },
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "references": [{ "path": "./tsconfig.node.json" }]
 }

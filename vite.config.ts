@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
+import { fileURLToPath, URL } from 'node:url'
 
 export default defineConfig({
   plugins: [
@@ -30,7 +31,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@': '/src'
+      '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
   build: {
@@ -51,5 +52,6 @@ export default defineConfig({
       }
     },
     chunkSizeWarningLimit: 800
-  }
+  },
+  envPrefix: 'VITE_'
 })

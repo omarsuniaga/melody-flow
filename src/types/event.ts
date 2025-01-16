@@ -1,5 +1,5 @@
 export interface MusicEvent {
-  id: string;
+  id: string;  // Cambiado de id?: string a id: string
   activityType: 'Fija' | string;
   amount: number;
   createdAt: string;
@@ -14,22 +14,6 @@ export interface MusicEvent {
   userIP: string;
   userId: string;
   isFixed: boolean;
-  title: string;
-  type: string;
 }
 
 export type EventFormData = Omit<MusicEvent, 'createdAt' | 'createdBy' | 'userIP'>;
-
-// Agregar un tipo de guarda para verificar eventos
-export function isMusicEvent(event: any): event is MusicEvent {
-  return (
-    event &&
-    typeof event.id === 'string' &&
-    typeof event.provider === 'string' &&
-    typeof event.description === 'string' &&
-    typeof event.location === 'string' &&
-    typeof event.time === 'string' &&
-    typeof event.amount === 'number' &&
-    typeof event.date === 'string'
-  );
-}
