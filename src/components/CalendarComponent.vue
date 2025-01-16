@@ -141,8 +141,7 @@ const calendarDays = computed(() => {
 
 // ...rest of your component logic...
 </script>
-
-<style scoped>
+<style lang="postcss">
 .calendar-container {
   @apply p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg;
 }

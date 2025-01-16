@@ -364,7 +364,11 @@
                     :disabled="isTestingNotification"
                   >
                     <span>
-                      {{ isTestingNotification ? `Probando en ${countdownSeconds}s` : 'Probar Todo' }}
+                      {{
+                        isTestingNotification
+                          ? `Probando en ${countdownSeconds}s`
+                          : "Probar Todo"
+                      }}
                     </span>
                     <BellIcon class="h-5 w-5" />
                   </button>
@@ -372,7 +376,6 @@
               </div>
             </div>
           </div>
-
         </div>
 
         <!-- Cerrar Sesión -->
@@ -397,12 +400,12 @@ import {
   ArrowPathIcon,
   TrashIcon,
   UserCircleIcon,
-  SpeakerWaveIcon, // Cambio de VolumeUpIcon a SpeakerWaveIcon
+  SpeakerWaveIcon,
   BellIcon,
   ClockIcon,
 } from "@heroicons/vue/24/outline";
-import { useCurrencyStore } from "../stores/currencyStore";
 import { ref, onMounted, onUnmounted, computed, watch } from "vue";
+import { useCurrencyStore } from "../stores/currencyStore";
 import { useRouter } from "vue-router";
 import { auth } from "../firebase/config";
 import {
@@ -420,21 +423,17 @@ type Sections = {
   currency: boolean;
   notifications: boolean;
 };
-
 // Estado para secciones colapsables
 const sections = ref<Sections>({
   password: false,
   currency: false,
-  notifications: true, // Abierto por defecto
+  notifications: true,
 });
 
 // Función para alternar secciones
 function toggleSection(section: keyof Sections) {
   sections.value[section] = !sections.value[section];
 }
-
-// ...existing script...
-
 const router = useRouter();
 const notificationStore = useNotificationStore();
 const notificationService = NotificationService.getInstance();
@@ -850,7 +849,7 @@ async function testFullNotification() {
 
     // Activar LED si está habilitado
     if (notificationSettings.value.led) {
-      notificationService.flashLED();
+      notificationService.flashLED(notificationSettings.value.led);
     }
 
     // Activar pantalla si está habilitado
@@ -864,7 +863,7 @@ async function testFullNotification() {
 }
 </script>
 
-<style scoped>
+<style lang="postcss">
 .input {
   @apply mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500;
   text-transform: uppercase;

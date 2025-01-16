@@ -175,3 +175,9 @@ function close() {
   emit("update:modelValue", false);
 }
 </script>
+
+<script lang="ts">
+export default {
+  name: "EventEditModal",
+};
+</script>

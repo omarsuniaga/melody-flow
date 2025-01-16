@@ -163,7 +163,6 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits } from "vue";
 import { format } from "date-fns";
 import { MusicEvent } from "../types/event";
 import ModalComponent from "./ModalComponent.vue";
@@ -182,7 +181,7 @@ import {
   MapPinIcon,
 } from "../utils/icons"; // Cambiamos la importación para usar nuestro archivo de iconos
 
-interface Props {
+type Props = {
   selectedDateEvents: MusicEvent[];
   selectedDate: Date;
   selectedEvent: MusicEvent | null;
@@ -193,7 +192,7 @@ interface Props {
   isDeleteModalOpen: boolean;
   sharedMessage?: string;
   isDeleting?: boolean; // Hacer la prop opcional
-}
+};
 
 const props = withDefaults(defineProps<Props>(), {
   sharedMessage: undefined,
@@ -232,6 +231,11 @@ const handleDelete = () => {
     console.error("No hay un evento seleccionado para eliminar");
     alert("No hay un evento seleccionado para eliminar.");
   }
+};
+</script>
+<script lang="ts">
+export default {
+  name: "CalendarModal",
 };
 </script>
 

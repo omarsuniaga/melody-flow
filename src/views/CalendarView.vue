@@ -168,6 +168,7 @@ import { useEventStore } from "../stores/eventStore";
 import { MusicEvent } from "../types/event";
 import ButtonComponent from "../components/ButtonComponent.vue";
 import CalendarModal from "../components/CalendarModal.vue";
+import { NotificationService } from "../services/NotificationService";
 
 const eventStore = useEventStore();
 const currentDate = ref(new Date());
@@ -406,6 +407,12 @@ onMounted(() => {
   });
 });
 
+const notificationService = NotificationService.getInstance();
+const notificationSettings = ref({
+  led: true,
+  screen: true,
+});
+
 async function handleDeleteEvent(event: MusicEvent) {
   if (!event?.id) {
     console.error("No hay ID de evento para eliminar");
@@ -416,6 +423,17 @@ async function handleDeleteEvent(event: MusicEvent) {
     isDeleting.value = true; // Iniciar estado de eliminación
     console.log("Eliminando evento:", event.id);
     await eventStore.deleteEvent(event.id); // Llamar al store para eliminar
+
+    // Activar LED si está habilitado
+    if (notificationSettings.value.led) {
+      await notificationService.flashLED(false);
+    }
+
+    // Activar pantalla si está habilitado
+    if (notificationSettings.value.screen) {
+      await notificationService.wakeScreen();
+    }
+
     isDeleteModalOpen.value = false;
     isEventListModalOpen.value = false;
     selectedEvent.value = null;

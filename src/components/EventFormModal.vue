@@ -467,3 +467,9 @@ async function testGeminiAPI() {
   }
 }
 </script>
+
+<script lang="ts">
+export default {
+  name: "EventFormModal",
+};
+</script>
