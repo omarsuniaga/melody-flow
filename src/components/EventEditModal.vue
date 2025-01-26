@@ -1,143 +1,18 @@
-<template>
-  <ModalComponent
-    :model-value="modelValue"
-    @update:model-value="$emit('update:modelValue', $event)"
-    :title="'Editar Evento'"
-  >
-    <form @submit.prevent="saveEvent" class="space-y-6">
-      <!-- Tipo de Actividad -->
-      <div class="space-y-2">
-        <label class="block text-sm font-medium text-gray-700">Tipo de Actividad</label>
-        <div class="flex gap-4">
-          <label class="inline-flex items-center">
-            <input
-              type="radio"
-              v-model="eventForm.activityType"
-              value="Fija"
-              class="form-radio text-blue-600"
-            />
-            <span class="ml-2">Fija</span>
-          </label>
-          <label class="inline-flex items-center">
-            <input
-              type="radio"
-              v-model="eventForm.activityType"
-              value="Eventual"
-              class="form-radio text-blue-600"
-            />
-            <span class="ml-2">Eventual</span>
-          </label>
-        </div>
-      </div>
-
-      <!-- Estado de Pago -->
-      <div class="space-y-2">
-        <label class="block text-sm font-medium text-gray-700">Estado de Pago</label>
-        <div class="flex gap-4">
-          <label class="inline-flex items-center">
-            <input
-              type="radio"
-              v-model="eventForm.paymentStatus"
-              value="Pagado"
-              class="form-radio text-green-600"
-            />
-            <span class="ml-2">Pagado</span>
-          </label>
-          <label class="inline-flex items-center">
-            <input
-              type="radio"
-              v-model="eventForm.paymentStatus"
-              value="Pendiente"
-              class="form-radio text-yellow-600"
-            />
-            <span class="ml-2">Pendiente</span>
-          </label>
-        </div>
-      </div>
-
-      <!-- Campos del formulario -->
-      <div class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Proveedor</label>
-          <input
-            v-model="eventForm.provider"
-            type="text"
-            required
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Descripción</label>
-          <input
-            v-model="eventForm.description"
-            type="text"
-            required
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Lugar</label>
-          <input
-            v-model="eventForm.location"
-            type="text"
-            required
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Fecha</label>
-            <input
-              v-model="eventForm.date"
-              type="date"
-              required
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Hora</label>
-            <input
-              v-model="eventForm.time"
-              type="time"
-              required
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-gray-700">Monto</label>
-          <input
-            v-model.number="eventForm.amount"
-            type="number"
-            required
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-          />
-        </div>
-      </div>
-
-      <div class="flex justify-end gap-3">
-        <ButtonComponent variant="secondary" @click="close">Cancelar</ButtonComponent>
-        <ButtonComponent type="submit" variant="primary">Guardar Cambios</ButtonComponent>
-      </div>
-    </form>
-  </ModalComponent>
-</template>
-
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import ModalComponent from "./ModalComponent.vue";
 import ButtonComponent from "./ButtonComponent.vue";
 import { useEventStore } from "../stores/eventStore";
-import { MusicEvent, EventFormData } from "../types/event";
+import type { MusicEvent, EventFormData } from "../types/event";
 
-const props = defineProps<{
-  modelValue: boolean;
+interface Props {
   event: MusicEvent;
-}>();
+  modelValue: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  modelValue: false,
+});
 
 const emit = defineEmits<{
   (e: "update:modelValue", value: boolean): void;
@@ -145,6 +20,9 @@ const emit = defineEmits<{
 }>();
 
 const eventStore = useEventStore();
+const isLoading = ref(false);
+const errorMessage = ref("");
+
 const eventForm = ref<EventFormData>({
   id: props.event.id,
   activityType: props.event.activityType,
@@ -156,28 +34,164 @@ const eventForm = ref<EventFormData>({
   time: props.event.time,
   amount: props.event.amount,
   userId: props.event.userId,
-  isFixed: props.event.isFixed,
 });
 
-async function saveEvent() {
+const isFormValid = computed(() => {
+  return (
+    eventForm.value.description.trim() !== "" &&
+    eventForm.value.location.trim() !== "" &&
+    eventForm.value.date !== "" &&
+    eventForm.value.time !== "" &&
+    eventForm.value.amount > 0
+  );
+});
+
+async function handleSubmit() {
+  if (!isFormValid.value) {
+    errorMessage.value = "Por favor complete todos los campos requeridos";
+    return;
+  }
+
   try {
-    if (props.event.id) {
-      await eventStore.updateEvent(props.event.id, eventForm.value);
-      emit("saved");
-      close();
-    }
+    isLoading.value = true;
+    await eventStore.updateEvent(props.event.userId, {
+      ...props.event,
+      ...eventForm.value,
+    });
+    emit("saved");
+    closeModal();
   } catch (error) {
-    console.error("Error al actualizar el evento:", error);
+    console.error("Error al actualizar evento:", error);
+    errorMessage.value = "Error al guardar los cambios";
+  } finally {
+    isLoading.value = false;
   }
 }
 
-function close() {
+function closeModal() {
   emit("update:modelValue", false);
+  errorMessage.value = "";
 }
 </script>
-
 <script lang="ts">
 export default {
   name: "EventEditModal",
 };
 </script>
+
+<template>
+  <ModalComponent :modelValue="modelValue" @close="closeModal" title="Editar Evento">
+    <form @submit.prevent="handleSubmit" class="space-y-4">
+      <div class="form-group">
+        <label for="description">Descripción</label>
+        <input
+          id="description"
+          v-model="eventForm.description"
+          type="text"
+          required
+          class="form-input"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="location">Ubicación</label>
+        <input
+          id="location"
+          v-model="eventForm.location"
+          type="text"
+          required
+          class="form-input"
+        />
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div class="form-group">
+          <label for="date">Fecha</label>
+          <input
+            id="date"
+            v-model="eventForm.date"
+            type="date"
+            required
+            class="form-input"
+          />
+        </div>
+        <div class="form-group">
+          <label for="time">Hora</label>
+          <input
+            id="time"
+            v-model="eventForm.time"
+            type="time"
+            required
+            class="form-input"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="amount">Monto</label>
+        <input
+          id="amount"
+          v-model.number="eventForm.amount"
+          type="number"
+          min="0"
+          step="0.01"
+          required
+          class="form-input"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="paymentStatus">Estado de Pago</label>
+        <select id="paymentStatus" v-model="eventForm.paymentStatus" class="form-select">
+          <option value="Pendiente">Pendiente</option>
+          <option value="Pagado">Pagado</option>
+        </select>
+      </div>
+
+      <!-- Agregar opción para modificar activityType -->
+      <div class="form-group">
+        <label for="activityType">Tipo de Actividad</label>
+        <select id="activityType" v-model="eventForm.activityType" class="form-select">
+          <option value="Eventual">Evento Único</option>
+          <option value="Fija">Evento Fijo Semanal</option>
+        </select>
+      </div>
+
+      <p v-if="errorMessage" class="text-red-500 text-sm mt-2">
+        {{ errorMessage }}
+      </p>
+
+      <div class="flex justify-end space-x-2 mt-4">
+        <ButtonComponent type="button" variant="secondary" @click="closeModal">
+          Cancelar
+        </ButtonComponent>
+        <ButtonComponent
+          type="submit"
+          :loading="isLoading"
+          :disabled="!isFormValid || isLoading"
+        >
+          Guardar Cambios
+        </ButtonComponent>
+      </div>
+    </form>
+  </ModalComponent>
+</template>
+
+<style lang="postcss">
+.form-group {
+  @apply mb-4;
+
+  label {
+    @apply block text-sm font-medium text-gray-700 mb-1;
+  }
+}
+
+.form-input,
+.form-select {
+  @apply w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500;
+}
+
+.form-checkbox {
+  @apply rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500;
+}
+</style>

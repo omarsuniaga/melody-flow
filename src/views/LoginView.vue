@@ -125,6 +125,16 @@ const handleLogin = async () => {
     router.push("/");
   } catch (error) {
     console.error("Error al iniciar sesión:", error);
+    let errorMessage = "Error al iniciar sesión";
+
+    if ((error as { code: string }).code === "auth/wrong-password") {
+      errorMessage = "Contraseña incorrecta. Por favor, intenta de nuevo.";
+    } else if ((error as { code: string }).code === "auth/user-not-found") {
+      errorMessage = "Usuario no encontrado. Por favor, verifica tu correo.";
+    }
+
+    // Aquí puedes mostrar el error al usuario usando tu sistema de notificaciones
+    alert(errorMessage);
   }
 };
 
@@ -146,6 +156,9 @@ const handleGoogleLogin = async () => {
     } else if ((error as { code: string }).code === "auth/popup-blocked") {
       errorMessage =
         "El popup fue bloqueado por el navegador. Por favor, permite ventanas emergentes.";
+    } else if ((error as { code: string }).code === "auth/unauthorized-domain") {
+      errorMessage =
+        "El dominio no está autorizado para operaciones de OAuth. Agrega tu dominio en la consola de Firebase.";
     }
 
     // Aquí puedes mostrar el error al usuario usando tu sistema de notificaciones

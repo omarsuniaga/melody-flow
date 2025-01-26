@@ -42,5 +42,18 @@
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#000000"
+  "theme_color": "#000000",
+  "prefer_related_applications": false,
+  "categories": ["music", "entertainment", "productivity"],
+  "screenshots": [
+    {
+      "src": "/screenshots/home.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Pantalla principal de MelodyFlow"
+    }
+  ],
+  "id": "melodyflow-v2-pwa",
+  "orientation": "any"
 }

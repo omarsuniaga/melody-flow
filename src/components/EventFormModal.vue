@@ -2,8 +2,13 @@
   <ModalComponent
     :model-value="modelValue"
     @update:model-value="$emit('update:modelValue', $event)"
-    title="Nuevo Evento"
+    :title="`Nuevo Evento - ${format(selectedDate, 'MMMM d, yyyy')}`"
   >
+    <!-- Agregar mensaje de error si existe -->
+    <div v-if="errorMessage" class="mb-4 p-2 bg-red-100 text-red-700 rounded">
+      {{ errorMessage }}
+    </div>
+
     <!-- Botón de prueba API -->
     <div class="mb-4 flex justify-end">
       <ButtonComponent
@@ -36,7 +41,7 @@
     </div>
 
     <!-- Formulario principal -->
-    <form @submit.prevent="saveEvent" class="space-y-6">
+    <form @submit.prevent="handleSubmit" class="space-y-6">
       <!-- Tipo de Actividad -->
       <div class="space-y-2">
         <label class="block text-sm font-medium text-gray-700">Tipo de Actividad</label>
@@ -45,21 +50,25 @@
             <input
               type="radio"
               v-model="eventForm.activityType"
-              value="Fija"
+              value="Eventual"
               class="form-radio text-blue-600"
             />
-            <span class="ml-2">Fija</span>
+            <span class="ml-2">Evento Único</span>
           </label>
           <label class="inline-flex items-center">
             <input
               type="radio"
               v-model="eventForm.activityType"
-              value="Eventual"
+              value="Fija"
               class="form-radio text-blue-600"
             />
-            <span class="ml-2">Eventual</span>
+            <span class="ml-2">Evento Fijo Semanal</span>
           </label>
         </div>
+        <p v-if="eventForm.activityType === 'Fija'" class="text-sm text-gray-500">
+          Este evento se repetirá todos los {{ getDayName(selectedDayOfWeek) }} de este
+          mes
+        </p>
       </div>
 
       <!-- Estado de Pago -->
@@ -185,10 +194,21 @@
 
       <!-- Botones de Acción -->
       <div class="flex justify-end gap-3">
-        <ButtonComponent type="button" variant="secondary" @click="close">
+        <ButtonComponent
+          type="button"
+          variant="secondary"
+          @click="close"
+          :disabled="isSubmitting"
+        >
           Cancelar
         </ButtonComponent>
-        <ButtonComponent type="submit" variant="primary"> Guardar </ButtonComponent>
+        <ButtonComponent
+          type="submit"
+          variant="primary"
+          :disabled="isSubmitting"
+        >
+          {{ isSubmitting ? 'Guardando...' : 'Guardar' }}
+        </ButtonComponent>
         <!--
         <ButtonComponent variant="danger" @click="deleteEvent">
           Eliminar
@@ -200,12 +220,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref, watch, computed } from "vue";
 import ModalComponent from "./ModalComponent.vue";
 import ButtonComponent from "./ButtonComponent.vue";
 import { useEventStore } from "../stores/eventStore";
 import { useUserStore } from "../stores/userStore";
-import { addWeeks, isSameMonth, getDay, format } from "date-fns";
+import { addWeeks, isSameMonth, getDay, format, addDays } from "date-fns";
 import { MessageParserService } from "../services/MessageParserService";
 import { EventFormData } from "../types/event";
 import { useAuthStore } from "../stores/authStore";
@@ -213,19 +233,16 @@ import { useAuthStore } from "../stores/authStore";
 /**
  * Props
  */
-const props = defineProps<{
-  modelValue: boolean;
-  selectedDate?: Date;
-  sharedMessage?: string;
-}>();
+const props = defineProps({
+  modelValue: Boolean,
+  selectedDate: Date,
+  sharedMessage: String,
+});
 
 /**
  * Emits
  */
-const emit = defineEmits<{
-  (e: "update:modelValue", value: boolean): void;
-  (e: "saved"): void;
-}>();
+const emit = defineEmits(["update:modelValue", "saved"]);
 
 /**
  * Stores
@@ -233,27 +250,28 @@ const emit = defineEmits<{
 const eventStore = useEventStore();
 const userStore = useUserStore();
 const authStore = useAuthStore();
+type PaymentStatus = "Pendiente" | "Pagado";
+
 /**
  * Formulario por defecto
  */
 const defaultFormValues: EventFormData = {
-  id: "",
+  id: Date.now().toString(), // id temporal
   activityType: "Eventual",
-  paymentStatus: "Pendiente" as const,
+  paymentStatus: "Pendiente",
   provider: "",
   description: "",
   location: "",
   date: format(new Date(), "yyyy-MM-dd"),
-  time: format(new Date(), "HH:mm"),
-  amount: 0,
+  time: "19:00",
+  amount: 6000,
   userId: authStore.user?.uid || "",
-  isFixed: false,
 };
 
 /**
  * Estado Reactivo del Form
  */
-const eventForm = ref<EventFormData>({ ...defaultFormValues });
+const eventForm = ref({ ...defaultFormValues } as EventFormData);
 
 /**
  * Sugerencias (localStorage)
@@ -269,15 +287,22 @@ const isTestingAPI = ref(false);
 const apiTestResult = ref<boolean | null>(null);
 
 /**
+ * Agregar estas variables reactivas
+ */
+const isSubmitting = ref(false);
+const errorMessage = ref<string | null>(null);
+
+/**
  * Watcher para el cambio de fecha seleccionada
  */
 watch(
   () => props.selectedDate,
   (newDate) => {
     if (newDate) {
-      eventForm.value.date = newDate.toISOString().split("T")[0];
+      eventForm.value.date = format(newDate, 'yyyy-MM-dd');
     }
-  }
+  },
+  { immediate: true }
 );
 
 /**
@@ -306,105 +331,27 @@ function saveSuggestions(field: string, value: string) {
  * Función para guardar el evento
  */
 async function saveEvent() {
+  if (!eventForm.value.date) return;
+
   try {
-    await eventStore.addEvent(eventForm.value);
+    const eventToSave = {
+      ...eventForm.value,
+    };
+
+    await eventStore.addEvent(eventToSave);
     saveSuggestions("provider", eventForm.value.provider);
     saveSuggestions("description", eventForm.value.description);
     saveSuggestions("location", eventForm.value.location);
-
-    // Duplicar evento si es 'Fija'
-    if (eventForm.value.activityType === "Fija") {
-      let nextDate = addWeeks(new Date(eventForm.value.date), 1);
-      while (isSameMonth(nextDate, new Date(eventForm.value.date))) {
-        await eventStore.addEvent({
-          ...eventForm.value,
-          date: nextDate.toISOString().split("T")[0],
-        });
-        nextDate = addWeeks(nextDate, 1);
-      }
-    }
 
     // Resetear el formulario
     eventForm.value = { ...defaultFormValues };
 
     emit("saved");
     close();
+    // Actualizar el calendario
+    await eventStore.fetchEvents();
   } catch (error) {
     console.error("Error al guardar el evento:", error);
-  }
-}
-
-/**
- * Eliminar evento (opcional, si decides habilitar el botón)
- */
-async function deleteEvent() {
-  try {
-    const eventDate = new Date(eventForm.value.date);
-    const dayOfWeek = getDay(eventDate);
-
-    // Eliminar eventos fijos para el resto del mes
-    if (eventForm.value.activityType === "Fija") {
-      const eventsToDelete = eventStore.events.filter(
-        (e) =>
-          e.provider === eventForm.value.provider &&
-          e.description === eventForm.value.description &&
-          e.location === eventForm.value.location &&
-          e.time === eventForm.value.time &&
-          e.amount === eventForm.value.amount &&
-          getDay(new Date(e.date)) === dayOfWeek &&
-          isSameMonth(new Date(e.date), eventDate)
-      );
-      for (const evt of eventsToDelete) {
-        await eventStore.deleteEvent(evt.id);
-      }
-    } else if (eventForm.value.id) {
-      await eventStore.deleteEvent(eventForm.value.id);
-    }
-
-    emit("saved");
-    close();
-  } catch (error) {
-    console.error("Error al eliminar el evento:", error);
-  }
-}
-
-/**
- * Editar evento (opcional, si tu lógica lo requiere)
- */
-async function editEvent() {
-  try {
-    await eventStore.updateEvent(eventForm.value.id, eventForm.value);
-    const eventDate = new Date(eventForm.value.date);
-    const dayOfWeek = getDay(eventDate);
-
-    // Editar eventos fijos para el resto del mes
-    if (eventForm.value.activityType === "Fija") {
-      const eventsToEdit = eventStore.events.filter(
-        (e) =>
-          e.provider === eventForm.value.provider &&
-          e.description === eventForm.value.description &&
-          e.location === eventForm.value.location &&
-          e.time === eventForm.value.time &&
-          e.amount === eventForm.value.amount &&
-          getDay(new Date(e.date)) === dayOfWeek &&
-          isSameMonth(new Date(e.date), eventDate)
-      );
-      for (const evt of eventsToEdit) {
-        await eventStore.updateEvent(evt.id, {
-          ...evt,
-          ...eventForm.value,
-        });
-      }
-    } else if (eventForm.value.id) {
-      await eventStore.updateEvent(eventForm.value.id, {
-        ...eventForm.value,
-      });
-    }
-
-    emit("saved");
-    close();
-  } catch (error) {
-    console.error("Error al editar el evento:", error);
   }
 }
 
@@ -466,6 +413,42 @@ async function testGeminiAPI() {
     }, 3000);
   }
 }
+
+const selectedDayOfWeek = computed(() => {
+  if (!eventForm.value.date) return 0;
+  return getDay(new Date(eventForm.value.date));
+});
+
+function getDayName(day: number): string {
+  const days = [
+    "domingos",
+    "lunes",
+    "martes",
+    "miércoles",
+    "jueves",
+    "viernes",
+    "sábados",
+  ];
+  return days[day];
+}
+
+const handleSubmit = async () => {
+  if (!eventForm.value.date || !eventForm.value.provider) {
+    alert('Por favor complete todos los campos requeridos');
+    return;
+  }
+
+  try {
+    isSubmitting.value = true;
+    await saveEvent(); // Usar la función saveEvent en lugar de eventStore.addEvent directamente
+    emit('saved');
+  } catch (error) {
+    console.error('Error al guardar el evento:', error);
+    errorMessage.value = 'Error al guardar el evento';
+  } finally {
+    isSubmitting.value = false;
+  }
+};
 </script>
 
 <script lang="ts">

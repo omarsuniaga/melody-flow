@@ -3,10 +3,12 @@
     :type="type"
     class="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
     :class="[
-      variant === 'primary' && 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
-      variant === 'secondary' && 'bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-500',
+      variant === 'primary' &&
+        'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500',
+      variant === 'secondary' &&
+        'bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-500',
       variant === 'danger' && 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
-      loading && 'cursor-wait'
+      loading && 'cursor-wait',
     ]"
     :disabled="disabled || loading"
     v-bind="$attrs"
@@ -39,39 +41,39 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, toRefs } from 'vue'
+import { defineComponent, PropType, toRefs } from "vue";
 
 export default defineComponent({
-  name: 'ButtonComponent',
+  name: "ButtonComponent",
 
   props: {
     type: {
-      type: null as unknown as PropType<'button' | 'submit' | 'reset' | undefined>,
-      default: 'button'
+      type: (null as unknown) as PropType<"button" | "submit" | "reset" | undefined>,
+      default: "button",
     },
     variant: {
-      type: null as unknown as PropType<'primary' | 'secondary' | 'danger' | undefined>,
-      default: 'primary'
+      type: (null as unknown) as PropType<"primary" | "secondary" | "danger" | undefined>,
+      default: "primary",
     },
     loading: {
       type: Boolean,
-      default: false
+      default: false,
     },
     disabled: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
 
   setup(props, { attrs }) {
-    const { type, variant, loading, disabled } = toRefs(props)
+    const { type, variant, loading, disabled } = toRefs(props);
     return {
       type,
       variant,
       loading,
       disabled,
-      attrs
-    }
-  }
-})
+      attrs,
+    };
+  },
+});
 </script>

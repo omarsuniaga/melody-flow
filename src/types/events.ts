@@ -1,6 +1,5 @@
 export interface EventFormData {
   id: string;
-  title: string;           // Añadido
   type: string;           // Añadido
   activityType: string;
   paymentStatus: "Pendiente" | "Pagado";
@@ -11,7 +10,7 @@ export interface EventFormData {
   time: string;
   amount: number;
   userId: string;
-  isFixed: boolean;
+
 }
 
 export interface MusicEvent {
@@ -24,6 +23,5 @@ export interface MusicEvent {
   amount: number;
   paymentStatus: "Pendiente" | "Pagado";
   activityType: string;
-  isFixed: boolean;
   userId: string;
 }

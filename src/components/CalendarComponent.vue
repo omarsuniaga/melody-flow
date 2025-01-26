@@ -37,6 +37,7 @@
             { 'current-month': day.isCurrentMonth },
             { 'has-events': day.events.length > 0 },
           ]"
+          @click="selectDate(day.date)"
         >
           <span class="day-number">{{ day.date.getDate() }}</span>
           <div v-if="day.events.length > 0" class="event-indicator">
@@ -63,18 +64,35 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, defineProps, defineExpose } from "vue";
-import { format, addMonths, subMonths } from "date-fns";
-import type { MusicEvent } from "../types/event";
+import { ref, computed, defineProps, defineExpose, defineEmits } from "vue";
+import {
+  format,
+  addMonths,
+  subMonths,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  isSameMonth,
+} from "date-fns";
+import { MusicEvent } from "../types/event";
 import ChevronLeftIcon from "@heroicons/vue/24/outline/ChevronLeftIcon";
 import ChevronRightIcon from "@heroicons/vue/24/outline/ChevronRightIcon";
 
 // Props
-const props = defineProps<{
-  events: MusicEvent[];
-  isDark?: boolean; // Añadimos la prop isDark como opcional
-}>();
+import { PropType } from "vue";
 
+const props = defineProps({
+  events: {
+    type: Array as PropType<MusicEvent[]>,
+    required: true,
+  },
+  isDark: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+const emit = defineEmits(["select-date"]);
 const currentDate = ref(new Date());
 const weekDays = [
   "Sunday",
@@ -101,6 +119,11 @@ function getCurrentDate() {
   return currentDate.value;
 }
 
+function selectDate(date: Date) {
+  // Emitir evento para seleccionar la fecha
+  emit("select-date", date);
+}
+
 // Exponer métodos
 defineExpose({ previousMonth, nextMonth, getCurrentDate });
 
@@ -110,37 +133,27 @@ const currentMonthName = computed(() => {
 });
 
 const calendarDays = computed(() => {
-  const startOfMonth = new Date(
-    currentDate.value.getFullYear(),
-    currentDate.value.getMonth(),
-    1
-  );
-  const endOfMonth = new Date(
-    currentDate.value.getFullYear(),
-    currentDate.value.getMonth() + 1,
-    0
-  );
-  const days = [];
-  for (let i = startOfMonth.getDate(); i <= endOfMonth.getDate(); i++) {
-    days.push({
-      date: new Date(currentDate.value.getFullYear(), currentDate.value.getMonth(), i),
-      isCurrentMonth: true,
+  const start = startOfMonth(currentDate.value);
+  const end = endOfMonth(currentDate.value);
+  const days = eachDayOfInterval({ start, end }).map((date) => {
+    return {
+      date,
+      isCurrentMonth: isSameMonth(date, currentDate.value),
       events: props.events.filter(
         (event) =>
-          new Date(event.date).toDateString() ===
-          new Date(
-            currentDate.value.getFullYear(),
-            currentDate.value.getMonth(),
-            i
-          ).toDateString()
+          format(new Date(event.date), "yyyy-MM-dd") === format(date, "yyyy-MM-dd")
       ),
-    });
-  }
+    };
+  });
   return days;
 });
-
-// ...rest of your component logic...
 </script>
+<script lang="ts">
+export default {
+  name: "CalendarComponent",
+};
+</script>
+
 <style lang="postcss">
 .calendar-container {
   @apply p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg;

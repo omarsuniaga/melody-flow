@@ -1,6 +1,7 @@
 export interface MusicEvent {
-  id: string;  // Cambiado de id?: string a id: string
-  activityType: 'Fija' | string;
+  id: string; // ID único del evento
+  userId: string; // ID del usuario autenticado
+  activityType: 'Fija' | 'Eventual';
   amount: number;
   createdAt: string;
   updatedAt?: string;
@@ -12,8 +13,6 @@ export interface MusicEvent {
   provider: string;
   time: string;
   userIP: string;
-  userId: string;
-  isFixed: boolean;
 }
-
-export type EventFormData = Omit<MusicEvent, 'createdAt' | 'createdBy' | 'userIP'>;
+export type DeleteEvent = MusicEvent & { deleteMode: "single" | "all" };
+export type EventFormData = Omit<MusicEvent, 'createdAt' | 'createdBy' | 'userIP' | 'updatedAt'>;

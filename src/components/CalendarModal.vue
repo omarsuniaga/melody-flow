@@ -5,11 +5,12 @@
       v-if="selectedDateEvents.length > 0"
       :model-value="isEventListModalOpen"
       @update:model-value="$emit('update:isEventListModalOpen', $event)"
-      :title="format(selectedDate, 'MMMM d, yyyy')"
+      :title="`Eventos para ${format(selectedDate, 'MMMM d, yyyy')}`"
       class="modal-wrapper"
     >
+      <!-- Botón de Nuevo Evento en la parte superior -->
       <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-medium">Eventos del día</h3>
+        <h3 class="text-lg font-medium">{{ selectedDateEvents.length }} eventos</h3>
         <ButtonComponent
           type="button"
           variant="primary"
@@ -23,8 +24,8 @@
       </div>
       <div class="mt-4 space-y-4">
         <div
-          v-for="event in selectedDateEvents"
-          :key="event.id"
+          v-for="(event, index) in selectedDateEvents"
+          :key="index"
           class="p-3 rounded-lg border transition-colors"
           :class="{
             'bg-green-50 border-green-200': event.paymentStatus === 'Pagado',
@@ -45,7 +46,7 @@
             </span>
             <div class="flex gap-1">
               <button
-                @click="togglePaymentStatus(event)"
+                @click="handleTogglePaymentStatus(event)"
                 class="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
                 :title="
                   event.paymentStatus === 'Pagado'
@@ -75,14 +76,12 @@
               >
                 <PencilIcon class="h-4 w-4" />
               </ButtonComponent>
-              <ButtonComponent
-                type="button"
-                variant="danger"
-                class="p-1.5 hover:bg-red-50"
-                @click="$emit('confirm-delete', event)"
-              >
-                <TrashIcon class="h-4 w-4" />
-              </ButtonComponent>
+              <!-- Solo renderizar DeleteEvent si event existe y tiene id -->
+              <DeleteEvent
+                v-if="event && event.id"
+                :event="event"
+                @deleted="fetchEvents"
+              />
             </div>
           </div>
 
@@ -131,34 +130,14 @@
       @saved="$emit('event-saved')"
     />
     <!-- Delete Confirmation Modal -->
-    <ModalComponent
+    <DeleteConfirmationModal
       :model-value="isDeleteModalOpen"
       @update:model-value="$emit('update:isDeleteModalOpen', $event)"
-      title="Eliminar Evento"
-    >
-      <p>
-        ¿Está seguro que desea eliminar este evento? Esta acción no se puede deshacer.
-      </p>
-      <template #footer>
-        <ButtonComponent
-          type="button"
-          variant="secondary"
-          :disabled="isDeleting"
-          @click="$emit('update:isDeleteModalOpen', false)"
-        >
-          Cancelar
-        </ButtonComponent>
-        <ButtonComponent
-          type="button"
-          variant="danger"
-          :loading="isDeleting"
-          :disabled="isDeleting"
-          @click="handleDelete"
-        >
-          {{ isDeleting ? "Eliminando..." : "Eliminar" }}
-        </ButtonComponent>
-      </template>
-    </ModalComponent>
+      :event="selectedEvent"
+      :is-deleting="isDeleting"
+      @cancel="$emit('update:isDeleteModalOpen', false)"
+      @delete="(event, mode) => $emit('delete-event', { ...event, deleteMode: mode })"
+    />
   </div>
 </template>
 
@@ -170,52 +149,76 @@ import ButtonComponent from "./ButtonComponent.vue";
 import EventFormModal from "./EventFormModal.vue";
 import EventViewModal from "./EventViewModal.vue";
 import EventEditModal from "./EventEditModal.vue";
-import { ref } from "vue";
+import DeleteEvent from "./DeleteEvent.vue";
 import {
   PlusIcon,
   EyeIcon,
   PencilIcon,
-  TrashIcon,
   CheckCircleIcon,
   ClockIcon,
   MapPinIcon,
-} from "../utils/icons"; // Cambiamos la importación para usar nuestro archivo de iconos
+} from "../utils/icons.ts"; // Cambiamos la importación para usar nuestro archivo de iconos
+import { useEventStore } from "../stores/eventStore"; // Eliminar cualquier referencia a Supabase
+import { defineProps, defineEmits, withDefaults } from "vue";
+import { defineAsyncComponent, ref } from "vue";
 
-type Props = {
-  selectedDateEvents: MusicEvent[];
-  selectedDate: Date;
-  selectedEvent: MusicEvent | null;
-  isEventListModalOpen: boolean;
-  isEventFormOpen: boolean;
-  isViewModalOpen: boolean;
-  isEditModalOpen: boolean;
-  isDeleteModalOpen: boolean;
-  sharedMessage?: string;
-  isDeleting?: boolean; // Hacer la prop opcional
-};
+const props = withDefaults(
+  defineProps<{
+    selectedDateEvents: MusicEvent[];
+    selectedDate: Date;
+    selectedEvent: MusicEvent | null;
+    isEventListModalOpen: boolean;
+    isEventFormOpen: boolean;
+    isViewModalOpen: boolean;
+    isEditModalOpen: boolean;
+    isDeleteModalOpen: boolean;
+    sharedMessage?: string;
+    isDeleting?: boolean;
+  }>(),
+  {
+    sharedMessage: undefined,
+    isDeleting: false,
+  }
+);
 
-const props = withDefaults(defineProps<Props>(), {
-  sharedMessage: undefined,
-  isDeleting: false, // Valor por defecto
-});
+interface Emits {
+  (e: "update:isEventListModalOpen", value: boolean): void;
+  (e: "update:isEventFormOpen", value: boolean): void;
+  (e: "update:isViewModalOpen", value: boolean): void;
+  (e: "update:isEditModalOpen", value: boolean): void;
+  (e: "update:isDeleteModalOpen", value: boolean): void;
+  (e: "view-event", event: MusicEvent): void;
+  (e: "edit-event", event: MusicEvent): void;
+  (e: "confirm-delete", event: MusicEvent): void;
+  (e: "edit-from-view"): void;
+  (e: "event-saved"): void;
+  (e: "toggle-payment-status", event: MusicEvent): void;
+  (e: "delete-event", event: DeleteEvent): void;
+}
+const DeleteConfirmationModal = defineAsyncComponent(
+  () => import("./DeleteConfirmationModal.vue")
+);
+console.log("selectedEvent", props.selectedEvent);
 
-const emit = defineEmits<{
-  "update:isEventListModalOpen": [value: boolean];
-  "update:isEventFormOpen": [value: boolean];
-  "update:isViewModalOpen": [value: boolean];
-  "update:isEditModalOpen": [value: boolean];
-  "update:isDeleteModalOpen": [value: boolean];
-  "view-event": [event: MusicEvent];
-  "edit-event": [event: MusicEvent];
-  "confirm-delete": [event: MusicEvent];
-  "edit-from-view": [];
-  "event-saved": [];
-  "delete-event": [event: MusicEvent];
-  "toggle-payment-status": [event: MusicEvent];
-}>();
+const eventStore = useEventStore();
+const isLoading = ref(false);
+const errorMessage = ref("");
 
-const togglePaymentStatus = (event: MusicEvent) => {
-  emit("toggle-payment-status", event);
+const emit = defineEmits<Emits>();
+
+const handleTogglePaymentStatus = async (event: MusicEvent) => {
+  if (!event.id) {
+    console.error("Error: El evento no tiene id");
+    return;
+  }
+  try {
+    const newStatus = event.paymentStatus === "Pendiente" ? "Pagado" : "Pendiente";
+    console.log("Marcando como pagado el evento:", event.paymentStatus);
+    console.log("Cambiando estado para evento:", newStatus);
+    emit("toggle-payment-status", { ...event, paymentStatus: newStatus });
+  } catch (error) {
+    console.error("Error al cambiar el estado de pago:", error);
+  }
 };
 
 const openNewEventForm = () => {
@@ -223,14 +226,9 @@ const openNewEventForm = () => {
   emit("update:isEventFormOpen", true);
 };
 
-// Modificar handleDelete para emitir el evento con el evento seleccionado
-const handleDelete = () => {
-  if (props.selectedEvent) {
-    emit("delete-event", props.selectedEvent);
-  } else {
-    console.error("No hay un evento seleccionado para eliminar");
-    alert("No hay un evento seleccionado para eliminar.");
-  }
+// Agregar método fetchEvents
+const fetchEvents = async () => {
+  await eventStore.fetchEvents();
 };
 </script>
 <script lang="ts">
@@ -238,8 +236,7 @@ export default {
   name: "CalendarModal",
 };
 </script>
-
-<style scoped>
+<style lang="postcss">
 /* Estilos heredados del modal anterior */
 :deep(.modal-content) {
   @apply bg-white rounded-lg shadow-xl overflow-hidden mx-auto my-4;

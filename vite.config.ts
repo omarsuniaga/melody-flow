@@ -30,6 +30,7 @@ export default defineConfig({
     })
   ],
   resolve: {
+    extensions: ['.js', '.ts', '.jsx', '.tsx', '.json', '.vue'],
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
@@ -51,7 +52,9 @@ export default defineConfig({
         }
       }
     },
-    chunkSizeWarningLimit: 800
+    chunkSizeWarningLimit: 800,
+    sourcemap: true,
+    outDir: 'dist'
   },
   envPrefix: 'VITE_'
 })

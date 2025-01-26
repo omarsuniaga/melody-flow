@@ -69,6 +69,7 @@ export const useEventStore = defineStore('events', () => {
         }
     };
     const deleteEvent = async (id) => {
+      console.log("Estoy aqui")
         if (!id) throw new Error('ID is required to delete event');
         try {
             loading.value = true;
@@ -83,6 +84,7 @@ export const useEventStore = defineStore('events', () => {
             loading.value = false;
         }
     };
+
     const fetchEvents = async () => {
         if (!auth.currentUser)
             return;

@@ -30,10 +30,119 @@
             <p class="text-3xl font-bold text-blue-600">{{ monthlyStats.totalEvents }}</p>
           </div>
           <div class="bg-green-50 p-4 rounded-lg">
-            <h3 class="text-lg font-medium text-green-900">Ingresos Totales</h3>
-            <p class="text-3xl font-bold text-green-600">
-              {{ formatCurrency(monthlyStats.totalRevenue) }}
-            </p>
+            <div @click="toggleTotalRevenue" class="cursor-pointer">
+              <h3 class="text-lg font-medium text-green-900">Ingresos Totales</h3>
+              <p class="text-3xl font-bold text-green-600">
+                {{ formatCurrency(monthlyStats.totalRevenue) }}
+              </p>
+            </div>
+
+            <!-- Panel expandible de ingresos totales -->
+            <div v-if="showTotalRevenue" class="mt-4 space-y-4">
+              <!-- Eventos Pendientes -->
+              <div class="bg-red-100 p-3 rounded">
+                <div @click="togglePendingPayments" class="cursor-pointer flex justify-between items-center">
+                  <span class="font-medium">Eventos Pendientes</span>
+                  <span>{{ formatCurrency(totalPendingAmount) }}</span>
+                </div>
+                <div v-if="showPendingPayments" class="mt-2">
+                  <div v-for="(events, provider) in groupedPendingPayments" :key="provider">
+                    <div
+                      class="flex items-center p-2 bg-white rounded cursor-pointer"
+                      @click="toggleProvider(String(provider))"
+                    >
+                      <div class="flex-none w-48">
+                        <p class="font-medium">{{ provider }}</p>
+                        <p class="text-sm text-gray-600">{{ events.length }} eventos</p>
+                      </div>
+                      <div class="flex-grow text-center">
+                        <span class="font-medium text-red-600">{{
+                          formatCurrency(events.reduce((sum, event) => sum + event.amount, 0))
+                        }}</span>
+                      </div>
+                      <button
+                        @click.stop="generateProviderPDF(String(provider), events)"
+                        class="flex-none text-blue-600 hover:text-blue-800 p-2"
+                        title="Descargar PDF"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-5 w-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                    <div v-if="expandedProvider === provider" class="pl-4">
+                      <div
+                        v-for="event in sortedEvents(events)"
+                        :key="event.id"
+                        class="flex justify-between items-center p-2 bg-gray-50 rounded"
+                      >
+                        <div>
+                          <p class="text-sm text-gray-600">
+                            {{ format(parseISO(event.date), "MMM d, yyyy") }}
+                          </p>
+                          <p class="text-sm text-gray-600">{{ event.location }}</p>
+                        </div>
+                        <span class="font-medium text-red-600">{{
+                          formatCurrency(event.amount)
+                        }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Eventos Pagados -->
+              <div class="bg-green-100 p-3 rounded">
+                <div @click="toggleCompletedPayments" class="cursor-pointer flex justify-between items-center">
+                  <span class="font-medium">Eventos Pagados</span>
+                  <span>{{ formatCurrency(totalCompletedAmount) }}</span>
+                </div>
+                <div v-if="showCompletedPayments" class="mt-2">
+                  <div v-for="(events, provider) in groupedCompletedPayments" :key="provider">
+                    <div
+                      class="flex justify-between items-center p-2 bg-white rounded cursor-pointer"
+                      @click="toggleProvider(String(provider))"
+                    >
+                      <div>
+                        <p class="font-medium">{{ provider }}</p>
+                        <p class="text-sm text-gray-600">{{ events.length }} eventos</p>
+                      </div>
+                      <span class="font-medium text-green-600">{{
+                        formatCurrency(events.reduce((sum, event) => sum + event.amount, 0))
+                      }}</span>
+                    </div>
+                    <div v-if="expandedProvider === provider" class="pl-4">
+                      <div
+                        v-for="event in sortedEvents(events)"
+                        :key="event.id"
+                        class="flex justify-between items-center p-2 bg-gray-50 rounded"
+                      >
+                        <div>
+                          <p class="text-sm text-gray-600">
+                            {{ format(parseISO(event.date), "MMM d, yyyy") }}
+                          </p>
+                          <p class="text-sm text-gray-600">{{ event.location }}</p>
+                        </div>
+                        <span class="font-medium text-green-600">{{
+                          formatCurrency(event.amount)
+                        }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="bg-purple-50 p-4 rounded-lg">
             <h3 class="text-lg font-medium text-purple-900">Promedio por Evento</h3>
@@ -92,117 +201,7 @@
         </div>
 
         <!-- Payment Status Lists -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-          <!-- Pending Payments -->
-          <div class="bg-red-50 p-4 rounded-lg">
-            <h3
-              class="text-lg font-medium text-red-900 mb-4 cursor-pointer flex items-center"
-              @click="togglePendingPayments"
-            >
-              Eventos Pendientes ({{ formatCurrency(totalPendingAmount) }})
-              <ChevronDownIcon class="h-5 w-5 ml-2" />
-            </h3>
-            <div v-if="showPendingPayments" class="space-y-2 max-h-64 overflow-y-auto">
-              <div v-for="(events, provider) in groupedPendingPayments" :key="provider">
-                <div
-                  class="flex items-center p-2 bg-white rounded cursor-pointer"
-                  @click="toggleProvider(String(provider))"
-                >
-                  <div class="flex-none w-48">
-                    <p class="font-medium">{{ provider }}</p>
-                    <p class="text-sm text-gray-600">{{ events.length }} eventos</p>
-                  </div>
-                  <div class="flex-grow text-center">
-                    <span class="font-medium text-red-600">{{
-                      formatCurrency(events.reduce((sum, event) => sum + event.amount, 0))
-                    }}</span>
-                  </div>
-                  <button
-                    @click.stop="generateProviderPDF(String(provider), events)"
-                    class="flex-none text-blue-600 hover:text-blue-800 p-2"
-                    title="Descargar PDF"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                      />
-                    </svg>
-                  </button>
-                </div>
-                <div v-if="expandedProvider === provider" class="pl-4">
-                  <div
-                    v-for="event in sortedEvents(events)"
-                    :key="event.id"
-                    class="flex justify-between items-center p-2 bg-gray-50 rounded"
-                  >
-                    <div>
-                      <p class="text-sm text-gray-600">
-                        {{ format(parseISO(event.date), "MMM d, yyyy") }}
-                      </p>
-                      <p class="text-sm text-gray-600">{{ event.location }}</p>
-                    </div>
-                    <span class="font-medium text-red-600">{{
-                      formatCurrency(event.amount)
-                    }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
 
-          <!-- Completed Payments -->
-          <div class="bg-green-50 p-4 rounded-lg">
-            <h3
-              class="text-lg font-medium text-green-900 mb-4 cursor-pointer flex items-center"
-              @click="toggleCompletedPayments"
-            >
-              Eventos Pagados ({{ formatCurrency(totalCompletedAmount) }})
-              <ChevronDownIcon class="h-5 w-5 ml-2" />
-            </h3>
-            <div v-if="showCompletedPayments" class="space-y-2 max-h-64 overflow-y-auto">
-              <div v-for="(events, provider) in groupedCompletedPayments" :key="provider">
-                <div
-                  class="flex justify-between items-center p-2 bg-white rounded cursor-pointer"
-                  @click="toggleProvider(String(provider))"
-                >
-                  <div>
-                    <p class="font-medium">{{ provider }}</p>
-                    <p class="text-sm text-gray-600">{{ events.length }} eventos</p>
-                  </div>
-                  <span class="font-medium text-green-600">{{
-                    formatCurrency(events.reduce((sum, event) => sum + event.amount, 0))
-                  }}</span>
-                </div>
-                <div v-if="expandedProvider === provider" class="pl-4">
-                  <div
-                    v-for="event in sortedEvents(events)"
-                    :key="event.id"
-                    class="flex justify-between items-center p-2 bg-gray-50 rounded"
-                  >
-                    <div>
-                      <p class="text-sm text-gray-600">
-                        {{ format(parseISO(event.date), "MMM d, yyyy") }}
-                      </p>
-                      <p class="text-sm text-gray-600">{{ event.location }}</p>
-                    </div>
-                    <span class="font-medium text-green-600">{{
-                      formatCurrency(event.amount)
-                    }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
         <!-- Locations with Most Activities -->
         <div class="bg-gray-50 p-4 rounded-lg mt-6">
@@ -260,6 +259,7 @@ const expandedProvider = ref<string | null>(null);
 const showProviderDistribution = ref(false);
 const showProviderRevenue = ref(false);
 const showTopLocations = ref(false);
+const showTotalRevenue = ref(false); // Agregar nuevo ref para controlar la expansión del panel de ingresos totales
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -286,6 +286,10 @@ function toggleProviderRevenue() {
 
 function toggleTopLocations() {
   showTopLocations.value = !showTopLocations.value;
+}
+
+function toggleTotalRevenue() { // Agregar nueva función para alternar la visualización del panel de ingresos totales
+  showTotalRevenue.value = !showTotalRevenue.value;
 }
 
 // Get all events for the selected month
@@ -476,3 +480,10 @@ interface MonthlyStats {
   averagePerEvent: number;
 }
 </script>
+
+<style scoped>
+/* Opcional: agregar animaciones para una mejor experiencia de usuario */
+.mt-4 {
+  transition: all 0.3s ease-in-out;
+}
+</style>

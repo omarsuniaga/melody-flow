@@ -1,11 +1,13 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { collection, addDoc, query, where, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore'
+import { collection, getDoc, addDoc, query, where, getDocs, updateDoc, deleteDoc, doc } from 'firebase/firestore'
 import { db, auth } from '../firebase/config'
 import type { MusicEvent, EventFormData } from '../types/event'
+import { IPService } from '../services/IPService';
+import { format, addWeeks, isSameMonth } from 'date-fns';
 
 export const useEventStore = defineStore('events', () => {
-  const events = ref<MusicEvent[]>([])
+  const events = ref<MusicEvent[]>([]);
   const loading = ref(false)
   const error = ref<string | null>(null)
 
@@ -14,95 +16,240 @@ export const useEventStore = defineStore('events', () => {
   })
 
   const addEvent = async (eventData: EventFormData) => {
-    if (!auth.currentUser) throw new Error('User not authenticated')
+    if (!auth.currentUser) throw new Error('User not authenticated');
 
-    try {
-      loading.value = true
-      const docRef = await addDoc(collection(db, 'actividades'), {
-        ...eventData
-      })
-      const newEvent: MusicEvent = {
-        ...eventData,
-        id: docRef.id,
-        createdAt: new Date().toISOString(),
-        createdBy: auth.currentUser.displayName || auth.currentUser.email || 'Unknown',
-        userIP: '', // Add IP address here
-        userId: auth.currentUser.uid
-      }
-
-      events.value.push(newEvent)
-    } catch (err) {
-      error.value = 'Failed to add event'
-      throw err
-    } finally {
-      loading.value = false
-    }
-  }
-
-  const updateEvent = async (id: string, eventData: Partial<EventFormData>) => {
-    try {
-      loading.value = true
-      const eventRef = doc(db, 'actividades', id)
-      await updateDoc(eventRef, {
-        ...eventData,
-        updatedAt: new Date().toISOString(),
-        userId: auth.currentUser!.uid // Ensure userId is updated
-      })
-
-      const index = events.value.findIndex(e => e.id === id)
-      if (index !== -1) {
-        events.value[index] = { ...events.value[index], ...eventData, userId: auth.currentUser!.uid }
-      }
-    } catch (err) {
-      error.value = 'Failed to update event'
-      throw err
-    } finally {
-      loading.value = false
-    }
-  }
-
-  const deleteEvent = async (id: string) => {
     try {
       loading.value = true;
-      await deleteDoc(doc(db, 'actividades', id)); // Eliminar de Firestore
-      events.value = events.value.filter(e => e.id !== id); // Actualizar estado local
+      const ipService = IPService.getInstance();
+      const deviceIP = await ipService.getDeviceIP();
+
+      // Datos base del evento
+      const baseEvent = {
+        ...eventData,
+        createdAt: new Date().toISOString(),
+        createdBy: auth.currentUser.email || '',
+        userId: auth.currentUser.uid,
+        userIP: deviceIP,
+
+      };
+
+      if (eventData.activityType === 'Fija') {
+        // Para eventos fijos, crear instancias para todas las semanas del mes
+        const eventDate = new Date(eventData.date);
+        let currentDate = eventDate;
+
+        while (isSameMonth(currentDate, eventDate)) {
+          try {
+            const docRef = await addDoc(collection(db, 'actividades'), {
+              ...baseEvent,
+              date: format(currentDate, 'yyyy-MM-dd'),
+            });
+
+            events.value.push({
+              ...baseEvent,
+              id: docRef.id,
+              date: format(currentDate, 'yyyy-MM-dd'),
+            });
+
+            currentDate = addWeeks(currentDate, 1);
+          } catch (err) {
+            console.error('Error al crear evento recurrente:', err);
+            throw err;
+          }
+        }
+      } else {
+        // Para eventos eventuales, crear una única instancia
+        const docRef = await addDoc(collection(db, 'actividades'), baseEvent);
+        events.value.push({ ...baseEvent, id: docRef.id });
+      }
+
+      return true;
     } catch (err) {
-      error.value = 'Failed to delete event';
+      console.error('Error al añadir evento:', err);
       throw err;
     } finally {
       loading.value = false;
     }
   };
 
-  const fetchEvents = async () => {
-    if (!auth.currentUser) return
-
+  const updateEvent = async (eventId: string, eventData: Partial<EventFormData>) => {
     try {
-      loading.value = true
+      loading.value = true;
+      const eventRef = doc(db, 'actividades', eventId);
+      const eventDoc = await getDoc(eventRef);
+
+      if (!eventDoc.exists()) {
+        throw new Error('Documento no encontrado');
+      }
+
+      const ipService = IPService.getInstance();
+      const deviceIP = await ipService.getDeviceIP();
+
+      await updateDoc(eventRef, {
+        ...eventData,
+        date: eventData.date ? format(new Date(eventData.date + 'T00:00:00'), 'yyyy-MM-dd') : undefined, // Asegurar que la fecha tenga la hora correcta
+        updatedAt: new Date().toISOString(),
+        userIP: deviceIP,
+      });
+
+      const index = events.value.findIndex(e => e.id === eventId);
+      if (index !== -1) {
+        events.value[index] = {
+          ...events.value[index],
+          ...eventData,
+          date: eventData.date ? format(new Date(eventData.date + 'T00:00:00'), 'yyyy-MM-dd') : events.value[index].date, // Asegurar que la fecha tenga la hora correcta
+          updatedAt: new Date().toISOString()
+        };
+      }
+    } catch (err) {
+      error.value = 'Failed to update event';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const deleteEvent = async (eventId: string) => {
+    try {
+      if (!eventId) {
+        throw new Error('ID de evento inválido');
+      }
+
+      if (!auth.currentUser) {
+        throw new Error('Usuario no autenticado');
+      }
+
+      loading.value = true;
+      console.log('Intentando eliminar documento:', eventId);
+
+      // Verificar que el documento existe
+      const eventRef = doc(db, 'actividades', eventId);
+      const eventDoc = await getDoc(eventRef);
+
+      if (!eventDoc.exists()) {
+        throw new Error('El documento no existe en Firestore');
+      }
+
+      // Verificar propiedad del evento
+      const eventData = eventDoc.data();
+      if (eventData.userId !== auth.currentUser.uid) {
+        throw new Error('No tienes permiso para eliminar este evento');
+      }
+
+      // Eliminar el documento
+      console.log('Eliminando documento:', eventRef.path);
+      await deleteDoc(eventRef);
+
+      // Actualizar estado local
+      events.value = events.value.filter(e => e.id !== eventId);
+      console.log('Evento eliminado exitosamente');
+
+      return true;
+    } catch (err) {
+      console.error(`Error eliminando evento ${eventId}:`, err);
+      error.value = err instanceof Error ? err.message : 'Error desconocido al eliminar el evento';
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const deleteRecurringEvents = async (baseEvent: MusicEvent) => {
+    try {
+      loading.value = true;
+      const eventDate = new Date(baseEvent.date);
+      const eventsToDelete = events.value.filter(e =>
+        e.activityType === 'Fija' &&
+        e.provider === baseEvent.provider &&
+        e.description === baseEvent.description &&
+        new Date(e.date).getDay() === eventDate.getDay()
+      );
+
+      await Promise.all(eventsToDelete.map(async e => {
+        if (e.id) {
+          const eventRef = doc(db, 'actividades', e.id);
+          await deleteDoc(eventRef);
+        }
+      }));
+      // Solo actualizamos el estado local
+      events.value = events.value.filter(e => !eventsToDelete.some(d => d.id === e.id));
+    } catch (error) {
+      console.error('Error eliminando eventos recurrentes:', error);
+      throw error;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  const fetchEvents = async () => {
+    if (!auth.currentUser) return;
+    try {
+      loading.value = true;
+      const userEmail = auth.currentUser.email;
       const q = query(
         collection(db, 'actividades'),
-        where('userId', '==', auth.currentUser.uid)
-      )
-      const querySnapshot = await getDocs(q)
-      events.value = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as MusicEvent[]
+        where('createdBy', '==', userEmail)
+      );
+      const querySnapshot = await getDocs(q);
+      events.value = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          userId: data.userId,
+          activityType: data.activityType,
+          amount: data.amount,
+          createdAt: data.createdAt,
+          updatedAt: data.updatedAt,
+          createdBy: data.createdBy,
+          date: data.date,
+          description: data.description,
+          provider: data.provider,
+          paymentStatus: data.paymentStatus,
+          userIP: data.userIP
+        } as MusicEvent;
+      });
     } catch (err) {
-      error.value = 'Failed to fetch events'
-      throw err
+      error.value = 'Failed to fetch events';
+      throw err;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
-  }
+  };  // Añadir punto y coma aquí
 
-  const togglePaymentStatus = async (id: string) => {
-    const event = events.value.find(e => e.id === id)
-    if (!event) return
+  const togglePaymentStatus = async (eventId: string, newPaymentStatus: 'Pendiente' | 'Pagado') => {
+    if (!eventId || !auth.currentUser) {
+      throw new Error('ID de evento inválido o usuario no autenticado');
+    }
 
-    const newPaymentStatus = event.paymentStatus === 'Pendiente' ? 'Pagado' : 'Pendiente'
-    await updateEvent(id, { paymentStatus: newPaymentStatus })
-  }
+    try {
+      loading.value = true;
+      const eventRef = doc(db, 'actividades', eventId);
+      const eventDoc = await getDoc(eventRef);
+
+      if (!eventDoc.exists()) {
+        throw new Error('Documento no encontrado');
+      }
+
+      await updateDoc(eventRef, {
+        paymentStatus: newPaymentStatus,
+        updatedAt: new Date().toISOString()
+      });
+
+      const index = events.value.findIndex(e => e.id === eventId);
+      if (index !== -1) {
+        events.value[index] = {
+          ...events.value[index],
+          paymentStatus: newPaymentStatus,
+          updatedAt: new Date().toISOString()
+        };
+      }
+    } catch (error) {
+      console.error("Error al actualizar el estado de pago:", error);
+      throw error;
+    } finally {
+      loading.value = false;
+    }
+  };
 
   return {
     events,
@@ -113,7 +260,8 @@ export const useEventStore = defineStore('events', () => {
     updateEvent,
     deleteEvent,
     fetchEvents,
-    togglePaymentStatus
-  }
-})
+    togglePaymentStatus,
+    deleteRecurringEvents,
+  };
+}); // Cierre del defineStore
 
