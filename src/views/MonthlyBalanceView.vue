@@ -26,12 +26,46 @@
         <!-- Key Metrics -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div class="bg-blue-50 p-4 rounded-lg">
-            <h3 class="text-lg font-medium text-blue-900">Eventos Totales</h3>
-            <p class="text-3xl font-bold text-blue-600">{{ monthlyStats.totalEvents }}</p>
+            <div @click="toggleTotalEvents" class="cursor-pointer">
+              <h3
+                class="text-lg font-medium text-blue-900 flex items-center justify-between"
+              >
+                <span>Eventos Totales</span>
+                <ChevronDownIcon
+                  class="h-5 w-5 ml-2 transform transition-transform duration-200"
+                  :class="{ 'rotate-180': showTotalEvents }"
+                />
+              </h3>
+              <p class="text-3xl font-bold text-blue-600">
+                {{ monthlyStats.totalEvents }}
+              </p>
+            </div>
+
+            <!-- Panel expandible de eventos totales -->
+            <div v-if="showTotalEvents" class="mt-4 space-y-2 max-h-64 overflow-y-auto">
+              <div
+                v-for="provider in sortedProviderStatsByEvents"
+                :key="provider.name"
+                class="flex justify-between items-center p-2 bg-white rounded"
+              >
+                <span class="text-gray-700">{{ provider.name }}</span>
+                <span class="font-medium text-blue-600"
+                  >{{ provider.eventCount }} eventos</span
+                >
+              </div>
+            </div>
           </div>
           <div class="bg-green-50 p-4 rounded-lg">
             <div @click="toggleTotalRevenue" class="cursor-pointer">
-              <h3 class="text-lg font-medium text-green-900">Ingresos Totales</h3>
+              <h3
+                class="text-lg font-medium text-green-900 flex items-center justify-between"
+              >
+                <span>Ingresos Totales</span>
+                <ChevronDownIcon
+                  class="h-5 w-5 ml-2 transform transition-transform duration-200"
+                  :class="{ 'rotate-180': showTotalRevenue }"
+                />
+              </h3>
               <p class="text-3xl font-bold text-green-600">
                 {{ formatCurrency(monthlyStats.totalRevenue) }}
               </p>
@@ -41,12 +75,24 @@
             <div v-if="showTotalRevenue" class="mt-4 space-y-4">
               <!-- Eventos Pendientes -->
               <div class="bg-red-100 p-3 rounded">
-                <div @click="togglePendingPayments" class="cursor-pointer flex justify-between items-center">
+                <div
+                  @click="togglePendingPayments"
+                  class="cursor-pointer flex justify-between items-center"
+                >
                   <span class="font-medium">Eventos Pendientes</span>
-                  <span>{{ formatCurrency(totalPendingAmount) }}</span>
+                  <div class="flex items-center">
+                    <span>{{ formatCurrency(totalPendingAmount) }}</span>
+                    <ChevronDownIcon
+                      class="h-5 w-5 ml-2 transform transition-transform duration-200"
+                      :class="{ 'rotate-180': showPendingPayments }"
+                    />
+                  </div>
                 </div>
                 <div v-if="showPendingPayments" class="mt-2">
-                  <div v-for="(events, provider) in groupedPendingPayments" :key="provider">
+                  <div
+                    v-for="(events, provider) in groupedPendingPayments"
+                    :key="provider"
+                  >
                     <div
                       class="flex items-center p-2 bg-white rounded cursor-pointer"
                       @click="toggleProvider(String(provider))"
@@ -57,7 +103,9 @@
                       </div>
                       <div class="flex-grow text-center">
                         <span class="font-medium text-red-600">{{
-                          formatCurrency(events.reduce((sum, event) => sum + event.amount, 0))
+                          formatCurrency(
+                            events.reduce((sum, event) => sum + event.amount, 0)
+                          )
                         }}</span>
                       </div>
                       <button
@@ -104,12 +152,24 @@
 
               <!-- Eventos Pagados -->
               <div class="bg-green-100 p-3 rounded">
-                <div @click="toggleCompletedPayments" class="cursor-pointer flex justify-between items-center">
+                <div
+                  @click="toggleCompletedPayments"
+                  class="cursor-pointer flex justify-between items-center"
+                >
                   <span class="font-medium">Eventos Pagados</span>
-                  <span>{{ formatCurrency(totalCompletedAmount) }}</span>
+                  <div class="flex items-center">
+                    <span>{{ formatCurrency(totalCompletedAmount) }}</span>
+                    <ChevronDownIcon
+                      class="h-5 w-5 ml-2 transform transition-transform duration-200"
+                      :class="{ 'rotate-180': showCompletedPayments }"
+                    />
+                  </div>
                 </div>
                 <div v-if="showCompletedPayments" class="mt-2">
-                  <div v-for="(events, provider) in groupedCompletedPayments" :key="provider">
+                  <div
+                    v-for="(events, provider) in groupedCompletedPayments"
+                    :key="provider"
+                  >
                     <div
                       class="flex justify-between items-center p-2 bg-white rounded cursor-pointer"
                       @click="toggleProvider(String(provider))"
@@ -119,7 +179,9 @@
                         <p class="text-sm text-gray-600">{{ events.length }} eventos</p>
                       </div>
                       <span class="font-medium text-green-600">{{
-                        formatCurrency(events.reduce((sum, event) => sum + event.amount, 0))
+                        formatCurrency(
+                          events.reduce((sum, event) => sum + event.amount, 0)
+                        )
                       }}</span>
                     </div>
                     <div v-if="expandedProvider === provider" class="pl-4">
@@ -154,30 +216,6 @@
 
         <!-- Provider Statistics -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <!-- Provider Event Distribution -->
-          <div class="bg-gray-50 p-4 rounded-lg">
-            <h3
-              class="text-lg font-medium text-gray-900 mb-4 cursor-pointer flex items-center"
-              @click="toggleProviderDistribution"
-            >
-              Distribución por Proveedor
-              <ChevronDownIcon class="h-5 w-5 ml-2" />
-            </h3>
-            <div
-              v-if="showProviderDistribution"
-              class="space-y-2 max-h-64 overflow-y-auto"
-            >
-              <div
-                v-for="provider in sortedProviderStatsByEvents"
-                :key="provider.name"
-                class="flex justify-between items-center"
-              >
-                <span class="text-gray-700">{{ provider.name }}</span>
-                <span class="font-medium">{{ provider.eventCount }} eventos</span>
-              </div>
-            </div>
-          </div>
-
           <!-- Provider Revenue Breakdown -->
           <div class="bg-gray-50 p-4 rounded-lg">
             <h3
@@ -201,7 +239,6 @@
         </div>
 
         <!-- Payment Status Lists -->
-
 
         <!-- Locations with Most Activities -->
         <div class="bg-gray-50 p-4 rounded-lg mt-6">
@@ -260,6 +297,7 @@ const showProviderDistribution = ref(false);
 const showProviderRevenue = ref(false);
 const showTopLocations = ref(false);
 const showTotalRevenue = ref(false); // Agregar nuevo ref para controlar la expansión del panel de ingresos totales
+const showTotalEvents = ref(false); // Agregar nuevo ref para controlar la expansión del panel de eventos totales
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -288,8 +326,14 @@ function toggleTopLocations() {
   showTopLocations.value = !showTopLocations.value;
 }
 
-function toggleTotalRevenue() { // Agregar nueva función para alternar la visualización del panel de ingresos totales
+function toggleTotalRevenue() {
+  // Agregar nueva función para alternar la visualización del panel de ingresos totales
   showTotalRevenue.value = !showTotalRevenue.value;
+}
+
+function toggleTotalEvents() {
+  // Agregar nueva función para alternar la visualización del panel de eventos totales
+  showTotalEvents.value = !showTotalEvents.value;
 }
 
 // Get all events for the selected month
