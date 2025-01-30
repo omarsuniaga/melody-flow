@@ -3,7 +3,7 @@ import axios from 'axios';
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent';
 
-export async function generateLetter(provider: string, eventCount: number, totalAmount: number): Promise<string> {
+export async function generateLetter(provider: string, totalAmount: number): Promise<string> {
   try {
     const prompt = `"Escribe un párrafo breve, agradeciendo la oportunidad
     de participar en estas actividades musicales, y confiando en mi talento

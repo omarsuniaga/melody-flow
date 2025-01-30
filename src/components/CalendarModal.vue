@@ -114,11 +114,11 @@
 
     <!-- Event View Modal -->
     <EventViewModal
-      v-if="selectedEvent"
+      v-if="isViewModalOpen"
       :model-value="isViewModalOpen"
       @update:model-value="$emit('update:isViewModalOpen', $event)"
       :event="selectedEvent"
-      @edit="$emit('edit-from-view')"
+      @edit="handleEditFromView"
     />
 
     <!-- Event Edit Modal -->
@@ -157,10 +157,10 @@ import {
   CheckCircleIcon,
   ClockIcon,
   MapPinIcon,
-} from "../utils/icons.ts"; // Cambiamos la importación para usar nuestro archivo de iconos
+} from "../utils/icons.js"; // Cambiamos la importación para usar nuestro archivo de iconos
 import { useEventStore } from "../stores/eventStore"; // Eliminar cualquier referencia a Supabase
 import { defineProps, defineEmits, withDefaults } from "vue";
-import { defineAsyncComponent, ref } from "vue";
+import { defineAsyncComponent, ref, computed } from "vue";
 
 const props = withDefaults(
   defineProps<{
@@ -226,10 +226,25 @@ const openNewEventForm = () => {
   emit("update:isEventFormOpen", true);
 };
 
+const handleEditFromView = () => {
+  emit("edit-from-view");
+};
+
 // Agregar método fetchEvents
 const fetchEvents = async () => {
   await eventStore.fetchEvents();
 };
+
+// Asegúrate de que selectedEvent tenga todas las propiedades
+const selectedEvent = computed(() => {
+  if (!props.selectedEvent) return null;
+
+  return {
+    ...props.selectedEvent,
+    location: props.selectedEvent.location || "Sin ubicación",
+    // Asegura otras propiedades requeridas aquí
+  };
+});
 </script>
 <script lang="ts">
 export default {

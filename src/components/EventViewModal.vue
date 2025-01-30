@@ -35,7 +35,12 @@
 
       <div>
         <h4 class="text-sm font-medium text-gray-500">Lugar</h4>
-        <p class="mt-1">{{ event.location }}</p>
+        <p class="mt-1">
+          {{ event?.location || "No especificado" }}
+          <span v-if="!event?.location" class="text-yellow-500 text-xs">
+            (Ubicación no disponible)
+          </span>
+        </p>
       </div>
 
       <div class="grid grid-cols-2 gap-4">
@@ -66,58 +71,74 @@
       </div>
     </div>
 
+    <!-- Debug info - remove in production -->
+    <div class="mt-4 p-2 bg-gray-100 rounded text-xs" v-if="debug">
+      <pre>{{ JSON.stringify(event, null, 2) }}</pre>
+    </div>
+
     <template #footer>
       <div class="flex justify-end gap-3">
-        <ButtonComponent variant="secondary" @click="$emit('edit')"
-          >Editar</ButtonComponent
-        >
-        <ButtonComponent variant="primary" @click="close">Cerrar</ButtonComponent>
+        <ButtonComponent variant="secondary" @click="$emit('edit')">
+          Editar
+        </ButtonComponent>
+        <ButtonComponent variant="primary" @click="close"> Cerrar </ButtonComponent>
       </div>
     </template>
   </ModalComponent>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
+<script setup lang="ts">
+import { ref, watchEffect } from "vue";
 import { format } from "date-fns";
 import ModalComponent from "./ModalComponent.vue";
 import ButtonComponent from "./ButtonComponent.vue";
-import { MusicEvent } from "../types/event";
+import type { MusicEvent } from "../types/event";
 
-export default defineComponent({
-  name: "EventDetailsModal",
-  components: {
-    ModalComponent,
-    ButtonComponent,
-  },
-  props: {
-    modelValue: {
-      type: Boolean,
-      required: true,
-    },
-    event: {
-      type: Object as () => MusicEvent,
-      required: true,
-    },
-  },
-  emits: ["update:modelValue", "edit"],
-  methods: {
-    formatDate(date: string): string {
-      return format(new Date(date), "dd/MM/yyyy");
-    },
-    formatDateTime(date?: string): string {
-      if (!date) return "N/A";
-      return format(new Date(date), "dd/MM/yyyy HH:mm");
-    },
-    formatCurrency(amount: number): string {
-      return new Intl.NumberFormat("es-DO", {
-        style: "currency",
-        currency: "DOP",
-      }).format(amount);
-    },
-    close(): void {
-      this.$emit("update:modelValue", false);
-    },
-  },
+const props = defineProps<{
+  modelValue: boolean;
+  event: MusicEvent;
+}>();
+
+const emit = defineEmits<{
+  (e: "update:modelValue", value: boolean): void;
+  (e: "edit"): void;
+}>();
+
+const close = (): void => {
+  emit("update:modelValue", false);
+};
+
+const debug = ref(false); // Set to true to see event data
+
+// Monitor event prop changes
+watchEffect(() => {
+  if (props.event) {
+    console.log("Event data received:", props.event);
+    if (!props.event.location) {
+      console.warn("Location data is missing for event:", props.event.id);
+    }
+  }
 });
+
+const formatDate = (date: string): string => {
+  return format(new Date(date), "dd/MM/yyyy");
+};
+
+const formatDateTime = (date?: string): string => {
+  if (!date) return "N/A";
+  return format(new Date(date), "dd/MM/yyyy HH:mm");
+};
+
+const formatCurrency = (amount: number): string => {
+  return new Intl.NumberFormat("es-DO", {
+    style: "currency",
+    currency: "DOP",
+  }).format(amount);
+};
 </script>
+
+<style lang="postcss">
+.field-missing {
+  @apply italic text-gray-400;
+}
+</style>

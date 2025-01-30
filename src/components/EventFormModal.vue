@@ -9,37 +9,6 @@
       {{ errorMessage }}
     </div>
 
-    <!-- Botón de prueba API -->
-    <div class="mb-4 flex justify-end">
-      <ButtonComponent
-        variant="secondary"
-        size="sm"
-        @click="testGeminiAPI"
-        :disabled="isTestingAPI"
-      >
-        <template v-if="isTestingAPI">
-          <span class="inline-block animate-spin mr-2">⌛</span>
-          Probando API...
-        </template>
-        <template v-else> 🔍 Probar API </template>
-      </ButtonComponent>
-    </div>
-
-    <!-- Mostrar resultado de la prueba -->
-    <div
-      v-if="apiTestResult !== null"
-      :class="[
-        'mb-4 p-2 rounded text-sm',
-        apiTestResult ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700',
-      ]"
-    >
-      {{
-        apiTestResult
-          ? "✅ API funcionando correctamente"
-          : "❌ Error al conectar con la API"
-      }}
-    </div>
-
     <!-- Formulario principal -->
     <form @submit.prevent="handleSubmit" class="space-y-6">
       <!-- Tipo de Actividad -->
@@ -202,12 +171,8 @@
         >
           Cancelar
         </ButtonComponent>
-        <ButtonComponent
-          type="submit"
-          variant="primary"
-          :disabled="isSubmitting"
-        >
-          {{ isSubmitting ? 'Guardando...' : 'Guardar' }}
+        <ButtonComponent type="submit" variant="primary" :disabled="isSubmitting">
+          {{ isSubmitting ? "Guardando..." : "Guardar" }}
         </ButtonComponent>
         <!--
         <ButtonComponent variant="danger" @click="deleteEvent">
@@ -226,7 +191,7 @@ import ButtonComponent from "./ButtonComponent.vue";
 import { useEventStore } from "../stores/eventStore";
 import { useUserStore } from "../stores/userStore";
 import { addWeeks, isSameMonth, getDay, format, addDays } from "date-fns";
-import { MessageParserService } from "../services/MessageParserService";
+import MessageParserService from "../services/MessageParserService";
 import { EventFormData } from "../types/event";
 import { useAuthStore } from "../stores/authStore";
 
@@ -281,12 +246,6 @@ const descriptionSuggestions = ref<string[]>([]);
 const locationSuggestions = ref<string[]>([]);
 
 /**
- * Estado del Test de API
- */
-const isTestingAPI = ref(false);
-const apiTestResult = ref<boolean | null>(null);
-
-/**
  * Agregar estas variables reactivas
  */
 const isSubmitting = ref(false);
@@ -299,7 +258,7 @@ watch(
   () => props.selectedDate,
   (newDate) => {
     if (newDate) {
-      eventForm.value.date = format(newDate, 'yyyy-MM-dd');
+      eventForm.value.date = format(newDate, "yyyy-MM-dd");
     }
   },
   { immediate: true }
@@ -362,57 +321,31 @@ function close() {
   emit("update:modelValue", false);
 }
 
-/**
- * Procesar mensaje compartido
- */
-async function processSharedMessage(message: string) {
-  try {
-    const parsedData = await MessageParserService.parseSharedMessage(message);
-
-    // Actualizar el formulario con los datos extraídos
-    if (parsedData.provider) eventForm.value.provider = parsedData.provider;
-    if (parsedData.description) eventForm.value.description = parsedData.description;
-    if (parsedData.location) eventForm.value.location = parsedData.location;
-    if (parsedData.date) eventForm.value.date = parsedData.date;
-    if (parsedData.time) eventForm.value.time = parsedData.time;
-    if (parsedData.amount) eventForm.value.amount = parsedData.amount;
-  } catch (error) {
-    console.error("Error processing shared message:", error);
-  }
-}
+// Removed unused function processSharedMessage
 
 /**
  * Watch para sharedMessage (si se provee)
  */
 watch(
   () => props.sharedMessage,
-  (newMessage) => {
+  async (newMessage) => {
     if (newMessage) {
-      processSharedMessage(newMessage);
+      try {
+        const parsedData = JSON.parse(newMessage);
+        // Actualizar el formulario con los datos procesados
+        Object.assign(eventForm.value, {
+          ...eventForm.value,
+          ...parsedData,
+          date: parsedData.date || format(new Date(), "yyyy-MM-dd"),
+          time: parsedData.time || "19:00",
+        });
+      } catch (error) {
+        console.error("Error al procesar datos:", error);
+      }
     }
-  }
+  },
+  { immediate: true }
 );
-
-/**
- * Test de API (Gemini)
- */
-async function testGeminiAPI() {
-  try {
-    isTestingAPI.value = true;
-    console.log("Iniciando prueba de API...");
-    const result = await MessageParserService.testConnection();
-    console.log("Resultado de la prueba:", result);
-    apiTestResult.value = result;
-  } catch (error) {
-    console.error("Error al probar la API:", error);
-    apiTestResult.value = false;
-  } finally {
-    isTestingAPI.value = false;
-    setTimeout(() => {
-      apiTestResult.value = null;
-    }, 3000);
-  }
-}
 
 const selectedDayOfWeek = computed(() => {
   if (!eventForm.value.date) return 0;
@@ -434,17 +367,17 @@ function getDayName(day: number): string {
 
 const handleSubmit = async () => {
   if (!eventForm.value.date || !eventForm.value.provider) {
-    alert('Por favor complete todos los campos requeridos');
+    alert("Por favor complete todos los campos requeridos");
     return;
   }
 
   try {
     isSubmitting.value = true;
     await saveEvent(); // Usar la función saveEvent en lugar de eventStore.addEvent directamente
-    emit('saved');
+    emit("saved");
   } catch (error) {
-    console.error('Error al guardar el evento:', error);
-    errorMessage.value = 'Error al guardar el evento';
+    console.error("Error al guardar el evento:", error);
+    errorMessage.value = "Error al guardar el evento";
   } finally {
     isSubmitting.value = false;
   }

@@ -37,9 +37,14 @@ const notificationService = NotificationService.getInstance()
 const backgroundTaskService = BackgroundTaskService.getInstance()
 
 authStore.initializeAuth().then(async () => {
-    await notificationService.requestNotificationPermission()
-    backgroundTaskService.startMonitoring()
-    app.mount('#app')
+    try {
+        await router.isReady() // Esperar a que el router esté listo
+        await notificationService.requestNotificationPermission()
+        backgroundTaskService.startMonitoring()
+        app.mount('#app')
+    } catch (error) {
+        console.error('Error durante la inicialización:', error)
+    }
 })
 
 // Register service worker

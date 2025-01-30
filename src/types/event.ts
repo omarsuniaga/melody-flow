@@ -16,3 +16,17 @@ export interface MusicEvent {
 }
 export type DeleteEvent = MusicEvent & { deleteMode: "single" | "all" };
 export type EventFormData = Omit<MusicEvent, 'createdAt' | 'createdBy' | 'userIP' | 'updatedAt'>;
+
+export interface ParsedEventData {
+  provider: string | null;
+  description: string | null;
+  location: string | null;
+  date: string | null;
+  time: string | null;
+  amount: number | null;
+  error?: boolean;
+  message?: string;
+  isRecurring?: boolean;
+  confidence?: number;
+  
+}

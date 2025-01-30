@@ -46,6 +46,10 @@ const isFormValid = computed(() => {
   );
 });
 
+const closeModal = () => {
+  emit("update:modelValue", false);
+};
+
 async function handleSubmit() {
   if (!isFormValid.value) {
     errorMessage.value = "Por favor complete todos los campos requeridos";
@@ -54,9 +58,11 @@ async function handleSubmit() {
 
   try {
     isLoading.value = true;
-    await eventStore.updateEvent(props.event.userId, {
-      ...props.event,
+    // Usar el ID del evento, no el userId
+    await eventStore.updateEvent(props.event.id!, {
       ...eventForm.value,
+      // Asegurarnos de que la fecha esté en el formato correcto
+      date: formatDateToISO(eventForm.value.date),
     });
     emit("saved");
     closeModal();
@@ -68,9 +74,27 @@ async function handleSubmit() {
   }
 }
 
-function closeModal() {
-  emit("update:modelValue", false);
-  errorMessage.value = "";
+// Función auxiliar para formatear la fecha
+function formatDateToISO(dateStr: string): string {
+  // Si ya está en formato ISO, devolverlo
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    return dateStr;
+  }
+
+  // Si está en formato dd/mm/yyyy, convertirlo a yyyy-MM-dd
+  const match = dateStr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (match) {
+    const [_, day, month, year] = match;
+    return `${year}-${month}-${day}`;
+  }
+
+  // Si es una fecha válida en cualquier otro formato
+  const date = new Date(dateStr);
+  if (!isNaN(date.getTime())) {
+    return date.toISOString().split("T")[0];
+  }
+
+  return dateStr;
 }
 </script>
 <script lang="ts">
@@ -80,7 +104,11 @@ export default {
 </script>
 
 <template>
-  <ModalComponent :modelValue="modelValue" @close="closeModal" title="Editar Evento">
+  <ModalComponent
+    :model-value="modelValue"
+    @update:model-value="$emit('update:modelValue', $event)"
+    title="Editar Evento"
+  >
     <form @submit.prevent="handleSubmit" class="space-y-4">
       <div class="form-group">
         <label for="description">Descripción</label>

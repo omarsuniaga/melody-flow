@@ -22,8 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-.env.local
 .env
+.env.local
 
 # Asegúrate que no haya una línea que excluya *.toml
 

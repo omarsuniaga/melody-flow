@@ -75,38 +75,65 @@ export const useEventStore = defineStore('events', () => {
   const updateEvent = async (eventId: string, eventData: Partial<EventFormData>) => {
     try {
       loading.value = true;
+      console.log('Actualizando evento:', { eventId, eventData }); // Debug
+
       const eventRef = doc(db, 'actividades', eventId);
       const eventDoc = await getDoc(eventRef);
 
       if (!eventDoc.exists()) {
+        console.error('Documento no encontrado:', eventId);
         throw new Error('Documento no encontrado');
       }
 
       const ipService = IPService.getInstance();
       const deviceIP = await ipService.getDeviceIP();
 
-      await updateDoc(eventRef, {
+      const updateData = {
         ...eventData,
-        date: eventData.date ? format(new Date(eventData.date + 'T00:00:00'), 'yyyy-MM-dd') : undefined, // Asegurar que la fecha tenga la hora correcta
+        date: eventData.date ? formatDateToISO(eventData.date) : undefined,
         updatedAt: new Date().toISOString(),
         userIP: deviceIP,
-      });
+      };
 
+      console.log('Datos a actualizar:', updateData); // Debug
+
+      await updateDoc(eventRef, updateData);
+
+      // Actualizar estado local
       const index = events.value.findIndex(e => e.id === eventId);
       if (index !== -1) {
         events.value[index] = {
           ...events.value[index],
           ...eventData,
-          date: eventData.date ? format(new Date(eventData.date + 'T00:00:00'), 'yyyy-MM-dd') : events.value[index].date, // Asegurar que la fecha tenga la hora correcta
+          date: eventData.date ? formatDateToISO(eventData.date) : events.value[index].date,
           updatedAt: new Date().toISOString()
         };
       }
     } catch (err) {
+      console.error('Error al actualizar evento:', err);
       error.value = 'Failed to update event';
       throw err;
     } finally {
       loading.value = false;
     }
+  };
+
+  // Función auxiliar para formatear fechas
+  const formatDateToISO = (dateStr: string): string => {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+
+    const match = dateStr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (match) {
+      const [_, day, month, year] = match;
+      return `${year}-${month}-${day}`;
+    }
+
+    const date = new Date(dateStr);
+    if (!isNaN(date.getTime())) {
+      return date.toISOString().split('T')[0];
+    }
+
+    return dateStr;
   };
 
   const deleteEvent = async (eventId: string) => {
@@ -203,6 +230,8 @@ export const useEventStore = defineStore('events', () => {
           createdBy: data.createdBy,
           date: data.date,
           description: data.description,
+          location: data.location,
+          time: data.time,
           provider: data.provider,
           paymentStatus: data.paymentStatus,
           userIP: data.userIP

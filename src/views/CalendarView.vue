@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen p-2 sm:p-4">
     <div class="max-w-7xl mx-auto">
-      <div class="bg-white rounded-lg shadow p-3 sm:p-6">
+      <div class="bg-white rounded-lg shadow p-3 sm:p6">
         <CalendarHeader
           :currentDate="currentDate"
           :title="format(currentDate, 'MMMM yyyy')"
@@ -38,6 +38,9 @@
       @event-saved="handleEventSaved"
       @toggle-payment-status="togglePaymentStatus"
     />
+
+    <!-- Agregar el componente AddPrompt -->
+    <AddPrompt @event-processed="handleProcessedEvent" class="AddPrompt" />
   </div>
 </template>
 
@@ -47,6 +50,7 @@ import { useCalendarLogic } from "../composables/calendarLogic";
 import CalendarModal from "../components/CalendarModal.vue";
 import CalendarHeader from "../components/CalendarHeader.vue";
 import CalendarGrid from "../components/CalendarGrid.vue";
+import AddPrompt from "../components/AddPrompt.vue";
 
 const {
   currentDate,
@@ -71,6 +75,22 @@ const {
   togglePaymentStatus,
   handleEventSaved,
 } = useCalendarLogic();
+
+// Modificar la función handleProcessedEvent
+const handleProcessedEvent = (eventData: any) => {
+  // Cerrar cualquier modal abierto primero
+  isEventListModalOpen.value = false;
+  isViewModalOpen.value = false;
+  isEditModalOpen.value = false;
+  isDeleteModalOpen.value = false;
+
+  // Pre-llenar el formulario de evento con los datos procesados
+  selectedEvent.value = null; // Para indicar que es un nuevo evento
+  sharedMessage.value = JSON.stringify(eventData);
+
+  // Abrir el formulario de evento
+  isEventFormOpen.value = true;
+};
 </script>
 
 <style lang="postcss">
@@ -122,5 +142,8 @@ const {
 .min-h-screen {
   min-height: 100vh;
   height: 100%;
+}
+.AddPrompt {
+  margin-top: 1rem;
 }
 </style>

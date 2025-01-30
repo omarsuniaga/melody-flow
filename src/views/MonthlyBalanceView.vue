@@ -263,6 +263,19 @@
       </div>
     </div>
   </div>
+
+  <!-- Botón Flotante -->
+  <div class="fixed bottom-14 right-6">
+    <button
+      @click="showMakePayments = true"
+      class="rounded-full bg-blue-600 text-white p-4 shadow-lg flex items-center gap-2"
+    >
+      <BanknotesIcon class="h-6 w-6" />
+    </button>
+  </div>
+
+  <!-- Componente makePayments -->
+  <make-payments v-if="showMakePayments" @close="showMakePayments = false" />
 </template>
 
 <script setup lang="ts">
@@ -278,12 +291,13 @@ import {
 } from "date-fns";
 import ChevronLeftIcon from "@heroicons/vue/24/outline/ChevronLeftIcon";
 import ChevronRightIcon from "@heroicons/vue/24/outline/ChevronRightIcon";
-import { ChevronDownIcon, ChartBarIcon } from "@heroicons/vue/24/outline";
+import { ChevronDownIcon, ChartBarIcon, BanknotesIcon } from "@heroicons/vue/24/outline";
 import { useEventStore } from "../stores/eventStore";
 import { useRouter } from "vue-router";
 import { getPendingEventsTemplate } from "../utils/pdfTemplates";
 import { useUserStore } from "../stores/userStore";
 import { initializePdfMake } from "../utils/pdfMakeConfig";
+import makePayments from "../components/makePayments.vue";
 
 const toast = useToast(); // Agregar esta línea
 
@@ -298,9 +312,7 @@ const showProviderRevenue = ref(false);
 const showTopLocations = ref(false);
 const showTotalRevenue = ref(false); // Agregar nuevo ref para controlar la expansión del panel de ingresos totales
 const showTotalEvents = ref(false); // Agregar nuevo ref para controlar la expansión del panel de eventos totales
-
-const router = useRouter();
-const userStore = useUserStore();
+const showMakePayments = ref(false); // Agregar nuevo ref para controlar la visualización del modal makePayments
 
 function togglePendingPayments() {
   showPendingPayments.value = !showPendingPayments.value;

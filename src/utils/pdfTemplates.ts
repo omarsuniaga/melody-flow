@@ -51,11 +51,9 @@ export const getPendingEventsTemplate = async (provider: string, events: Event[]
 
   // Obtener el total histórico de eventos con este proveedor
   const allProviderEvents = eventStore.events.filter(e => e.provider === provider);
-  const historicalEventCount = allProviderEvents.length;
 
   const letterContent = await generateLetter(
     provider,
-    historicalEventCount, // Usar el conteo histórico total
     totalAmount
   );
 
