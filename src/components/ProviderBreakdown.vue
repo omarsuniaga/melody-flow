@@ -54,11 +54,7 @@
               </div>
               <div class="flex-grow text-center">
                 <span class="font-medium text-red-600">
-                  {{
-                    formatCurrency(
-                      events.reduce((sum, event) => sum + (event?.amount ?? 0), 0)
-                    )
-                  }}
+                  {{ formatCurrency(calculateTotalAmount(events)) }}
                 </span>
               </div>
               <button
@@ -134,7 +130,7 @@
                 <p class="text-sm text-gray-600">{{ events.length }} eventos</p>
               </div>
               <span class="font-medium text-green-600">
-                {{ formatCurrency(events.reduce((sum, event) => sum + event.amount, 0)) }}
+                {{ formatCurrency(calculateTotalAmount(events)) }}
               </span>
             </div>
             <!-- Detalle de eventos para el proveedor (Pagados) -->
@@ -170,6 +166,17 @@ import { es } from "date-fns/locale";
 // Función para formatear fecha con local español
 const formatDate = (date: string) => {
   return format(parseISO(date), "EEEE d 'de' MMMM, yyyy", { locale: es });
+};
+
+type Event = {
+  id: string;
+  date: string;
+  location: string;
+  amount: number;
+};
+
+const calculateTotalAmount = (events: Event[]): number => {
+  return events.reduce((sum, event) => sum + (event?.amount ?? 0), 0);
 };
 
 // Definición de props requeridas, utilizando toRefs para mantener la reactividad

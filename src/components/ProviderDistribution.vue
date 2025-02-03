@@ -44,11 +44,7 @@
               <div class="flex justify-between items-start">
                 <div>
                   <p class="text-sm text-gray-900">
-                    {{
-                      format(parseISO(event.date), "EEEE d 'de' MMMM, yyyy", {
-                        locale: es,
-                      })
-                    }}
+                    {{ formatDate(event.date) }}
                   </p>
                   <p class="text-sm text-gray-600">{{ event.location }}</p>
                   <p class="text-xs text-gray-500">{{ event.description }}</p>
@@ -70,7 +66,6 @@ import { defineProps, ref } from "vue";
 import { ChevronDownIcon } from "../utils/icons";
 import { formatCurrency } from "../utils/helpers";
 import { parseISO, format } from "date-fns";
-import { es } from "date-fns/locale";
 const expandedProvider = ref<string | null>(null);
 
 const props = defineProps<{
@@ -94,6 +89,11 @@ const getProviderEvents = (provider: string) => {
   return props.events
     .filter((event) => event.provider === provider)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+};
+
+const formatDate = (dateString: string) => {
+  const date = parseISO(dateString);
+  return format(date, "dd/MM/yyyy");
 };
 </script>
 <script lang="ts">
