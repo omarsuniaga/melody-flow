@@ -55,5 +55,41 @@ function checkUpcomingEvents() {
     }, 1000);
   });
 }
+const CACHE_NAME = 'v1';
+const ASSETS = [
+  '/',
+  '/index.html',
+  '/app.js',
+  '/assets/main.css'
+];
 
-// ...existing code...
+self.addEventListener('install', (e) => {
+  e.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(ASSETS))
+  );
+});
+
+self.addEventListener('fetch', (e) => {
+  if (e.request.url.includes('/api/')) {
+    e.respondWith(networkFirst(e.request));
+  } else {
+    e.respondWith(cacheFirst(e.request));
+  }
+});
+
+async function cacheFirst(request) {
+  const cached = await caches.match(request);
+  return cached ?? fetch(request);
+}
+
+async function networkFirst(request) {
+  const cache = await caches.open('api-cache');
+  try {
+    const response = await fetch(request);
+    cache.put(request, response.clone());
+    return response;
+  } catch {
+    return cache.match(request);
+  }
+}

@@ -9,7 +9,8 @@ const urlsToCache = [
   '/icons/icon-512x512.png',
   '/src/style.css',
   '/src/main.ts',
-  '/src/App.vue'
+  '/src/App.vue',
+  
 ];
 
 // Instalación del SW

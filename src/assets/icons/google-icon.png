@@ -1,0 +1,3 @@
+
+# Descargar el ícono de Google desde una fuente confiable y guardarlo en esta ubicación
+curl https://www.google.com/favicon.ico -o src/assets/icons/google-icon.png

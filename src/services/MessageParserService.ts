@@ -1,13 +1,21 @@
 import { LocalNLPService } from './LocalNLPService';
+import { MistralService } from './mistralService';
 import type { ParsedEventData } from '../types/event';
 
 export class MessageParserService {
   static async parseSharedMessage(message: string): Promise<ParsedEventData> {
     try {
-      console.log('Procesando mensaje:', message); // Debug
-      const result = await LocalNLPService.parseText(message);
-      console.log('Resultado del análisis:', result); // Debug
-      return result;
+      // Primero intentamos con Mistral
+      const mistralResult = await MistralService.processEventText(message);
+      
+      if (!mistralResult.error) {
+        console.log('Procesado exitosamente con Mistral:', mistralResult);
+        return mistralResult;
+      }
+
+      // Si falla Mistral, usamos el procesamiento local
+      console.log('Fallback a procesamiento local');
+      return await LocalNLPService.parseText(message);
     } catch (error) {
       console.error('Error al procesar mensaje:', error);
       return {
@@ -77,3 +85,11 @@ export class MessageParserService {
     }
   }
 }
+
+// Agregar export default si prefieres usar import default
+export default MessageParserService;
+
+// O simplemente usar export class si prefieres import nombrado
+// export class MessageParserService {
+//   ...existing code...
+// }

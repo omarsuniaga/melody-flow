@@ -129,3 +129,9 @@ function formatCurrency(val: number) {
   }).format(val);
 }
 </script>
+<script lang="ts">
+// exportar componente
+export default {
+  name: "makePayments",
+};
+</script>

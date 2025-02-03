@@ -30,6 +30,6 @@ onMounted(async () => {
 
 onUnmounted(() => {
   const notificationService = NotificationService.getInstance();
-  notificationService.startMonitoring();
+  notificationService.stopMonitoring(); // Cambiado a stop
 });
 </script>

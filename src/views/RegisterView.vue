@@ -5,23 +5,23 @@
         <div class="text-center">
           <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-6">
             <UserPlusIcon class="h-8 w-8 mx-auto mb-2 text-blue-600" />
-            {{ t("register.title") }}
+            Crear una cuenta
           </h2>
         </div>
 
         <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
           <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
             <form class="space-y-6" @submit.prevent="handleRegister">
-              <!-- Full Name -->
+              <!-- Nombre Completo -->
               <div>
-                <label for="fullName" class="label">{{ t("register.fullName") }}</label>
+                <label for="fullName" class="label">Nombre Completo</label>
                 <input
                   id="fullName"
                   type="text"
                   v-model="form.fullName"
                   required
                   pattern="[A-Za-z ]{2,50}"
-                  :placeholder="t('register.fullNamePlaceholder')"
+                  placeholder="Ingresa tu nombre completo"
                   class="input"
                   :aria-invalid="errors.fullName ? 'true' : 'false'"
                   :aria-describedby="errors.fullName ? 'fullName-error' : undefined"
@@ -35,15 +35,15 @@
                 </p>
               </div>
 
-              <!-- Email -->
+              <!-- Correo Electrónico -->
               <div>
-                <label for="email" class="label">{{ t("register.email") }}</label>
+                <label for="email" class="label">Correo Electrónico</label>
                 <input
                   id="email"
                   type="email"
                   v-model="form.email"
                   required
-                  :placeholder="t('register.emailPlaceholder')"
+                  placeholder="Ingresa tu correo electrónico"
                   class="input"
                   :aria-invalid="errors.email ? 'true' : 'false'"
                   :aria-describedby="errors.email ? 'email-error' : undefined"
@@ -53,16 +53,16 @@
                 </p>
               </div>
 
-              <!-- Password -->
+              <!-- Contraseña -->
               <div>
-                <label for="password" class="label">{{ t("register.password") }}</label>
+                <label for="password" class="label">Contraseña</label>
                 <div class="relative">
                   <input
                     :type="showPassword ? 'text' : 'password'"
                     id="password"
                     v-model="form.password"
                     required
-                    :placeholder="t('register.passwordPlaceholder')"
+                    placeholder="Ingresa tu contraseña"
                     class="input pr-10"
                     :aria-invalid="errors.password ? 'true' : 'false'"
                     :aria-describedby="
@@ -81,7 +81,7 @@
                   </button>
                 </div>
 
-                <!-- Password Strength Meter -->
+                <!-- Indicador de Fuerza de Contraseña -->
                 <div id="password-strength" class="mt-2">
                   <div class="flex items-center space-x-2">
                     <div class="flex-1 h-2 rounded-full bg-gray-200 overflow-hidden">
@@ -97,19 +97,19 @@
                   </div>
                   <ul class="mt-2 space-y-1 text-sm text-gray-500">
                     <li :class="{ 'text-green-600': passwordStrength.hasMinLength }">
-                      {{ t("register.passwordRequirements.length") }}
+                      Mínimo 8 caracteres
                     </li>
                     <li :class="{ 'text-green-600': passwordStrength.hasUppercase }">
-                      {{ t("register.passwordRequirements.uppercase") }}
+                      Al menos una letra mayúscula
                     </li>
                     <li :class="{ 'text-green-600': passwordStrength.hasLowercase }">
-                      {{ t("register.passwordRequirements.lowercase") }}
+                      Al menos una letra minúscula
                     </li>
                     <li :class="{ 'text-green-600': passwordStrength.hasNumber }">
-                      {{ t("register.passwordRequirements.number") }}
+                      Al menos un número
                     </li>
                     <li :class="{ 'text-green-600': passwordStrength.hasSpecial }">
-                      {{ t("register.passwordRequirements.special") }}
+                      Al menos un carácter especial
                     </li>
                   </ul>
                 </div>
@@ -123,17 +123,15 @@
                 </p>
               </div>
 
-              <!-- Confirm Password -->
+              <!-- Confirmar Contraseña -->
               <div>
-                <label for="confirmPassword" class="label">{{
-                  t("register.confirmPassword")
-                }}</label>
+                <label for="confirmPassword" class="label">Confirmar Contraseña</label>
                 <input
                   type="password"
                   id="confirmPassword"
                   v-model="form.confirmPassword"
                   required
-                  :placeholder="t('register.confirmPasswordPlaceholder')"
+                  placeholder="Confirma tu contraseña"
                   class="input"
                   :aria-invalid="errors.confirmPassword ? 'true' : 'false'"
                   :aria-describedby="
@@ -149,7 +147,7 @@
                 </p>
               </div>
 
-              <!-- Consent Checkboxes -->
+              <!-- Casillas de Consentimiento -->
               <div class="space-y-4">
                 <div class="flex items-start">
                   <div class="flex items-center h-5">
@@ -163,11 +161,11 @@
                   </div>
                   <div class="ml-3 text-sm">
                     <label for="terms" class="font-medium text-gray-700">
-                      {{ t("register.acceptTerms") }}
+                      Acepto los términos y condiciones
                     </label>
                     <p class="text-gray-500">
                       <a href="#" class="text-blue-600 hover:text-blue-500">
-                        {{ t("register.termsLink") }}
+                        Términos y condiciones
                       </a>
                     </p>
                   </div>
@@ -185,11 +183,11 @@
                   </div>
                   <div class="ml-3 text-sm">
                     <label for="privacy" class="font-medium text-gray-700">
-                      {{ t("register.acceptPrivacy") }}
+                      Acepto la política de privacidad
                     </label>
                     <p class="text-gray-500">
                       <a href="#" class="text-blue-600 hover:text-blue-500">
-                        {{ t("register.privacyLink") }}
+                        Política de privacidad
                       </a>
                     </p>
                   </div>
@@ -206,7 +204,7 @@
                   </div>
                   <div class="ml-3 text-sm">
                     <label for="marketing" class="font-medium text-gray-700">
-                      {{ t("register.acceptMarketing") }}
+                      Acepto recibir comunicaciones de marketing
                     </label>
                   </div>
                 </div>
@@ -217,9 +215,7 @@
                   <div class="w-full border-t border-gray-300"></div>
                 </div>
                 <div class="relative flex justify-center text-sm">
-                  <span class="px-2 bg-white text-gray-500">{{
-                    t("register.orContinueWith")
-                  }}</span>
+                  <span class="px-2 bg-white text-gray-500">O continúa con</span>
                 </div>
               </div>
 
@@ -233,10 +229,10 @@
                   alt="Google"
                   class="w-5 h-5"
                 />
-                {{ t("register.continueWithGoogle") }}
+                Continuar con Google
               </button>
 
-              <!-- Submit Button -->
+              <!-- Botón de Enviar -->
               <div>
                 <button
                   type="submit"
@@ -264,18 +260,18 @@
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     ></path>
                   </svg>
-                  {{ loading ? t("register.creating") : t("register.create") }}
+                  {{ loading ? "Creando cuenta..." : "Crear cuenta" }}
                 </button>
               </div>
             </form>
 
             <p class="mt-6 text-center text-sm text-gray-600">
-              {{ t("register.haveAccount") }}
+              ¿Ya tienes una cuenta?
               <router-link
                 to="/login"
                 class="font-medium text-blue-600 hover:text-blue-500"
               >
-                {{ t("register.login") }}
+                Iniciar sesión
               </router-link>
             </p>
           </div>
@@ -296,12 +292,10 @@ import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { useAnalytics } from "../composables/useAnalytics";
 import { useDeviceInfo } from "../composables/useDeviceInfo";
-import { useI18n } from "../composables/useI18n";
 
 const router = useRouter();
 const { logEvent } = useAnalytics();
 const { collectDeviceInfo } = useDeviceInfo();
-const { t } = useI18n();
 
 const form = ref({
   fullName: "",
@@ -344,7 +338,8 @@ const passwordStrength = computed(() => {
     hasLowercase,
     hasNumber,
     hasSpecial,
-    label: ["Weak", "Fair", "Good", "Strong", "Very Strong"][score - 1] || "Too Weak",
+    label:
+      ["Débil", "Regular", "Buena", "Fuerte", "Muy Fuerte"][score - 1] || "Muy Débil",
   };
 });
 
@@ -388,7 +383,7 @@ watch(
   () => form.value.confirmPassword,
   (newValue) => {
     if (newValue && newValue !== form.value.password) {
-      errors.value.confirmPassword = t("register.errors.passwordMismatch");
+      errors.value.confirmPassword = "Las contraseñas no coinciden";
     } else {
       errors.value.confirmPassword = "";
     }
@@ -433,13 +428,13 @@ const handleRegister = async () => {
     });
 
     if (error.code === "auth/email-already-in-use") {
-      errors.value.email = t("register.errors.emailInUse");
+      errors.value.email = "El correo electrónico ya está en uso";
     } else if (error.code === "auth/invalid-email") {
-      errors.value.email = t("register.errors.invalidEmail");
+      errors.value.email = "Correo electrónico inválido";
     } else if (error.code === "auth/weak-password") {
-      errors.value.password = t("register.errors.weakPassword");
+      errors.value.password = "Contraseña débil";
     } else {
-      errors.value.email = t("register.errors.generic");
+      errors.value.email = "Error al registrar usuario";
     }
   } finally {
     loading.value = false;

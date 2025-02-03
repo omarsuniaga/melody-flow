@@ -45,7 +45,7 @@ async function getRegistrationToken() {
 // Función para enviar el token al servidor
 async function sendTokenToServer(token) {
     // Implementa la lógica para enviar el token al servidor
-    console.log('Sending token to server...', token);
+    // console.log('Sending token to server...', token);
     // Ejemplo:
     // fetch('/api/save-token', {
     //     method: 'POST',

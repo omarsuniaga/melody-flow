@@ -5,7 +5,7 @@
 
 // Imports necesarios para el funcionamiento del servicio
 import { useEventStore } from '../stores/eventStore'
-import { format, addMinutes, isWithinInterval, parseISO } from 'date-fns'
+import { addMinutes, isWithinInterval, parseISO } from 'date-fns'
 import { notificationConfig } from '../config/notification'
 import { useSettingsStore } from '../stores/settingsStore'
 
@@ -59,6 +59,7 @@ export class NotificationService {
   private finalAlarm: HTMLAudioElement | null = null
   private wakeLock: any = null
   private readonly CHECK_INTERVAL = 60000 // 1 minuto en ms
+
 
   /**
    * Constructor privado para implementar Singleton
@@ -487,4 +488,42 @@ public async sendScheduledTestNotification(delayMinutes: number = 1): Promise<vo
       throw error
     }
   }
+
+  // Agregar método para verificar soporte del dispositivo
+  public checkDeviceSupport(): {
+    notifications: boolean;
+    vibration: boolean;
+    wakeLock: boolean;
+    sound: boolean;
+  } {
+    return {
+      notifications: 'Notification' in window,
+      vibration: 'vibrate' in navigator,
+      wakeLock: 'wakeLock' in navigator,
+      sound: typeof Audio !== 'undefined'
+    };
+  }
+  // crea el evento sendEventNotification
+  public async sendEventNotification(event: EventNotification): Promise<void> {
+    try {
+      if (!('Notification' in window)) {
+        console.warn('Este dispositivo no soporta notificaciones')
+        return
+      }
+
+      const notification = new Notification(event.title, {
+        body: event.body,
+        icon: event.icon,
+        tag: event.tag,
+        data: event.data
+      })
+
+      notification.onclick = () => {
+        console.log(`Notificación clickeada para evento ${event.data.eventId}`)
+      }
+    } catch (error) {
+      console.error('Error enviando notificación:', error)
+    }
+  }
 }
+

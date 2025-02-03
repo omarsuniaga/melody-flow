@@ -11,6 +11,8 @@ import MapPinIcon from '@heroicons/vue/24/outline/MapPinIcon';
 import PlusIcon from '@heroicons/vue/24/outline/PlusIcon';
 import CalendarIcon from '@heroicons/vue/24/outline/CalendarIcon';
 import UserIcon from '@heroicons/vue/24/outline/UserIcon';
+import BanknotesIcon from '@heroicons/vue/24/outline/BanknotesIcon';
+
 
 // Exportación por defecto como objeto
 const icons = {
@@ -27,6 +29,8 @@ const icons = {
   PlusIcon,
   CalendarIcon,
   UserIcon,
+  BanknotesIcon,
+
 };
 
 export default icons;
@@ -46,4 +50,6 @@ export {
   PlusIcon,
   CalendarIcon,
   UserIcon,
+  BanknotesIcon,
+  
 };

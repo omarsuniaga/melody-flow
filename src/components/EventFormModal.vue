@@ -191,7 +191,7 @@ import ButtonComponent from "./ButtonComponent.vue";
 import { useEventStore } from "../stores/eventStore";
 import { useUserStore } from "../stores/userStore";
 import { addWeeks, isSameMonth, getDay, format, addDays } from "date-fns";
-import MessageParserService from "../services/MessageParserService";
+import { MessageParserService } from "../services/MessageParserService";
 import { EventFormData } from "../types/event";
 import { useAuthStore } from "../stores/authStore";
 
@@ -321,8 +321,6 @@ function close() {
   emit("update:modelValue", false);
 }
 
-// Removed unused function processSharedMessage
-
 /**
  * Watch para sharedMessage (si se provee)
  */
@@ -331,16 +329,28 @@ watch(
   async (newMessage) => {
     if (newMessage) {
       try {
-        const parsedData = JSON.parse(newMessage);
-        // Actualizar el formulario con los datos procesados
-        Object.assign(eventForm.value, {
-          ...eventForm.value,
-          ...parsedData,
-          date: parsedData.date || format(new Date(), "yyyy-MM-dd"),
-          time: parsedData.time || "19:00",
-        });
+        // Primero intentamos parsear si ya es JSON
+        let parsedData;
+        try {
+          parsedData = JSON.parse(newMessage);
+        } catch {
+          // Si no es JSON, procesamos el texto con MessageParserService
+          parsedData = await MessageParserService.parseSharedMessage(newMessage);
+        }
+
+        if (!parsedData.error) {
+          Object.assign(eventForm.value, {
+            ...eventForm.value,
+            ...parsedData,
+            date: parsedData.date || format(new Date(), "yyyy-MM-dd"),
+            time: parsedData.time || "19:00",
+          });
+        } else {
+          errorMessage.value = parsedData.message;
+        }
       } catch (error) {
         console.error("Error al procesar datos:", error);
+        errorMessage.value = "Error al procesar el mensaje compartido";
       }
     }
   },

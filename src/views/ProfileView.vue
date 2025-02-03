@@ -595,7 +595,7 @@ async function updateNotificationSettings() {
 async function logout() {
   try {
     await auth.signOut();
-    router.push("/login");
+    router.push("/");
   } catch (error) {
     console.error("Error al cerrar sesión:", error);
     alert("Error al cerrar sesión. Por favor, intente nuevamente.");

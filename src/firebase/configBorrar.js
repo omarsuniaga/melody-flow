@@ -38,7 +38,7 @@ export const analytics = import.meta.env.PROD && typeof window !== 'undefined'
   ? getAnalytics(app)
   : null;
 
-// Función segura para logging de eventos logAnalyticsEvent
+// Función segura para logging de eventos
 export const logAnalyticsEvent = (eventName: string, params?: any) => {
   if (import.meta.env.DEV) {
     console.log('Analytics event (DEV):', eventName, params);

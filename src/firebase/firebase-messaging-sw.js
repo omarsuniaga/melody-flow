@@ -7,6 +7,7 @@ import { firebaseConfig } from './firebase/config.ts'; // Importa la configuraci
 const app = initializeApp(firebaseConfig);
 const messaging = getMessaging(app);
 
+
 // Maneja mensajes en segundo plano
 onBackgroundMessage(messaging, (payload) => {
     console.log('Received background message ', payload);

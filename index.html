@@ -2,17 +2,20 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.firebaseio.com;"> -->
+    <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin-allow-popups">
+    <meta http-equiv="Cross-Origin-Embedder-Policy" content="unsafe-none">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Artistic Calendar</title>
     <meta name="share-target" content="true">
+    <title>Artistic Calendar</title>
     <link rel="manifest" href="/manifest.webmanifest">
     <link rel="handlerselector" href="web+melody">
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   </head>
   <body>
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
-    <script type="module" src="/src/firebase/firebase-init.js"></script> <!-- Ajusta la ruta si es necesario -->
+    <script type="module" src="/src/firebase/firebase-init.js"></script> Ajusta la ruta si es necesario
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {

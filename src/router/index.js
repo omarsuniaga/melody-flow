@@ -1,25 +1,32 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '../stores/authStore';
+import { logPageView } from '../utils/analytics';
+
 const routes = [
+    {
+        path: '/',
+        name: 'login',
+        component: () => import('../views/LoginView.vue')
+    },
     {
         path: '/',
         component: () => import('../layouts/DefaultLayout.vue'),
         children: [
             { path: '', redirect: '/calendar' },
             {
-                path: '/calendar',
+                path: 'calendar',
                 name: 'calendar',
                 component: () => import('../views/CalendarView.vue'),
                 meta: { requiresAuth: true }
             },
             {
-                path: '/balance',
+                path: 'balance',
                 name: 'balance',
                 component: () => import('../views/MonthlyBalanceView.vue'),
                 meta: { requiresAuth: true }
             },
             {
-                path: '/profile',
+                path: 'profile',
                 name: 'profile',
                 component: () => import('../views/ProfileView.vue'),
                 meta: { requiresAuth: true }
@@ -27,15 +34,15 @@ const routes = [
         ]
     },
     {
-        path: '/login',
-        name: 'login',
-        component: () => import('../views/LoginView.vue')
-    },
-    // Añadir la ruta de registro
-    {
         path: '/register',
         name: 'register',
         component: () => import('../views/RegisterView.vue')
+    },
+    // Ruta comodín para manejar páginas no encontradas
+    {
+        path: '/:catchAll(.*)',
+        name: 'not-found',
+        component: () => import('../views/NotFoundView.vue')
     }
 ];
 const router = createRouter({
@@ -50,13 +57,20 @@ router.beforeEach(async (to, from, next) => {
         await authStore.initializeAuth();
     }
     if (requiresAuth && !authStore.isAuthenticated) {
-        next('/login');
-    }
-    else if (to.path === '/login' && authStore.isAuthenticated) {
         next('/');
+    }
+    else if (to.path === '/' && authStore.isAuthenticated) {
+        next('/calendar'); // Cambiado de '/app' a '/calendar'
     }
     else {
         next();
     }
 });
+
+// Agregar after hook para tracking
+router.afterEach((to) => {
+    // Registrar la vista de página después de la navegación
+    logPageView(to.path, to.name);
+});
+
 export default router;

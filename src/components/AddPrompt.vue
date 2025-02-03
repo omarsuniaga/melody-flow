@@ -1,6 +1,6 @@
 <template>
   <div>
-    <!-- Botón flotante -->
+    <!-- Botón flotante para abrir el modal -->
     <button
       @click="openModal"
       class="fixed bottom-16 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 flex items-center justify-center transition-all hover:shadow-xl"
@@ -8,7 +8,7 @@
       <PlusIcon class="h-6 w-6" />
     </button>
 
-    <!-- Modal -->
+    <!-- Modal para describir y procesar el evento -->
     <ModalComponent
       :model-value="isOpen"
       @update:model-value="closeModal"
@@ -16,6 +16,7 @@
       class="prompt-modal"
     >
       <div class="p-4">
+        <!-- Área de texto para el prompt -->
         <textarea
           v-model="promptText"
           class="w-full h-32 p-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -23,7 +24,7 @@
           :disabled="isProcessing"
         ></textarea>
 
-        <!-- Sección de Interpretación -->
+        <!-- Sección de interpretación -->
         <div v-if="parsedResult" class="interpretation-section">
           <div class="interpretation-header">
             <h3 class="text-lg font-semibold text-gray-800">
@@ -35,14 +36,15 @@
           </div>
 
           <div class="interpretation-content">
+            <!-- Mostrar cada campo interpretado -->
             <div v-for="(value, key) in displayFields" :key="key" class="field-item">
               <div class="field-label">{{ fieldLabels[key] }}:</div>
-              <!-- Campo editable -->
+              <!-- Campo editable en modo edición -->
               <template v-if="isEditing">
                 <input
                   v-if="['provider', 'description', 'location'].includes(key)"
                   v-model="parsedResult[key]"
-                  :type="'text'"
+                  type="text"
                   class="field-input"
                   :placeholder="getPlaceholder(key)"
                 />
@@ -68,12 +70,13 @@
                   class="field-input"
                 />
               </template>
-              <!-- Campo de solo lectura -->
+              <!-- Modo de solo lectura -->
               <div v-else class="field-value" :class="getFieldClass(value, key)">
                 <span>{{ formatFieldValue(value, key) }}</span>
               </div>
             </div>
 
+            <!-- Acciones de la sección de interpretación -->
             <div class="interpretation-actions">
               <ButtonComponent
                 variant="secondary"
@@ -83,7 +86,6 @@
                 <PencilIcon class="w-4 h-4 mr-2" />
                 {{ isEditing ? "Guardar cambios" : "Editar" }}
               </ButtonComponent>
-
               <ButtonComponent
                 variant="primary"
                 class="confirm-button"
@@ -102,6 +104,7 @@
           {{ error }}
         </div>
 
+        <!-- Botones de acción finales -->
         <div class="mt-4 flex justify-end gap-2">
           <ButtonComponent variant="secondary" @click="closeModal">
             Cancelar
@@ -128,8 +131,10 @@ import ModalComponent from "./ModalComponent.vue";
 import ButtonComponent from "./ButtonComponent.vue";
 import { MessageParserService } from "../services/MessageParserService";
 import { LocalNLPService } from "../services/LocalNLPService";
+import { MistralService } from "../services/mistralService";
 
 const emit = defineEmits(["eventProcessed"]);
+
 const isOpen = ref(false);
 const promptText = ref("");
 const isProcessing = ref(false);
@@ -146,9 +151,13 @@ const fieldLabels = {
 
 const isEditing = ref(false);
 
+/**
+ * Alterna el modo edición.
+ * Si se está guardando, llama a handleCorrect y muestra el mensaje correspondiente.
+ */
 const toggleEditMode = async () => {
   if (isEditing.value) {
-    // Si estamos guardando los cambios
+    // Guardar cambios en modo edición
     try {
       await handleCorrect();
       isEditing.value = false;
@@ -158,12 +167,13 @@ const toggleEditMode = async () => {
       console.error(err);
     }
   } else {
-    // Activar modo edición
     isEditing.value = true;
   }
 };
 
-// Mostrar en la sección de interpretación
+/**
+ * Computada que agrupa los campos a mostrar.
+ */
 const displayFields = computed(() => ({
   provider: parsedResult.value?.provider,
   description: parsedResult.value?.description,
@@ -173,10 +183,14 @@ const displayFields = computed(() => ({
   amount: parsedResult.value?.amount,
 }));
 
+/**
+ * Valida que al menos uno de los campos tenga valor.
+ */
 const isValid = computed(() => {
   return parsedResult.value && Object.values(displayFields.value).some((value) => value);
 });
 
+/** Interfaz para el resultado procesado del prompt */
 interface ParsedResult {
   provider: string | null;
   description: string | null;
@@ -184,7 +198,7 @@ interface ParsedResult {
   date: string | null;
   time: string | null;
   amount: number | null;
-  confidence?: number; // Agregar campo confidence opcional
+  confidence?: number;
 }
 
 const parsedResult = ref<ParsedResult | null>(null);
@@ -199,11 +213,18 @@ const closeModal = () => {
   promptText.value = "";
 };
 
+/**
+ * Computada para obtener el nivel de confianza.
+ */
 const confidence = computed(() => {
   if (!parsedResult.value) return 0;
   return parsedResult.value.confidence || 0;
 });
 
+/**
+ * Retorna un placeholder según el campo.
+ * @param key Campo a procesar
+ */
 const getPlaceholder = (key: string) => {
   const placeholders = {
     provider: "Nombre del proveedor",
@@ -217,8 +238,10 @@ const getPlaceholder = (key: string) => {
 };
 
 /**
- * Aquí la mejora: si el valor es formato dd/mm/yyyy, lo mostramos tal cual.
- * Si no, intentamos convertir con new Date(...) y mostrar con toLocaleDateString().
+ * Formatea el valor del campo según el tipo.
+ * Para 'date', intenta convertir formatos ISO o dd/mm/yyyy.
+ * @param value Valor a formatear
+ * @param key Clave del campo
  */
 const formatFieldValue = (value: any, key: string) => {
   if (!value) return "No detectado";
@@ -228,16 +251,16 @@ const formatFieldValue = (value: any, key: string) => {
       return `$${value}`;
     case "date":
       try {
-        // Para mostrar, convertimos de ISO a formato local
+        // Si el valor es ISO (yyyy-mm-dd)
         if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
           const [year, month, day] = value.split("-");
           return `${day}/${month}/${year}`;
         }
-        // Si ya está en formato dd/mm/yyyy, lo mostramos así
+        // Si ya está en formato dd/mm/yyyy
         if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
           return value;
         }
-        // Último recurso: intentar parsear como fecha
+        // Intentar parsear como fecha
         const date = new Date(value);
         return date.toLocaleDateString();
       } catch {
@@ -250,6 +273,9 @@ const formatFieldValue = (value: any, key: string) => {
   }
 };
 
+/**
+ * Procesa el prompt usando primero MistralService y, en caso de error, usa MessageParserService.
+ */
 const processPrompt = async () => {
   if (!promptText.value.trim()) return;
 
@@ -258,25 +284,36 @@ const processPrompt = async () => {
     error.value = "";
     parsedResult.value = null;
 
-    // Procesar con el servicio local
-    const result = await MessageParserService.parseSharedMessage(promptText.value);
+    // Intentar primero con Mistral
+    try {
+      const mistralResult = await MistralService.processEventText(promptText.value);
+      if (!mistralResult.error) {
+        console.log("Resultado de Mistral:", mistralResult);
+        parsedResult.value = mistralResult;
+        return;
+      }
+    } catch (mistralError) {
+      console.warn("Error con Mistral, usando fallback local:", mistralError);
+    }
 
-    console.log("Resultado del procesamiento:", result); // Para debugging
+    // Fallback a MessageParserService
+    const result = await MessageParserService.parseSharedMessage(promptText.value);
+    console.log("Resultado del procesamiento:", result);
 
     if (!result || result.error) {
       error.value = result?.message || "Error al procesar el texto";
+      parsedResult.value = result;
       return;
     }
 
     // Validar campos requeridos
-    const requiredFields = ["provider", "date", "time"];
+    const requiredFields: (keyof ParsedResult)[] = ["provider", "date", "time"];
     const missingFields = requiredFields.filter((field) => !result[field]);
-
     if (missingFields.length > 0) {
       error.value = `Falta información: ${missingFields
-        .map((f) => fieldLabels[f])
+        .map((f) => fieldLabels[f as keyof typeof fieldLabels])
         .join(", ")}`;
-      parsedResult.value = result; // Mostrar lo que se pudo extraer
+      parsedResult.value = result;
       return;
     }
 
@@ -289,7 +326,9 @@ const processPrompt = async () => {
   }
 };
 
-// 3. Cuando el usuario confirma
+/**
+ * Maneja la confirmación del evento, formatea los datos y emite el evento procesado.
+ */
 const handleConfirm = async () => {
   if (!parsedResult.value) return;
 
@@ -307,7 +346,7 @@ const handleConfirm = async () => {
       paymentStatus: "Pendiente",
     };
 
-    console.log("Datos del evento formateados:", eventData); // Debug
+    console.log("Datos del evento formateados:", eventData);
     emit("eventProcessed", eventData);
     closeModal();
 
@@ -321,6 +360,9 @@ const handleConfirm = async () => {
   }
 };
 
+/**
+ * Permite enviar correcciones para mejorar el modelo de procesamiento.
+ */
 const handleCorrect = async () => {
   if (!parsedResult.value) return;
 
@@ -332,7 +374,7 @@ const handleCorrect = async () => {
     // Obtener la predicción original
     const originalPrediction = await MessageParserService.parseMessage(originalText);
 
-    // Enviar el texto original, datos corregidos y predicción original
+    // Enviar datos para "aprender" del usuario
     await LocalNLPService.learn(originalText, correctedData, originalPrediction);
 
     showCorrection.value = true;
@@ -345,51 +387,60 @@ const handleCorrect = async () => {
   }
 };
 
-const getFieldClass = (value: any, key: string) => ({
+/**
+ * Retorna clases CSS según la confianza y el estado del valor.
+ * @param value Valor a evaluar.
+ * @param key Campo correspondiente.
+ */
+const getFieldClass = (value: any) => ({
   "text-yellow-600": !value,
   "text-green-600": value?.confidence > 0.8,
   "text-blue-600": value?.confidence > 0.5 && value?.confidence <= 0.8,
   "text-gray-600": value?.confidence <= 0.5,
 });
 
-const getDisplayValue = (value: any) => {
-  if (!value) return "No detectado";
-  return typeof value === "object" ? value.value : value;
-};
-
+/**
+ * Convierte una fecha en diferentes formatos a ISO (yyyy-MM-dd).
+ * @param dateStr Cadena con la fecha.
+ */
 const formatDateToISO = (dateStr: string): string => {
-  // Si ya está en formato ISO, devolverlo
+  // Si ya está en formato ISO
   if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
     return dateStr;
   }
-
-  // Si está en formato dd/mm/yyyy, convertirlo a yyyy-MM-dd
+  // Si está en formato dd/mm/yyyy
   const match = dateStr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
   if (match) {
     const [_, day, month, year] = match;
     return `${year}-${month}-${day}`;
   }
-
-  // 2) Si cumple "yyyy/mm/dd", convertir a "yyyy-mm-dd"
+  // Si está en formato yyyy/mm/dd
   if (/^\d{4}\/\d{2}\/\d{2}$/.test(dateStr)) {
     const [yyyy, mm, dd] = dateStr.split("/");
     return `${yyyy}-${mm}-${dd}`;
   }
-
-  // Si es una fecha válida en cualquier otro formato
+  // Intentar parsear con Date
   const date = new Date(dateStr);
   if (!isNaN(date.getTime())) {
     return date.toISOString().split("T")[0];
   }
-
   return dateStr;
 };
 
+/**
+ * Maneja la validación del campo de fecha en caso de formato incorrecto.
+ * @param e Evento de invalidación.
+ */
 const handleDateInvalid = (e: Event) => {
   const target = e.target as HTMLInputElement;
   if (target.validity.badInput) {
     error.value = `El valor "${target.value}" no cumple el formato requerido: yyyy-MM-dd`;
   }
+};
+</script>
+<script lang="ts">
+export default {
+  name: "AddPrompt",
 };
 </script>
 
@@ -400,13 +451,13 @@ const handleDateInvalid = (e: Event) => {
 }
 
 .form-input {
-  @apply rounded-md border-gray-300 shadow-sm
-  focus:border-blue-500 focus:ring-1 focus:ring-blue-500;
+  @apply rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500;
 }
 
 .form-group label {
   @apply block text-gray-700;
 }
+
 .interpretation-section {
   @apply bg-white rounded-lg shadow-sm p-4 mt-4 border border-gray-200;
   animation: slideIn 0.3s ease-out;

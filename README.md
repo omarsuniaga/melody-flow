@@ -4,7 +4,7 @@ A continuación tienes un ejemplo de descripción que podrías incluir en el arc
 
 # MelodyFlow
 
-**MelodyFlow** es una aplicación web progresiva (PWA) creada con **Vue 3** (Composition API) que permite a músicos, agrupaciones o cualquier usuario administrar sus eventos, controlar sus horarios, manejar pagos y mucho más. El proyecto integra **Supabase** para la autenticación y la persistencia de datos, brindando una arquitectura modular y escalable.
+**MelodyFlow** es una aplicación web progresiva (PWA) creada con **Vue 3** (Composition API) que permite a músicos, agrupaciones o cualquier usuario administrar sus eventos, controlar sus horarios, manejar pagos y mucho más. El proyecto integra **Firebase** para la autenticación y la persistencia de datos, brindando una arquitectura modular y escalable.
 
 ## Características Principales
 
@@ -38,33 +38,10 @@ A continuación tienes un ejemplo de descripción que podrías incluir en el arc
 - **Vue 3** (Composition API)  
 - **Vite** (herramienta de build)  
 - **Pinia** (Store de estado global)  
-- **Supabase** (Autenticación y base de datos Postgres)  
+- **Firebase** (Autenticación y base de datos)  
 - **Vite Plugin PWA** (soporte PWA)  
 - **Axios / Fetch** (para llamadas HTTP y webhook)  
 
-## Estructura de Carpetas (Ejemplo)
-
-```
-MelodyFlow/
-├─ public/
-│   ├─ icons/
-│   └─ manifest.json
-├─ src/
-│   ├─ modules/
-│   │   ├─ user/
-│   │   ├─ events/
-│   │   ├─ schedule/
-│   │   ├─ payments/
-│   │   └─ ...
-│   ├─ router/
-│   ├─ store/
-│   ├─ App.vue
-│   └─ main.js
-├─ .gitignore
-├─ package.json
-├─ vite.config.js
-└─ README.md
-```
 
 ## Configuración e Instalación
 
@@ -76,15 +53,6 @@ MelodyFlow/
 2. **Instala dependencias**:
    ```bash
    npm install
-   ```
-3. **Configura tus credenciales de Supabase** en `supabaseClient.js`:
-   ```js
-   import { createClient } from '@supabase/supabase-js'
-
-   const supabaseUrl = 'https://tusupabaseurl'
-   const supabaseAnonKey = 'tu-anon-key'
-
-   export const supabase = createClient(supabaseUrl, supabaseAnonKey)
    ```
 4. **Inicia el servidor de desarrollo**:
    ```bash
