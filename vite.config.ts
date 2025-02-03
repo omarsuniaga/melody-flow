@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
 import { fileURLToPath, URL } from 'node:url'
+import { resolve } from 'path'
 
 export default defineConfig({
   plugins: [
@@ -114,17 +115,39 @@ export default defineConfig({
             'vue',
             'vue-router',
             'pinia',
-            'date-fns'
+            'date-fns',
+            'firebase/app',
+            'firebase/auth',
+            'firebase/firestore'
           ],
           ui: [
             '@heroicons/vue',
             '@headlessui/vue'
           ],
-          firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore']
-        }
+          firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore'],
+          'components': [
+            './src/components/MonthSelector.vue',
+            './src/components/EventsMetrics.vue',
+            './src/components/ProviderBreakdown.vue',
+            './src/components/ProviderDistribution.vue',
+            './src/components/LocationsPanel.vue',
+            './src/components/TotalEventsPanel.vue',
+            './src/components/AverageEventPanel.vue'
+          ],
+          'utils': [
+            './src/utils/helpers.ts',
+            './src/utils/icons.ts',
+            './src/utils/pdfMakeConfig.ts',
+            './src/utils/pdfTemplates.ts'
+          ]
+        },
+        // Configurar el nombre de los chunks generados
+        chunkFileNames: 'assets/js/[name]-[hash].js',
+        entryFileNames: 'assets/js/[name]-[hash].js',
+        assetFileNames: 'assets/[ext]/[name]-[hash].[ext]'
       }
     },
-    chunkSizeWarningLimit: 800,
+    chunkSizeWarningLimit: 1000, // Aumentar el límite a 1000kb
     sourcemap: true,
     outDir: 'dist'
   },

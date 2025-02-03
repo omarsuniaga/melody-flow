@@ -75,16 +75,27 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { format, addMonths, subMonths, startOfMonth, endOfMonth } from "date-fns";
-import MonthSelector from "../components/MonthSelector.vue";
-import EventsMetrics from "../components/EventsMetrics.vue";
-import ProviderDistribution from "../components/ProviderDistribution.vue";
-import LocationsPanel from "../components/LocationsPanel.vue";
 import { BanknotesIcon } from "../utils/icons";
-import makePayments from "../components/makePayments.vue";
 import { useToast } from "vue-toastification";
 import { useEventStore } from "../stores/eventStore";
 import { initializePdfMake } from "../utils/pdfMakeConfig";
 import { getPendingEventsTemplate } from "../utils/pdfTemplates";
+import { defineAsyncComponent } from "vue";
+
+// Componentes cargados dinámicamente
+const MonthSelector = defineAsyncComponent(
+  () => import("../components/MonthSelector.vue")
+);
+const EventsMetrics = defineAsyncComponent(
+  () => import("../components/EventsMetrics.vue")
+);
+const ProviderDistribution = defineAsyncComponent(
+  () => import("../components/ProviderDistribution.vue")
+);
+const LocationsPanel = defineAsyncComponent(
+  () => import("../components/LocationsPanel.vue")
+);
+const makePayments = defineAsyncComponent(() => import("../components/makePayments.vue"));
 
 // Estado principal
 const toast = useToast();
