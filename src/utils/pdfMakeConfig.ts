@@ -1,32 +1,38 @@
 import { TDocumentDefinitions } from 'pdfmake/interfaces';
-import pdfMake from 'pdfmake/build/pdfmake';
-import pdfFonts from 'pdfmake/build/vfs_fonts';
+import * as pdfMake from 'pdfmake/build/pdfmake';
 
 // Configuración inicial de pdfMake y sus fuentes
-(() => {
-  try {
-    if (typeof window !== 'undefined') {
-      // Asignar fuentes directamente
-      (window as any).pdfMake = pdfMake;
-      (window as any).pdfMake.vfs = pdfFonts.pdfMake.vfs;
+const configurePdfMake = async () => {
+  if (typeof window !== 'undefined') {
+    try {
+      // Importar las fuentes dinámicamente solo cuando se necesiten
+      const pdfFonts = await import('pdfmake/build/vfs_fonts');
+      
+      // Configurar pdfMake
+      if (!pdfMake.vfs) {
+        pdfMake.vfs = pdfFonts.pdfMake.vfs;
+      }
+    } catch (error) {
+      console.error('Error cargando las fuentes:', error);
     }
-  } catch (error) {
-    console.error('Error inicializando pdfMake:', error);
   }
-})();
+  return pdfMake;
+};
 
 export const createAndDownloadPdf = async (docDefinition: TDocumentDefinitions, fileName: string): Promise<void> => {
   try {
-    // Asegurarse de que el documento use Roboto como fuente predeterminada
+    // Inicializar pdfMake con las fuentes
+    const pdfMakeInstance = await configurePdfMake();
+
+    // Asegurar que el documento use la fuente predeterminada
     docDefinition.defaultStyle = {
       ...docDefinition.defaultStyle,
       font: 'Roboto'
     };
 
-    // Crear y descargar el PDF
     return new Promise((resolve, reject) => {
       try {
-        const pdf = pdfMake.createPdf(docDefinition);
+        const pdf = pdfMakeInstance.createPdf(docDefinition);
         pdf.getBlob((blob) => {
           const url = window.URL.createObjectURL(blob);
           const link = document.createElement('a');
@@ -38,9 +44,9 @@ export const createAndDownloadPdf = async (docDefinition: TDocumentDefinitions, 
           window.URL.revokeObjectURL(url);
           resolve();
         });
-      } catch (downloadError) {
-        console.error('Error al descargar el PDF:', downloadError);
-        reject(new Error('Error al generar el PDF: ' + downloadError.message));
+      } catch (error) {
+        console.error('Error generando PDF:', error);
+        reject(new Error('Error al generar el PDF: ' + error));
       }
     });
   } catch (error) {
