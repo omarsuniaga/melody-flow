@@ -11,17 +11,17 @@
       <div class="flex items-center">
         <!-- Se muestra el total global de ingresos -->
         <p class="text-3xl font-bold text-blue-600">
-          {{ formatCurrency(monthlyStats.totalRevenue) }}
+          {{ formatCurrency(monthlyStats.value.totalRevenue) }}
         </p>
         <ChevronDownIcon
           class="h-5 w-5 ml-2 transform transition-transform duration-200"
-          :class="{ 'rotate-180': showProviderRevenue }"
+          :class="{ 'rotate-180': showProviderRevenue.value }"
         />
       </div>
     </div>
 
     <!-- Si el menú principal está abierto, se muestran los submenús -->
-    <div v-if="showProviderRevenue" class="mt-4 space-y-4">
+    <div v-if="showProviderRevenue.value" class="mt-4 space-y-4">
       <!-- Submenú: Eventos Pendientes -->
       <div class="bg-red-100 p-3 rounded">
         <div
@@ -30,16 +30,16 @@
         >
           <span class="font-medium">Eventos Pendientes</span>
           <div class="flex items-center">
-            <span>{{ formatCurrency(totalPendingAmount) }}</span>
+            <span>{{ formatCurrency(totalPendingAmount.value) }}</span>
             <ChevronDownIcon
               class="h-5 w-5 ml-2 transform transition-transform duration-200"
-              :class="{ 'rotate-180': showPendingPayments }"
+              :class="{ 'rotate-180': showPendingPayments.value }"
             />
           </div>
         </div>
-        <div v-if="showPendingPayments" class="mt-2">
+        <div v-if="showPendingPayments.value" class="mt-2">
           <div
-            v-for="(events, provider) in groupedPendingPayments"
+            v-for="(events, provider) in groupedPendingPayments.value"
             :key="provider"
             class="mb-2"
           >
@@ -59,7 +59,7 @@
               </div>
               <button
                 @click.stop="
-                  $emit('generatePDF', provider, groupedPendingPayments[provider])
+                  $emit('generatePDF', provider, groupedPendingPayments.value[provider])
                 "
                 class="flex-none text-blue-600 hover:text-blue-800 p-2"
                 title="Descargar PDF"
@@ -81,7 +81,7 @@
               </button>
             </div>
             <!-- Detalle de eventos para el proveedor (Pendientes) -->
-            <div v-if="expandedProvider === provider" class="pl-4">
+            <div v-if="expandedProvider.value === provider" class="pl-4">
               <div
                 v-for="event in sortedEvents(events)"
                 :key="event.id"
@@ -91,9 +91,9 @@
                   <p class="text-sm text-gray-600">{{ formatDate(event.date) }}</p>
                   <p class="text-sm text-gray-600">{{ event.location }}</p>
                 </div>
-                <span class="font-medium text-red-600">{{
-                  formatCurrency(event.amount)
-                }}</span>
+                <span class="font-medium text-red-600">
+                  {{ formatCurrency(event.amount) }}
+                </span>
               </div>
             </div>
           </div>
@@ -108,16 +108,16 @@
         >
           <span class="font-medium">Eventos Pagados</span>
           <div class="flex items-center">
-            <span>{{ formatCurrency(totalCompletedAmount) }}</span>
+            <span>{{ formatCurrency(totalCompletedAmount.value) }}</span>
             <ChevronDownIcon
               class="h-5 w-5 ml-2 transform transition-transform duration-200"
-              :class="{ 'rotate-180': showCompletedPayments }"
+              :class="{ 'rotate-180': showCompletedPayments.value }"
             />
           </div>
         </div>
-        <div v-if="showCompletedPayments" class="mt-2">
+        <div v-if="showCompletedPayments.value" class="mt-2">
           <div
-            v-for="(events, provider) in groupedCompletedPayments"
+            v-for="(events, provider) in groupedCompletedPayments.value"
             :key="provider"
             class="mb-2"
           >
@@ -134,7 +134,7 @@
               </span>
             </div>
             <!-- Detalle de eventos para el proveedor (Pagados) -->
-            <div v-if="expandedProvider === provider" class="pl-4">
+            <div v-if="expandedProvider.value === provider" class="pl-4">
               <div
                 v-for="event in sortedEvents(events)"
                 :key="event.id"
@@ -144,9 +144,9 @@
                   <p class="text-sm text-gray-600">{{ formatDate(event.date) }}</p>
                   <p class="text-sm text-gray-600">{{ event.location }}</p>
                 </div>
-                <span class="font-medium text-green-600">{{
-                  formatCurrency(event.amount)
-                }}</span>
+                <span class="font-medium text-green-600">
+                  {{ formatCurrency(event.amount) }}
+                </span>
               </div>
             </div>
           </div>
@@ -157,7 +157,7 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps } from "vue";
+import { defineProps, toRefs } from "vue";
 import { ChevronDownIcon } from "../utils/icons";
 import { formatCurrency } from "../utils/helpers";
 import { format, parseISO } from "date-fns";
@@ -168,7 +168,7 @@ const formatDate = (date: string) => {
   return format(parseISO(date), "EEEE d 'de' MMMM, yyyy", { locale: es });
 };
 
-// Definición de props requeridas
+// Definición de props requeridas, utilizando toRefs para mantener la reactividad
 const props = defineProps<{
   monthlyStats: { totalEvents: number; totalRevenue: number; averagePerEvent: number };
   totalPendingAmount: number;
@@ -182,6 +182,17 @@ const props = defineProps<{
   showCompletedPayments: boolean;
   showProviderRevenue: boolean;
 }>();
+
+const monthlyStats = toRefs(props).monthlyStats;
+const totalPendingAmount = toRefs(props).totalPendingAmount;
+const totalCompletedAmount = toRefs(props).totalCompletedAmount;
+const groupedPendingPayments = toRefs(props).groupedPendingPayments;
+const groupedCompletedPayments = toRefs(props).groupedCompletedPayments;
+const expandedProvider = toRefs(props).expandedProvider;
+const sortedEvents = toRefs(props).sortedEvents;
+const showPendingPayments = toRefs(props).showPendingPayments;
+const showCompletedPayments = toRefs(props).showCompletedPayments;
+const showProviderRevenue = toRefs(props).showProviderRevenue;
 </script>
 
 <script lang="ts">
