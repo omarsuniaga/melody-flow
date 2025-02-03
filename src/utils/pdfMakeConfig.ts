@@ -1,19 +1,17 @@
 import { TDocumentDefinitions } from 'pdfmake/interfaces';
-import * as pdfMake from 'pdfmake/build/pdfmake';
+import pdfMake from 'pdfmake/build/pdfmake';
 
-// Configuración inicial de pdfMake y sus fuentes
-const configurePdfMake = async () => {
-  if (typeof window !== 'undefined') {
+// Inicializar fuentes de forma dinámica
+const initializePdfMake = async () => {
+  if (typeof window !== 'undefined' && !pdfMake.vfs) {
     try {
-      // Importar las fuentes dinámicamente solo cuando se necesiten
-      const pdfFonts = await import('pdfmake/build/vfs_fonts');
-      
-      // Configurar pdfMake
-      if (!pdfMake.vfs) {
-        pdfMake.vfs = pdfFonts.pdfMake.vfs;
-      }
+      const pdfFonts = await import('pdfmake/build/vfs_fonts.js');
+      Object.defineProperty(pdfMake, 'vfs', {
+        value: pdfFonts.pdfMake.vfs,
+        writable: false
+      });
     } catch (error) {
-      console.error('Error cargando las fuentes:', error);
+      console.error('Error cargando fuentes:', error);
     }
   }
   return pdfMake;
@@ -21,19 +19,22 @@ const configurePdfMake = async () => {
 
 export const createAndDownloadPdf = async (docDefinition: TDocumentDefinitions, fileName: string): Promise<void> => {
   try {
-    // Inicializar pdfMake con las fuentes
-    const pdfMakeInstance = await configurePdfMake();
+    const pdfInstance = await initializePdfMake();
 
-    // Asegurar que el documento use la fuente predeterminada
-    docDefinition.defaultStyle = {
-      ...docDefinition.defaultStyle,
-      font: 'Roboto'
+    // Configurar estilos por defecto
+    const finalDocDefinition = {
+      ...docDefinition,
+      defaultStyle: {
+        font: 'Roboto',
+        fontSize: 10,
+        ...docDefinition.defaultStyle
+      }
     };
 
     return new Promise((resolve, reject) => {
       try {
-        const pdf = pdfMakeInstance.createPdf(docDefinition);
-        pdf.getBlob((blob) => {
+        const pdfDoc = pdfInstance.createPdf(finalDocDefinition);
+        pdfDoc.getBlob((blob) => {
           const url = window.URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
@@ -45,8 +46,7 @@ export const createAndDownloadPdf = async (docDefinition: TDocumentDefinitions, 
           resolve();
         });
       } catch (error) {
-        console.error('Error generando PDF:', error);
-        reject(new Error('Error al generar el PDF: ' + error));
+        reject(new Error('Error generando PDF: ' + error));
       }
     });
   } catch (error) {

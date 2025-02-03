@@ -111,20 +111,19 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: [
+          'vendor': [
             'vue',
             'vue-router',
             'pinia',
-            'date-fns',
-            'firebase/app',
-            'firebase/auth',
-            'firebase/firestore'
+            'date-fns'
           ],
-          ui: [
+          'ui': [
             '@heroicons/vue',
             '@headlessui/vue'
           ],
-          firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore'],
+          'pdf': ['pdfmake/build/pdfmake', 'pdfmake/build/vfs_fonts'],
+          'firebase-core': ['firebase/app'],
+          'firebase-services': ['firebase/auth', 'firebase/firestore'],
           'components': [
             './src/components/MonthSelector.vue',
             './src/components/EventsMetrics.vue',
