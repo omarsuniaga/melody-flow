@@ -198,7 +198,7 @@ interface Emits {
 const DeleteConfirmationModal = defineAsyncComponent(
   () => import("./DeleteConfirmationModal.vue")
 );
-console.log("selectedEvent", props.selectedEvent);
+// console.log("selectedEvent", props.selectedEvent);
 
 const eventStore = useEventStore();
 const isLoading = ref(false);

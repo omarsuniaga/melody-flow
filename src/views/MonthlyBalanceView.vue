@@ -78,7 +78,7 @@ import { format, addMonths, subMonths, startOfMonth, endOfMonth } from "date-fns
 import { BanknotesIcon } from "../utils/icons";
 import { useToast } from "vue-toastification";
 import { useEventStore } from "../stores/eventStore";
-import { initializePdfMake } from "../utils/pdfMakeConfig";
+import { createAndDownloadPdf } from "../utils/pdfMakeConfig"; // Simplificar importación
 import { getPendingEventsTemplate } from "../utils/pdfTemplates";
 import { defineAsyncComponent } from "vue";
 
@@ -316,16 +316,44 @@ function sortedEvents(events: MusicEvent[]) {
 // Generar PDF para proveedor
 const generateProviderPDF = async (provider: string, events: MusicEvent[]) => {
   try {
-    const pdfMake = await initializePdfMake();
+    if (!provider?.trim()) {
+      toast.error("Proveedor no válido");
+      return;
+    }
+
+    if (!Array.isArray(events) || events.length === 0) {
+      toast.error("No hay eventos para generar el PDF");
+      return;
+    }
+
     toast.info("Generando PDF...");
-    const docDefinition = await getPendingEventsTemplate(provider, events);
-    pdfMake
-      .createPdf(docDefinition)
-      .download(`eventos_${provider}_${format(new Date(), "yyyyMMdd")}.pdf`);
+
+    // Validar y formatear los eventos
+    const formattedEvents = events
+      .filter(event => event && typeof event === 'object')
+      .map(event => ({
+        date: event.date || new Date().toISOString(),
+        location: event.location || 'Sin ubicación',
+        time: event.time || '00:00',
+        amount: Number(event.amount) || 0,
+        description: event.description || 'Sin descripción',
+        provider: event.provider || provider,
+        paymentStatus: event.paymentStatus || 'Pendiente'
+      }));
+
+    if (formattedEvents.length === 0) {
+      throw new Error('No hay eventos válidos para procesar');
+    }
+
+    // Generar la definición del documento
+    const docDefinition = await getPendingEventsTemplate(provider, formattedEvents);
+    const fileName = `eventos_${provider.replace(/\s+/g, '_')}_${format(new Date(), "yyyyMMdd")}.pdf`;
+
+    await createAndDownloadPdf(docDefinition, fileName);
     toast.success("PDF generado correctamente");
   } catch (error) {
-    console.error("Error generating PDF:", error);
-    toast.error("Error al generar el PDF");
+    console.error("Error al generar PDF:", error);
+    toast.error(`Error al generar el PDF: ${(error as Error).message}`);
   }
 };
 </script>

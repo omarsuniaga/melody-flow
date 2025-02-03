@@ -9,8 +9,7 @@
     "preview": "vite preview",
     "lint": "eslint --ext .vue,.ts,.js src/",
     "serve": "vite preview",
-    "postinstall": "vue-tsc --declaration --emitDeclarationOnly" 
-
+    "postinstall": "vue-tsc --declaration --emitDeclarationOnly"
   },
   "type-check": "vue-tsc --noEmit",
   "type-check:watch": "vue-tsc --noEmit --watch",

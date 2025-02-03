@@ -1,3 +1,4 @@
+import { TDocumentDefinitions } from 'pdfmake/interfaces';
 import { format } from 'date-fns';
 import { generateLetter } from '../services/geminiService';
 import { useEventStore } from '../stores/eventStore';
@@ -9,6 +10,8 @@ interface Event {
   time: string;
   amount: number;
   description: string;
+  provider: string;
+  paymentStatus: string;
 }
 
 interface PdfStyles {
@@ -45,19 +48,17 @@ const formatCurrency = (amount: number): string => {
 };
 
 // Configuración del PDF de eventos pendientes
-export const getPendingEventsTemplate = async (provider: string, events: Event[]) => {
-  const eventStore = useEventStore();
-  const totalAmount = events.reduce((sum, event) => sum + event.amount, 0);
+export const getPendingEventsTemplate = async (provider: string, events: Event[] = []): Promise<TDocumentDefinitions> => {
+  if (!Array.isArray(events) || events.length === 0) {
+    throw new Error('No hay eventos para generar el reporte');
+  }
 
-  // Obtener el total histórico de eventos con este proveedor
-  const allProviderEvents = eventStore.events.filter(e => e.provider === provider);
-
-  const letterContent = await generateLetter(
-    provider,
-    totalAmount
-  );
+  const totalAmount = events.reduce((sum, event) => sum + (Number(event?.amount) || 0), 0);
+  const letterContent = await generateLetter(provider, totalAmount);
 
   return {
+    pageSize: 'LETTER',
+    pageMargins: [40, 60, 40, 60],
     content: [
       {
         text: 'Reporte de Eventos Pendientes',
@@ -66,7 +67,7 @@ export const getPendingEventsTemplate = async (provider: string, events: Event[]
         margin: [0, 0, 0, 20]
       },
       {
-        text: `Estimado/a: ${provider}`,
+        text: `Proveedor: ${provider}`,
         style: 'subheader',
         margin: [0, 0, 0, 10]
       },
@@ -75,32 +76,55 @@ export const getPendingEventsTemplate = async (provider: string, events: Event[]
         margin: [0, 0, 0, 20]
       },
       {
+        layout: 'lightHorizontalLines',
         table: {
           headerRows: 1,
           widths: ['auto', '*', '*', 'auto', 'auto'],
           body: [
-            ['Fecha', 'Lugar', 'Descripción', 'Hora', 'Monto'],
+            [
+              { text: 'Fecha', style: 'tableHeader' },
+              { text: 'Lugar', style: 'tableHeader' },
+              { text: 'Descripción', style: 'tableHeader' },
+              { text: 'Hora', style: 'tableHeader' },
+              { text: 'Monto', style: 'tableHeader' }
+            ],
             ...events.map(event => [
               format(new Date(event.date), 'dd/MM/yyyy'),
-              event.location,
-              event.description,
-              event.time,
-              formatCurrency(event.amount)
+              event.location || 'N/A',
+              event.description || 'Sin descripción',
+              event.time || 'N/A',
+              formatCurrency(Number(event.amount) || 0)
             ])
           ]
         }
       },
       {
-        text: `Monto Total Pendiente: ${formatCurrency(totalAmount)}`,
+        text: `Monto Total: ${formatCurrency(totalAmount)}`,
         style: 'total',
-        margin: [0, 20, 0, 0]
+        margin: [0, 20, 0, 20]
       },
       {
         text: letterContent,
-        margin: [0, 20, 0, 20],
-        alignment: 'justify'
-      },
+        style: 'content',
+        margin: [0, 20, 0, 20]
+      }
     ],
-    styles
+    styles: {
+      ...styles,
+      tableHeader: {
+        bold: true,
+        fontSize: 12,
+        color: '#2563eb',
+        fillColor: '#f3f4f6'
+      },
+      content: {
+        fontSize: 11,
+        alignment: 'justify'
+      }
+    },
+    defaultStyle: {
+      font: 'Helvetica',
+      fontSize: 10
+    }
   };
 };

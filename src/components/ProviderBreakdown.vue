@@ -60,9 +60,7 @@
                 </span>
               </div>
               <button
-                @click.stop="
-                  $emit('generatePDF', provider, groupedPendingPayments[provider])
-                "
+                @click.stop="handlePdfGeneration(provider, events)"
                 class="flex-none text-blue-600 hover:text-blue-800 p-2"
                 title="Descargar PDF"
               >
@@ -164,7 +162,7 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps } from "vue";
+import { defineProps, defineEmits } from "vue";
 import { ChevronDownIcon } from "../utils/icons";
 import { formatCurrency } from "../utils/helpers";
 import { format, parseISO } from "date-fns";
@@ -207,6 +205,47 @@ const expandedProviderEvents = computed(() => {
     ? props.groupedPendingPayments[props.expandedProvider] || []
     : [];
 });
+
+// Definir emits
+const emit = defineEmits<{
+  (e: "generatePDF", provider: string, events: Event[]): void;
+  (e: "toggleProvider", provider: string): void;
+  (e: "toggleProviderRevenue"): void;
+  (e: "togglePendingPayments"): void;
+  (e: "toggleCompletedPayments"): void;
+}>();
+
+// Función para manejar la generación del PDF
+const handlePdfGeneration = async (provider: string, events: Event[]) => {
+  try {
+    if (!provider || !Array.isArray(events) || events.length === 0) {
+      console.warn("No hay eventos para generar el PDF");
+      return;
+    }
+
+    // Asegurarse de que todos los campos necesarios estén presentes
+    const formattedEvents = events
+      .filter((event) => event && event.date && event.amount)
+      .map((event) => ({
+        date: event.date,
+        location: event.location || "Sin ubicación",
+        time: event.time || "00:00",
+        amount: Number(event.amount),
+        description: event.description || "Sin descripción",
+        provider: provider,
+        paymentStatus: "Pendiente",
+      }));
+
+    if (formattedEvents.length === 0) {
+      console.warn("No hay eventos válidos para generar el PDF");
+      return;
+    }
+
+    emit("generatePDF", provider, formattedEvents);
+  } catch (error) {
+    console.error("Error al preparar datos para PDF:", error);
+  }
+};
 </script>
 
 <script lang="ts">
