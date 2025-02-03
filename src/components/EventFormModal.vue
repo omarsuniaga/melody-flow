@@ -2,7 +2,7 @@
   <ModalComponent
     :model-value="modelValue"
     @update:model-value="$emit('update:modelValue', $event)"
-    :title="`Nuevo Evento - ${format(selectedDate, 'MMMM d, yyyy')}`"
+    :title="`Nuevo Evento - ${selectedDate ? format(selectedDate, 'MMMM d, yyyy') : ''}`"
   >
     <!-- Agregar mensaje de error si existe -->
     <div v-if="errorMessage" class="mb-4 p-2 bg-red-100 text-red-700 rounded">
@@ -189,8 +189,7 @@ import { ref, watch, computed } from "vue";
 import ModalComponent from "./ModalComponent.vue";
 import ButtonComponent from "./ButtonComponent.vue";
 import { useEventStore } from "../stores/eventStore";
-import { useUserStore } from "../stores/userStore";
-import { addWeeks, isSameMonth, getDay, format, addDays } from "date-fns";
+import { getDay, format } from "date-fns";
 import { MessageParserService } from "../services/MessageParserService";
 import { EventFormData } from "../types/event";
 import { useAuthStore } from "../stores/authStore";
@@ -213,9 +212,8 @@ const emit = defineEmits(["update:modelValue", "saved"]);
  * Stores
  */
 const eventStore = useEventStore();
-const userStore = useUserStore();
+// const userStore = useUserStore();
 const authStore = useAuthStore();
-type PaymentStatus = "Pendiente" | "Pagado";
 
 /**
  * Formulario por defecto

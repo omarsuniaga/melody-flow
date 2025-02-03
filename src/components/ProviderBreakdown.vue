@@ -11,17 +11,17 @@
       <div class="flex items-center">
         <!-- Se muestra el total global de ingresos -->
         <p class="text-3xl font-bold text-blue-600">
-          {{ formatCurrency(monthlyStats.value.totalRevenue) }}
+          {{ formatCurrency(monthlyStats.totalRevenue) }}
         </p>
         <ChevronDownIcon
           class="h-5 w-5 ml-2 transform transition-transform duration-200"
-          :class="{ 'rotate-180': showProviderRevenue.value }"
+          :class="{ 'rotate-180': showProviderRevenue }"
         />
       </div>
     </div>
 
     <!-- Si el menú principal está abierto, se muestran los submenús -->
-    <div v-if="showProviderRevenue.value" class="mt-4 space-y-4">
+    <div v-if="showProviderRevenue" class="mt-4 space-y-4">
       <!-- Submenú: Eventos Pendientes -->
       <div class="bg-red-100 p-3 rounded">
         <div
@@ -30,14 +30,14 @@
         >
           <span class="font-medium">Eventos Pendientes</span>
           <div class="flex items-center">
-            <span>{{ formatCurrency(totalPendingAmount.value) }}</span>
+            <span>{{ formatCurrency(totalPendingAmount) }}</span>
             <ChevronDownIcon
               class="h-5 w-5 ml-2 transform transition-transform duration-200"
-              :class="{ 'rotate-180': showPendingPayments.value }"
+              :class="{ 'rotate-180': showPendingPayments }"
             />
           </div>
         </div>
-        <div v-if="showPendingPayments.value" class="mt-2">
+        <div v-if="showPendingPayments" class="mt-2">
           <div
             v-for="(events, provider) in groupedPendingPayments.value"
             :key="provider"
@@ -54,7 +54,11 @@
               </div>
               <div class="flex-grow text-center">
                 <span class="font-medium text-red-600">
-                  {{ formatCurrency(events.reduce((sum: number, event: { amount: number }) => sum + event.amount, 0)) }}
+                  {{
+                    formatCurrency(
+                      events.reduce((sum, event) => sum + (event?.amount ?? 0), 0)
+                    )
+                  }}
                 </span>
               </div>
               <button
@@ -81,7 +85,7 @@
               </button>
             </div>
             <!-- Detalle de eventos para el proveedor (Pendientes) -->
-            <div v-if="expandedProvider.value === provider" class="pl-4">
+            <div v-if="props.expandedProvider === props.provider" class="pl-4">
               <div
                 v-for="event in sortedEvents(events)"
                 :key="event.id"
@@ -108,16 +112,16 @@
         >
           <span class="font-medium">Eventos Pagados</span>
           <div class="flex items-center">
-            <span>{{ formatCurrency(totalCompletedAmount.value) }}</span>
+            <span>{{ formatCurrency(totalCompletedAmount) }}</span>
             <ChevronDownIcon
               class="h-5 w-5 ml-2 transform transition-transform duration-200"
-              :class="{ 'rotate-180': showCompletedPayments.value }"
+              :class="{ 'rotate-180': showCompletedPayments }"
             />
           </div>
         </div>
-        <div v-if="showCompletedPayments.value" class="mt-2">
+        <div v-if="showCompletedPayments" class="mt-2">
           <div
-            v-for="(events, provider) in groupedCompletedPayments.value"
+            v-for="(events, provider) in groupedCompletedPayments"
             :key="provider"
             class="mb-2"
           >
@@ -134,7 +138,7 @@
               </span>
             </div>
             <!-- Detalle de eventos para el proveedor (Pagados) -->
-            <div v-if="expandedProvider.value === provider" class="pl-4">
+            <div v-if="expandedProvider === provider" class="pl-4">
               <div
                 v-for="event in sortedEvents(events)"
                 :key="event.id"
@@ -157,7 +161,7 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, toRefs } from "vue";
+import { defineProps } from "vue";
 import { ChevronDownIcon } from "../utils/icons";
 import { formatCurrency } from "../utils/helpers";
 import { format, parseISO } from "date-fns";
@@ -181,18 +185,8 @@ const props = defineProps<{
   showPendingPayments: boolean;
   showCompletedPayments: boolean;
   showProviderRevenue: boolean;
+  provider: string;
 }>();
-
-const monthlyStats = toRefs(props).monthlyStats;
-const totalPendingAmount = toRefs(props).totalPendingAmount;
-const totalCompletedAmount = toRefs(props).totalCompletedAmount;
-const groupedPendingPayments = toRefs(props).groupedPendingPayments;
-const groupedCompletedPayments = toRefs(props).groupedCompletedPayments;
-const expandedProvider = toRefs(props).expandedProvider;
-const sortedEvents = toRefs(props).sortedEvents;
-const showPendingPayments = toRefs(props).showPendingPayments;
-const showCompletedPayments = toRefs(props).showCompletedPayments;
-const showProviderRevenue = toRefs(props).showProviderRevenue;
 </script>
 
 <script lang="ts">
