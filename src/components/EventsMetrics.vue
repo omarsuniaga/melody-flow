@@ -14,7 +14,6 @@
       :groupedPendingPayments="groupedPendingPayments"
       :groupedCompletedPayments="groupedCompletedPayments"
       :sortedProviderStatsByRevenue="sortedProviderStatsByRevenue"
-      :provider="expandedProvider ?? ''"
       :expandedProvider="expandedProvider"
       :sortedEvents="sortedEvents"
       :showPendingPayments="showPendingPayments"

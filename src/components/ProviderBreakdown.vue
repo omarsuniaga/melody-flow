@@ -39,7 +39,7 @@
         </div>
         <div v-if="showPendingPayments" class="mt-2">
           <div
-            v-for="(events, provider) in groupedPendingPayments.value"
+            v-for="(events, provider) in groupedPendingPayments"
             :key="provider"
             class="mb-2"
           >
@@ -54,16 +54,19 @@
               </div>
               <div class="flex-grow text-center">
                 <span class="font-medium text-red-600">
-                  {{ formatCurrency(calculateTotalAmount(events)) }}
+                  {{
+                    formatCurrency(events.reduce((sum: number, event: { amount: number }) => sum + event.amount, 0))
+                  }}
                 </span>
               </div>
               <button
                 @click.stop="
-                  $emit('generatePDF', provider, groupedPendingPayments.value[provider])
+                  $emit('generatePDF', provider, groupedPendingPayments[provider])
                 "
                 class="flex-none text-blue-600 hover:text-blue-800 p-2"
                 title="Descargar PDF"
               >
+                <!-- Ícono SVG para PDF -->
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   class="h-5 w-5"
@@ -81,14 +84,16 @@
               </button>
             </div>
             <!-- Detalle de eventos para el proveedor (Pendientes) -->
-            <div v-if="props.expandedProvider === props.provider" class="pl-4">
+            <div v-if="expandedProvider === provider" class="pl-4">
               <div
                 v-for="event in sortedEvents(events)"
                 :key="event.id"
                 class="flex justify-between items-center p-2 bg-gray-50 rounded"
               >
                 <div>
-                  <p class="text-sm text-gray-600">{{ formatDate(event.date) }}</p>
+                  <p class="text-sm text-gray-600">
+                    {{ formatDate(event.date) }}
+                  </p>
                   <p class="text-sm text-gray-600">{{ event.location }}</p>
                 </div>
                 <span class="font-medium text-red-600">
@@ -141,7 +146,9 @@
                 class="flex justify-between items-center p-2 bg-gray-50 rounded"
               >
                 <div>
-                  <p class="text-sm text-gray-600">{{ formatDate(event.date) }}</p>
+                  <p class="text-sm text-gray-600">
+                    {{ formatDate(event.date) }}
+                  </p>
                   <p class="text-sm text-gray-600">{{ event.location }}</p>
                 </div>
                 <span class="font-medium text-green-600">
@@ -163,11 +170,10 @@ import { formatCurrency } from "../utils/helpers";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 
-// Función para formatear fecha con local español
+// Define formato de fecha reutilizable
 const formatDate = (date: string) => {
   return format(parseISO(date), "EEEE d 'de' MMMM, yyyy", { locale: es });
 };
-
 type Event = {
   id: string;
   date: string;
@@ -178,8 +184,7 @@ type Event = {
 const calculateTotalAmount = (events: Event[]): number => {
   return events.reduce((sum, event) => sum + (event?.amount ?? 0), 0);
 };
-
-// Definición de props requeridas, utilizando toRefs para mantener la reactividad
+// Definición de props requeridas
 const props = defineProps<{
   monthlyStats: { totalEvents: number; totalRevenue: number; averagePerEvent: number };
   totalPendingAmount: number;
@@ -192,29 +197,21 @@ const props = defineProps<{
   showPendingPayments: boolean;
   showCompletedPayments: boolean;
   showProviderRevenue: boolean;
-  provider: string;
 }>();
+import { computed } from "vue";
+
+// Eventos pendientes expandidos
+
+const expandedProviderEvents = computed(() => {
+  return props.expandedProvider
+    ? props.groupedPendingPayments[props.expandedProvider] || []
+    : [];
+});
 </script>
 
 <script lang="ts">
+// exportar componente
 export default {
   name: "ProviderBreakdown",
 };
 </script>
-
-<style scoped>
-.slide-enter-active,
-.slide-leave-active {
-  transition: all 0.3s ease-out;
-}
-.slide-enter-from,
-.slide-leave-to {
-  transform: translateY(-20px);
-  opacity: 0;
-}
-.slide-enter-to,
-.slide-leave-from {
-  transform: translateY(0);
-  opacity: 1;
-}
-</style>
