@@ -1,24 +1,33 @@
 import { TDocumentDefinitions } from 'pdfmake/interfaces';
 import pdfMake from 'pdfmake/build/pdfmake';
-import * as pdfFonts from 'pdfmake/build/vfs_fonts';
+import pdfFonts from 'pdfmake/build/vfs_fonts';
 
-// Inicializar pdfMake con las fuentes
-if (typeof window !== 'undefined') {
-  pdfMake.vfs = pdfFonts.pdfMake?.vfs;
-}
+// Configuración inicial de pdfMake y sus fuentes
+(() => {
+  try {
+    if (typeof window !== 'undefined') {
+      // Asignar fuentes directamente
+      (window as any).pdfMake = pdfMake;
+      (window as any).pdfMake.vfs = pdfFonts.pdfMake.vfs;
+    }
+  } catch (error) {
+    console.error('Error inicializando pdfMake:', error);
+  }
+})();
 
 export const createAndDownloadPdf = async (docDefinition: TDocumentDefinitions, fileName: string): Promise<void> => {
   try {
-    // Verificación adicional de las fuentes
-    if (!pdfMake.vfs) {
-      pdfMake.vfs = pdfFonts.pdfMake?.vfs;
-    }
+    // Asegurarse de que el documento use Roboto como fuente predeterminada
+    docDefinition.defaultStyle = {
+      ...docDefinition.defaultStyle,
+      font: 'Roboto'
+    };
 
+    // Crear y descargar el PDF
     return new Promise((resolve, reject) => {
       try {
         const pdf = pdfMake.createPdf(docDefinition);
         pdf.getBlob((blob) => {
-          // Crear un enlace temporal para descargar el PDF
           const url = window.URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
@@ -29,12 +38,13 @@ export const createAndDownloadPdf = async (docDefinition: TDocumentDefinitions, 
           window.URL.revokeObjectURL(url);
           resolve();
         });
-      } catch (error) {
-        reject(new Error('Error al generar el PDF: ' + error));
+      } catch (downloadError) {
+        console.error('Error al descargar el PDF:', downloadError);
+        reject(new Error('Error al generar el PDF: ' + downloadError.message));
       }
     });
   } catch (error) {
-    console.error('Error al generar PDF:', error);
+    console.error('Error en createAndDownloadPdf:', error);
     throw error;
   }
 };

@@ -218,12 +218,49 @@ const emit = defineEmits<{
 // Función para manejar la generación del PDF
 const handlePdfGeneration = async (provider: string, events: Event[]) => {
   try {
-    if (!provider || !Array.isArray(events) || events.length === 0) {
-      console.warn("No hay eventos para generar el PDF");
-      return;
-    }
+    console.group(`📊 REPORTE DE EVENTOS PENDIENTES - ${provider.toUpperCase()}`);
+    console.log("📅 Fecha de generación:", format(new Date(), "dd/MM/yyyy HH:mm:ss"));
+    console.log("👤 Proveedor:", provider);
+    console.log("📝 Resumen:");
+    console.table({
+      "Total Eventos": events.length,
+      "Monto Total": formatCurrency(events.reduce((sum, event) => sum + event.amount, 0)),
+      "Promedio por Evento": formatCurrency(
+        events.reduce((sum, event) => sum + event.amount, 0) / events.length
+      ),
+    });
 
-    // Asegurarse de que todos los campos necesarios estén presentes
+    console.log("\n📋 Detalle de Eventos:");
+    const eventDetails = events.map((event) => ({
+      Fecha: format(new Date(event.date), "dd/MM/yyyy"),
+      Hora: event.time || "No especificada",
+      Lugar: event.location,
+      Descripción: event.description,
+      Monto: formatCurrency(event.amount),
+    }));
+    console.table(eventDetails);
+
+    // Agrupar por ubicación
+    const locationStats = events.reduce((acc, event) => {
+      acc[event.location] = (acc[event.location] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    console.log("\n📍 Eventos por Ubicación:");
+    console.table(locationStats);
+
+    // Estadísticas adicionales
+    const amounts = events.map((e) => e.amount);
+    const stats = {
+      "Evento Menor": formatCurrency(Math.min(...amounts)),
+      "Evento Mayor": formatCurrency(Math.max(...amounts)),
+      Promedio: formatCurrency(amounts.reduce((a, b) => a + b, 0) / amounts.length),
+    };
+
+    console.log("\n📈 Estadísticas de Montos:");
+    console.table(stats);
+
+    // Proceder con la generación del PDF
     const formattedEvents = events
       .filter((event) => event && event.date && event.amount)
       .map((event) => ({
@@ -237,13 +274,16 @@ const handlePdfGeneration = async (provider: string, events: Event[]) => {
       }));
 
     if (formattedEvents.length === 0) {
-      console.warn("No hay eventos válidos para generar el PDF");
+      console.warn("❌ No hay eventos válidos para generar el PDF");
       return;
     }
 
+    console.log("\n🔄 Iniciando generación de PDF...");
     emit("generatePDF", provider, formattedEvents);
+    console.groupEnd();
   } catch (error) {
-    console.error("Error al preparar datos para PDF:", error);
+    console.error("❌ Error al preparar datos para PDF:", error);
+    console.groupEnd();
   }
 };
 </script>

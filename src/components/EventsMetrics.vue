@@ -23,7 +23,7 @@
       @toggleCompletedPayments="$emit('toggleCompletedPayments')"
       @toggleProvider="$emit('toggleProvider', $event)"
       @toggleProviderRevenue="$emit('toggleProviderRevenue')"
-      @generatePDF="$emit('generatePDF', $event)"
+      @generatePDF="handlePdfGeneration"
     />
 
     <AverageEventPanel :averageAmount="monthlyStats.averagePerEvent" />
@@ -31,10 +31,54 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps } from "vue";
+import { defineProps, defineEmits } from "vue";
 import TotalEventsPanel from "./TotalEventsPanel.vue";
 import ProviderBreakdown from "./ProviderBreakdown.vue";
 import AverageEventPanel from "./AverageEventPanel.vue";
+
+// Actualizar la lista completa de eventos emitidos
+const emit = defineEmits<{
+  (e: "generatePDF", provider: string, events: any[]): void;
+  (e: "toggleTotalEvents"): void;
+  (e: "toggleProviderRevenue"): void;
+  (e: "togglePendingPayments"): void;
+  (e: "toggleCompletedPayments"): void;
+  (e: "toggleProvider", provider: string): void;
+  (e: "update:modelValue", value: boolean): void;
+  (e: "saved"): void;
+  (e: "close"): void;
+}>();
+
+// Función para manejar la generación del PDF
+const handlePdfGeneration = (provider: string, events: any[]) => {
+  console.log("EventsMetrics: Iniciando proceso de generación de PDF");
+  console.log("Proveedor:", provider);
+  console.log("Número de eventos:", events.length);
+
+  // Validación básica antes de propagar el evento
+  if (!events || events.length === 0) {
+    console.warn("EventsMetrics: No hay eventos para generar PDF");
+    return;
+  }
+
+  // Verificar que los eventos tienen la estructura correcta
+  const validEvents = events.every(
+    (event) =>
+      event.date &&
+      event.location &&
+      typeof event.amount === "number" &&
+      event.description
+  );
+
+  if (!validEvents) {
+    console.warn("EventsMetrics: Algunos eventos no tienen la estructura correcta");
+    return;
+  }
+
+  console.log("EventsMetrics: Propagando evento generatePDF al componente padre");
+  emit("generatePDF", provider, events);
+};
+
 defineProps<{
   monthlyStats: {
     totalEvents: number;

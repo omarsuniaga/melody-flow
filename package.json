@@ -25,7 +25,7 @@
     "country-flag-icons": "^1.5.14",
     "date-fns": "^4.1.0",
     "firebase": "^10.8.0",
-    "pdfmake": "^0.2.18",
+    "pdfmake": "^0.2.7",
     "pinia": "^2.1.7",
     "vue": "^3.4.15",
     "vue-router": "^4.5.0",

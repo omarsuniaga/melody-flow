@@ -1,10 +1,15 @@
 import axios from 'axios';
 
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent';
 
-export async function generateLetter(provider: string, totalAmount: number): Promise<string> {
+export const generateLetter = async (provider: string, amount: number): Promise<string> => {
   try {
+    // Si no hay API key, devolver un mensaje predeterminado
+    if (!GEMINI_API_KEY) {
+      return `Estimado ${provider}, este documento detalla los eventos pendientes de pago por un monto total de $${amount}. Por favor, revise los detalles adjuntos.`;
+    }
+
     const prompt = `"Escribe un párrafo breve, agradeciendo la oportunidad
     de participar en estas actividades musicales, y confiando en mi talento
     para ofrecer un trabajo excelente.
@@ -33,7 +38,7 @@ export async function generateLetter(provider: string, totalAmount: number): Pro
 
       `;
     const response = await axios.post(
-      `${API_URL}?key=${API_KEY}`,
+      `${API_URL}?key=${GEMINI_API_KEY}`,
       {
         contents: [{
           parts: [{ text: prompt }]
@@ -44,8 +49,7 @@ export async function generateLetter(provider: string, totalAmount: number): Pro
     return response.data.candidates[0].content.parts[0].text;
   } catch (error) {
     console.error('Error generando la carta:', error);
-    // Mensaje de fallback personalizado basado en el contexto
-    return `agradezco sinceramente la confianza en mi trabajo artístico y musical y espero tener más oportunidades de colaboración en el futuro"
-    }.`;
+    // Devolver un mensaje de respaldo en caso de error
+    return `Estimado ${provider}, este documento detalla los eventos pendientes de pago por un monto total de $${amount}. Por favor, revise los detalles adjuntos.`;
   }
-}
+};

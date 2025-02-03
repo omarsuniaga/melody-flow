@@ -316,17 +316,25 @@ function sortedEvents(events: MusicEvent[]) {
 // Generar PDF para proveedor
 const generateProviderPDF = async (provider: string, events: MusicEvent[]) => {
   try {
+    console.log('MonthlyBalanceView recibió solicitud de PDF:', {
+      provider,
+      eventsCount: events?.length
+    });
+
     if (!provider?.trim()) {
+      console.warn("Proveedor no válido:", provider);
       toast.error("Proveedor no válido");
       return;
     }
 
     if (!Array.isArray(events) || events.length === 0) {
+      console.warn("No hay eventos para procesar:", events);
       toast.error("No hay eventos para generar el PDF");
       return;
     }
 
     toast.info("Generando PDF...");
+    console.log('Eventos originales:', events);
 
     // Validar y formatear los eventos
     const formattedEvents = events
@@ -341,18 +349,25 @@ const generateProviderPDF = async (provider: string, events: MusicEvent[]) => {
         paymentStatus: event.paymentStatus || 'Pendiente'
       }));
 
+    console.log('Eventos formateados:', formattedEvents);
+
     if (formattedEvents.length === 0) {
+      console.warn('No hay eventos válidos después del formateo');
       throw new Error('No hay eventos válidos para procesar');
     }
 
     // Generar la definición del documento
     const docDefinition = await getPendingEventsTemplate(provider, formattedEvents);
+    console.log('Definición del documento generada:', docDefinition);
+
     const fileName = `eventos_${provider.replace(/\s+/g, '_')}_${format(new Date(), "yyyyMMdd")}.pdf`;
+    console.log('Intentando crear PDF con nombre:', fileName);
 
     await createAndDownloadPdf(docDefinition, fileName);
+    console.log('PDF generado exitosamente');
     toast.success("PDF generado correctamente");
   } catch (error) {
-    console.error("Error al generar PDF:", error);
+    console.error("Error detallado al generar PDF:", error);
     toast.error(`Error al generar el PDF: ${(error as Error).message}`);
   }
 };
