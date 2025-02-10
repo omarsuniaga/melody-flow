@@ -2,7 +2,7 @@
   <!-- Vista de inicio de sesión:
        Muestra la sección de bienvenida y el formulario de login dentro de un contenedor centrado -->
   <div class="min-h-screen p-2 sm:p-4 bg-gray-50">
-    <div class="max-w-lg mx-auto">
+    <div class="max-w-lg w-full mx-auto">
       <div class="bg-white rounded-lg shadow p-3 sm:p-6">
         <!-- Sección de bienvenida o descripción -->
         <HeroSection />

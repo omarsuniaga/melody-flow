@@ -1,14 +1,15 @@
 <template>
   <div class="border rounded-lg overflow-hidden mb-4">
-    <!-- Header -->
-    <div class="bg-gray-50 p-4 flex justify-between items-center">
-      <h3 class="text-lg font-medium">Gestión de Ubicaciones</h3>
-      <button @click="toggle" class="p-2 hover:bg-gray-200 rounded-full">
-        <ChevronDownIcon
-          :class="['h-5 w-5 transition-transform', open ? 'rotate-180' : '']"
-        />
-      </button>
-    </div>
+    <!-- Botón para alternar la visibilidad del panel -->
+    <button
+      @click="toggle"
+      class="w-full px-4 py-3 flex justify-between items-center bg-gray-50 hover:bg-gray-100"
+    >
+      <h3 class="text-lg font-medium text-gray-900">Gestion de Ubicaciones</h3>
+      <ChevronDownIcon
+        :class="['h-5 w-5 transition-transform', open ? 'transform rotate-180' : '']"
+      />
+    </button>
 
     <!-- Contenido principal -->
     <div v-if="open" class="p-4">
@@ -210,17 +211,17 @@ import {
   addLocation,
 } from "../services/LocationsServices"; // Agregar updateLocation y addLocation
 import { calculateRoute, formatDistance, formatDuration } from "../services/RouteService";
-import {
-  ChevronDownIcon,
-  MapPinIcon,
-  ClockIcon,
-  MapIcon,
-  RefreshIcon,
-  PencilIcon,
-  TrashIcon,
-  XMarkIcon,
-} from "../utils/icons";
-import { LMap, LTileLayer, LMarker } from "@vue-leaflet/vue-leaflet";
+import { ChevronDownIcon } from "../utils/icons";
+import { MapPinIcon } from "../utils/icons";
+import { ClockIcon } from "../utils/icons";
+import { MapIcon } from "../utils/icons";
+import { RefreshIcon } from "../utils/icons";
+import { PencilIcon } from "../utils/icons";
+import { TrashIcon } from "../utils/icons";
+import { XMarkIcon } from "../utils/icons";
+import { LMap } from "@vue-leaflet/vue-leaflet";
+import { LTileLayer } from "@vue-leaflet/vue-leaflet";
+import { LMarker } from "@vue-leaflet/vue-leaflet";
 import "leaflet/dist/leaflet.css";
 import { useEventStore } from "../stores/eventStore";
 
@@ -355,9 +356,9 @@ async function saveLocation() {
     };
 
     if (selectedLocation.value?.id) {
-      await updateLocation(selectedLocation.value.id, locationData);
+      await updateLocation(String(selectedLocation.value.id), locationData);
       await eventStore.updateEventsCoordinates(
-        selectedLocation.value.id as number,
+        String(selectedLocation.value.id),
         locationData.coordinates as { lat: number; lng: number }
       );
     } else {
@@ -418,7 +419,7 @@ async function deleteLocation() {
   if (!selectedLocation.value?.id) return;
 
   try {
-    await deleteLocationService(selectedLocation.value.id);
+    await deleteLocationService(String(selectedLocation.value.id));
     await loadLocations(); // Ahora loadLocations está definida
     showDeleteModal.value = false;
     selectedLocation.value = null;
@@ -457,7 +458,7 @@ onUnmounted(() => {
 });
 </script>
 
-<style scoped>
+<style lang="postcss">
 .animate-spin {
   animation: spin 1s linear infinite;
 }

@@ -89,6 +89,10 @@ import { createAndDownloadPdf } from "../utils/pdfMakeConfig";
 import { getPendingEventsTemplate } from "../utils/pdfTemplates";
 import { defineAsyncComponent } from "vue";
 
+// Estado y utilidades principales
+const toast = useToast();
+const eventStore = useEventStore();
+
 // Componentes cargados de forma asíncrona para optimizar el rendimiento
 const MonthSelector = defineAsyncComponent(
   () => import("../components/MonthSelector.vue")
@@ -103,10 +107,6 @@ const LocationsPanel = defineAsyncComponent(
   () => import("../components/LocationsPanel.vue")
 );
 const makePayments = defineAsyncComponent(() => import("../components/makePayments.vue"));
-
-// Estado y utilidades principales
-const toast = useToast();
-const eventStore = useEventStore();
 
 // Estado de selección y toggles
 const selectedMonth = ref(new Date());
@@ -247,13 +247,20 @@ type MusicEvent = {
 };
 
 interface Event {
+  id: string;
   date: string;
   location: string;
   amount: number;
   provider: string;
   paymentStatus: string;
+  activityType: string;
   description: string;
+  createdAt: string;
+  updatedAt?: string;
+  createdBy: string;
   time: string;
+  userId: string;
+  isFixed: boolean;
 }
 interface EventGroups {
   [key: string]: MusicEvent[];
@@ -310,20 +317,20 @@ const sortedMonthEvents = computed(() => {
 // Función para generar y descargar PDF de eventos de un proveedor
 const generateProviderPDF = async (provider: string, events: Event[]) => {
   try {
-    const fileName = `reporte_eventos_${provider.replace(/\s+/g, '_')}_${format(
+    const fileName = `reporte_eventos_${provider.replace(/\s+/g, "_")}_${format(
       new Date(),
-      'yyyyMMdd'
+      "yyyyMMdd"
     )}.pdf`;
 
-    toast.info('Generando PDF...');
+    toast.info("Generando PDF...");
 
     const docDefinition = getPendingEventsTemplate(provider, events);
-    
+
     await createAndDownloadPdf(docDefinition, fileName);
-    
-    toast.success('PDF generado y descargado correctamente');
+
+    toast.success("PDF generado y descargado correctamente");
   } catch (error) {
-    console.error('Error al generar PDF:', error);
+    console.error("Error al generar PDF:", error);
     toast.error(`Error al generar el PDF: ${(error as Error).message}`);
   }
 };

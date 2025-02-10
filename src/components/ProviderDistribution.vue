@@ -106,7 +106,6 @@ import { ref } from "vue";
 import { ChevronDownIcon } from "../utils/icons";
 import { formatCurrency } from "../utils/helpers";
 import { format, parseISO } from "date-fns";
-import { es } from "date-fns/locale";
 
 // 4. Referencias y estado
 const expandedProvider = ref<string | null>(null);
@@ -116,15 +115,6 @@ const formatDate = (dateString?: string): string => {
   if (!dateString) return "N/A";
   try {
     return format(parseISO(dateString), "dd/MM/yyyy");
-  } catch {
-    return "N/A";
-  }
-};
-
-const formatCurrencyHelper = (amount?: number): string => {
-  if (amount == null) return "N/A";
-  try {
-    return formatCurrency(amount);
   } catch {
     return "N/A";
   }

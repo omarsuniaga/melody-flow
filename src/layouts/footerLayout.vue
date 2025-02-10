@@ -4,7 +4,7 @@
       <router-link
         to="/calendar"
         class="flex flex-col items-center"
-        :class="{ 'text-blue-600': isActive('/calendar') }"
+        :class="{ 'text-purple-600': isActive('/calendar') }"
       >
         <CalendarIcon class="h-6 w-6" />
         <span class="text-xs">Calendario</span>
@@ -20,7 +20,7 @@
       <router-link
         to="/profile"
         class="flex flex-col items-center"
-        :class="{ 'text-blue-600': isActive('/profile') }"
+        :class="{ 'text-orange-600': isActive('/profile') }"
       >
         <UserIcon class="h-6 w-6" />
         <span class="text-xs">Perfil</span>
@@ -31,7 +31,9 @@
 
 <script setup lang="ts">
 import { useRoute } from "vue-router";
-import { CalendarIcon, ChartBarIcon, UserIcon } from "@heroicons/vue/24/outline";
+import { ChartBarIcon } from "@heroicons/vue/24/outline";
+import { UserIcon } from "@heroicons/vue/24/outline";
+import { CalendarIcon } from "@heroicons/vue/24/outline";
 
 const route = useRoute();
 

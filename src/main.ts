@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router/index' // Cambiado de indexBorrar a index
-import ToastPlugin from 'vue-toastification'
+import Toast from 'vue-toastification'
 import 'vue-toastification/dist/index.css' // Importante: añadir los estilos
 import { useAuthStore } from './stores/authStore'
 import { BackgroundTaskService } from './services/BackgroundTaskService'
@@ -34,7 +34,7 @@ const initializeApp = async () => {
     const pinia = createPinia();
     
     // Configurar Toast antes de otros plugins
-    app.use(ToastPlugin, {
+    app.use(Toast, {
       position: "top-right",
       timeout: 3000,
       closeOnClick: true,

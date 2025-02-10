@@ -1,113 +1,170 @@
-import { defineStore } from 'pinia'
-import { auth } from '../firebase/config'
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
-import { useAuthService } from '../services/authService'
+import { defineStore } from "pinia";
+import { auth } from "../firebase/config";
+import {
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+} from "firebase/auth";
 
-export const useAuthStore = defineStore('auth', {
+import { useAuthService } from "../services/authService";
+
+export const useAuthStore = defineStore("auth", {
   state: () => ({
     user: null as any,
     loading: false,
     error: null as string | null,
     initialized: false,
   }),
+
   getters: {
+    // Retorna true si hay un usuario, false de lo contrario
     isAuthenticated: (state) => !!state.user,
   },
+
   actions: {
-    async initializeAuth() {
-      const authService = useAuthService()
+    /**
+     * Inicializa la autenticación: Espera a que Firebase reporte el usuario actual.
+     * Usa la función onAuthStateChanged del authService para actualizar 'this.user' en tiempo real.
+     */
+    async initializeAuth(): Promise<void> {
+      this.loading = true;
+      const authService = useAuthService();
+
       return new Promise<void>((resolve) => {
-        authService.onAuthStateChanged((newUser: any) => {
-          this.user = newUser
-          this.initialized = true
-          resolve()
-        })
-      })
+        const unsubscribe = authService.onAuthStateChanged((newUser: any) => {
+          this.user = newUser;
+          this.initialized = true;
+          this.loading = false;
+          unsubscribe(); // opcional, para dejar de escuchar cambios en este punto
+          resolve();
+        });
+      });
     },
+
+    /**
+     * Inicia sesión con email y contraseña usando Firebase Auth.
+     */
     async login(email: string, password: string) {
+      this.loading = true;
+      this.error = null;
       try {
-        this.loading = true
-        this.error = null
-        const authService = useAuthService()
-        this.user = await authService.login(email, password)
+        const { user } = await signInWithEmailAndPassword(auth, email, password);
+        this.user = user;
+        return user;
       } catch (e: any) {
-        this.error = e.message
-        throw e
+        console.error("Error en login (email):", e);
+        this.error = e.message || "Error desconocido";
+        throw e; // Se lanza para que el componente maneje el error si necesita
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
+
+    /**
+     * Registra un nuevo usuario con email, contraseña y displayName.
+     * Se apoya en authService para la lógica adicional de registro.
+     */
     async register(email: string, password: string, displayName: string) {
+      this.loading = true;
+      this.error = null;
       try {
-        this.loading = true
-        this.error = null
-        const authService = useAuthService()
-        this.user = await authService.register(email, password, displayName)
+        const authService = useAuthService();
+        const user = await authService.register(email, password, displayName);
+        this.user = user;
+        return user;
       } catch (e: any) {
-        this.error = e.message
-        throw e
+        console.error("Error en registro:", e);
+        this.error = e.message || "Error desconocido";
+        throw e;
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
+
+    /**
+     * Cierra la sesión del usuario actual.
+     */
     async logout() {
+      this.loading = true;
+      this.error = null;
       try {
-        this.loading = true
-        this.error = null
-        const authService = useAuthService()
-        await authService.logout()
-        this.user = null
+        const authService = useAuthService();
+        await authService.logout();
+        this.user = null;
       } catch (e: any) {
-        this.error = e.message
-        throw e
+        console.error("Error en logout:", e);
+        this.error = e.message || "Error desconocido";
+        throw e;
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
+
+    /**
+     * Actualiza la contraseña del usuario actual pidiendo la contraseña actual.
+     */
     async updatePassword(currentPassword: string, newPassword: string) {
+      this.loading = true;
+      this.error = null;
       try {
-        this.loading = true
-        this.error = null
-        const authService = useAuthService()
-        await authService.updatePassword(currentPassword, newPassword)
+        const authService = useAuthService();
+        await authService.updatePassword(currentPassword, newPassword);
       } catch (e: any) {
-        this.error = e.message
-        throw e
+        console.error("Error en updatePassword:", e);
+        this.error = e.message || "Error desconocido";
+        throw e;
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
+
+    /**
+     * Envía un correo de restablecimiento de contraseña al email proporcionado.
+     */
     async resetPassword(email: string) {
+      this.loading = true;
+      this.error = null;
       try {
-        this.loading = true
-        this.error = null
-        const authService = useAuthService()
-        await authService.resetPassword(email)
+        const authService = useAuthService();
+        await authService.resetPassword(email);
       } catch (e: any) {
-        this.error = e.message
-        throw e
+        console.error("Error en resetPassword:", e);
+        this.error = e.message || "Error desconocido";
+        throw e;
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
+
+    /**
+     * Inicia sesión con Google usando un popup de Firebase Auth.
+     * Retorna un objeto con { success: boolean, user?: any, reason?: string, error?: any }
+     * para que el componente decida cómo manejar la UI.
+     */
     async handleGoogleLogin() {
+      this.loading = true;
+      this.error = null;
       try {
-        const provider = new GoogleAuthProvider()
-        provider.setCustomParameters({
-          prompt: 'select_account',
-          
-        })
-        const result = await signInWithPopup(auth, provider)
-        this.user = result.user
-        return result.user
+        const provider = new GoogleAuthProvider();
+        const result = await signInWithPopup(auth, provider);
+        this.user = result.user;
+        return { success: true, user: result.user };
       } catch (error: any) {
-        if (error.code === 'auth/popup-closed-by-user') {
-          console.warn('El usuario cerró el popup de autenticación.')
-          return
+        console.error("Error en Google login:", error);
+        // Manejo específico de error si el popup se cierra
+        if (error.code === "auth/popup-closed-by-user") {
+          return { success: false, reason: "popup-closed-by-user" };
         }
-        console.error('Error en login con Google:', error)
-        throw error
+        // Manejo de errores generales
+        this.error = error.message || "Error desconocido";
+        return {
+          success: false,
+          reason: "general-error",
+          error,
+        };
+      } finally {
+        this.loading = false;
       }
     },
-  }
-})
+  },
+});

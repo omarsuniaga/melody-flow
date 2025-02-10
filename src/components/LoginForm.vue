@@ -48,6 +48,7 @@
             placeholder="Contraseña"
             :disabled="loading"
           />
+          <!-- Botón para alternar la visibilidad de la contraseña -->
           <button
             type="button"
             @click="showPassword = !showPassword"
@@ -71,19 +72,26 @@
         <span v-if="loading">Iniciando sesión...</span>
         <span v-else>Iniciar sesión</span>
       </button>
+      <!-- Error general de login (si existiera) -->
+      <p v-if="loginError" class="text-red-500 text-sm mt-2">
+        {{ loginError }}
+      </p>
     </form>
 
     <!-- Modalidad: Inicio de sesión con Google -->
     <div v-else class="space-y-4">
       <button
         type="button"
-        @click="handleGoogleLogin"
+        @click="onGoogleLogin"
         class="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         :disabled="loading"
       >
         <img src="../assets/google-icon.svg" alt="Google" class="w-5 h-5" />
         <span>Continuar con Google</span>
       </button>
+      <p v-if="loginError" class="text-red-500 text-sm mt-2">
+        {{ loginError }}
+      </p>
     </div>
   </div>
 </template>
@@ -92,32 +100,38 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "../stores/authStore";
-import { EyeIcon, EyeSlashIcon } from "../utils/icons";
+import { EyeIcon } from "../utils/icons";
+import { EyeSlashIcon } from "../utils/icons";
 import { useToast } from "vue-toastification";
 
+// Estado local
 const router = useRouter();
 const authStore = useAuthStore();
 const toast = useToast();
 
-const loginMethod = ref("email");
+const loginMethod = ref<"email" | "google">("email");
 const email = ref("");
 const password = ref("");
 const showPassword = ref(false);
 const loading = ref(false);
+
+// Errores específicos de email y contraseña
 const emailError = ref("");
 const passwordError = ref("");
 
+// Error general de login
+const loginError = ref<string | null>(null);
+
+// Función para iniciar sesión con correo y contraseña
 const handleSubmit = async () => {
-  // Limpiar errores previos
   emailError.value = "";
   passwordError.value = "";
+  loginError.value = null;
 
   try {
     loading.value = true;
-    // Await the login call
     await authStore.login(email.value, password.value);
     toast.success("¡Bienvenido!");
-    // Navigate to /calendar *after* successful login
     router.push("/calendar");
   } catch (error: any) {
     console.error("Error de inicio de sesión:", error);
@@ -127,30 +141,32 @@ const handleSubmit = async () => {
   }
 };
 
-const handleGoogleLogin = async () => {
+// Función para manejar el inicio de sesión con Google
+async function onGoogleLogin() {
+  loginError.value = null;
   try {
-    loading.value = true;
-    // Await the Google login call
-    await authStore.handleGoogleLogin();
-    toast.success("¡Bienvenido!");
-    // Navigate to /calendar *after* successful login
-    router.push("/calendar");
-  } catch (error: any) {
-    console.error("Error al iniciar sesión con Google:", error);
-    if (error.code === "auth/popup-closed-by-user") {
-      toast.info("Inicio de sesión cancelado");
-    } else if (error.code === "auth/popup-blocked") {
-      toast.error(
-        "El navegador bloqueó la ventana emergente. Permite ventanas emergentes."
-      );
+    const result = await authStore.handleGoogleLogin();
+    // Se asume que el store devuelve un objeto con { success, user?, reason?, error? }
+    if (result.success) {
+      toast.success("¡Bienvenido con Google!");
+      router.push("/calendar");
     } else {
-      toast.error("Error al iniciar sesión con Google");
+      // Manejo de errores específicos
+      if (result.reason === "popup-closed-by-user") {
+        toast.warning("El usuario cerró el popup de Google");
+      } else if (result.error) {
+        loginError.value = result.error.message || "Error desconocido en Google Login";
+      }
     }
+  } catch (error: any) {
+    loginError.value = error.message;
+    console.error("Unexpected error en Google login:", error);
   } finally {
     loading.value = false;
   }
-};
+}
 
+// Función para traducir los códigos de error de Firebase
 const handleAuthError = (errorCode: string) => {
   switch (errorCode) {
     case "auth/invalid-email":
@@ -170,9 +186,13 @@ const handleAuthError = (errorCode: string) => {
   }
 };
 </script>
+
 <script lang="ts">
-// exportar componente
 export default {
   name: "LoginForm",
 };
 </script>
+
+<style scoped>
+/* Estilos específicos para el componente de login */
+</style>
