@@ -2,40 +2,44 @@
   <ModalComponent
     :model-value="modelValue"
     @update:model-value="$emit('update:modelValue', $event)"
-    :title="'Detalles del Evento'"
+    title="Detalles del Evento"
   >
-    <div class="space-y-4">
+    <div class="space-y-4 p-4 bg-white rounded-lg shadow-lg transition-all duration-300">
+      <!-- Section de detalles con grid -->
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <h4 class="text-sm font-medium text-gray-500">Tipo de Actividad</h4>
-          <p class="mt-1">{{ event.activityType }}</p>
+          <h4 class="text-sm font-semibold text-gray-500">Tipo de Actividad</h4>
+          <p class="mt-1 text-gray-800">{{ event.activityType }}</p>
         </div>
         <div>
-          <h4 class="text-sm font-medium text-gray-500">Estado de Pago</h4>
+          <h4 class="text-sm font-semibold text-gray-500">Estado de Pago</h4>
           <p
-            :class="{
-              'text-green-600': event.paymentStatus === 'Pagado',
-              'text-red-600': event.paymentStatus === 'Pendiente',
-            }"
+            :class="[
+              'mt-1 font-medium',
+              event.paymentStatus === 'Pagado' ? 'text-green-600' : 'text-red-600',
+            ]"
           >
             {{ event.paymentStatus }}
           </p>
         </div>
       </div>
 
+      <!-- Proveedor -->
       <div>
-        <h4 class="text-sm font-medium text-gray-500">Proveedor</h4>
-        <p class="mt-1">{{ event.provider }}</p>
+        <h4 class="text-sm font-semibold text-gray-500">Proveedor</h4>
+        <p class="mt-1 text-gray-800">{{ event.provider }}</p>
       </div>
 
+      <!-- Descripción -->
       <div>
-        <h4 class="text-sm font-medium text-gray-500">Descripción</h4>
-        <p class="mt-1">{{ event.description }}</p>
+        <h4 class="text-sm font-semibold text-gray-500">Descripción</h4>
+        <p class="mt-1 text-gray-800">{{ event.description }}</p>
       </div>
 
+      <!-- Lugar -->
       <div>
-        <h4 class="text-sm font-medium text-gray-500">Lugar</h4>
-        <p class="mt-1">
+        <h4 class="text-sm font-semibold text-gray-500">Lugar</h4>
+        <p class="mt-1 text-gray-800">
           {{ event?.location || "No especificado" }}
           <span v-if="!event?.location" class="text-yellow-500 text-xs">
             (Ubicación no disponible)
@@ -43,22 +47,25 @@
         </p>
       </div>
 
+      <!-- Fecha y Hora -->
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <h4 class="text-sm font-medium text-gray-500">Fecha</h4>
-          <p class="mt-1">{{ formatDate(event.date) }}</p>
+          <h4 class="text-sm font-semibold text-gray-500">Fecha</h4>
+          <p class="mt-1 text-gray-800">{{ formatDate(event.date) }}</p>
         </div>
         <div>
-          <h4 class="text-sm font-medium text-gray-500">Hora</h4>
-          <p class="mt-1">{{ event.time }}</p>
+          <h4 class="text-sm font-semibold text-gray-500">Hora</h4>
+          <p class="mt-1 text-gray-800">{{ event.time }}</p>
         </div>
       </div>
 
+      <!-- Monto -->
       <div>
-        <h4 class="text-sm font-medium text-gray-500">Monto</h4>
-        <p class="mt-1">{{ formatCurrency(event.amount) }}</p>
+        <h4 class="text-sm font-semibold text-gray-500">Monto</h4>
+        <p class="mt-1 text-gray-800">{{ formatCurrency(event.amount) }}</p>
       </div>
 
+      <!-- Timestamps -->
       <div class="grid grid-cols-2 gap-4 text-xs text-gray-500">
         <div>
           <p>Creado: {{ formatDateTime(event.createdAt) }}</p>
@@ -78,10 +85,20 @@
 
     <template #footer>
       <div class="flex justify-end gap-3">
-        <ButtonComponent variant="secondary" @click="$emit('edit')">
+        <ButtonComponent
+          variant="secondary"
+          @click="$emit('edit')"
+          class="hover:bg-gray-200 transition-colors duration-200"
+        >
           Editar
         </ButtonComponent>
-        <ButtonComponent variant="primary" @click="close"> Cerrar </ButtonComponent>
+        <ButtonComponent
+          variant="primary"
+          @click="close"
+          class="hover:bg-blue-600 transition-colors duration-200"
+        >
+          Cerrar
+        </ButtonComponent>
       </div>
     </template>
   </ModalComponent>
@@ -141,4 +158,18 @@ const formatCurrency = (amount: number): string => {
 .field-missing {
   @apply italic text-gray-400;
 }
+/* Transición para modal */
+.modal-enter-active,
+.modal-leave-active {
+  @apply transition-opacity duration-300;
+}
+.modal-enter,
+.modal-leave-to {
+  @apply opacity-0;
+}
 </style>
+<script lang="ts">
+export default {
+  name: "EventViewModal",
+};
+</script>

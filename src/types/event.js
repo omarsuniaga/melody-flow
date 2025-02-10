@@ -7,5 +7,7 @@ export function isMusicEvent(event) {
         typeof event.location === 'string' &&
         typeof event.time === 'string' &&
         typeof event.amount === 'number' &&
-        typeof event.date === 'string');
+        typeof event.date === 'string') &&
+        Array.isArray(event.coord);
+        
 }

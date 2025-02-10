@@ -35,31 +35,24 @@
           <!-- Fila 1: Proveedor | Estado de Pago | Acciones -->
           <div class="flex justify-between items-center mb-2">
             <h4 class="font-medium text-lg text-gray-800">{{ event.provider }}</h4>
-            <span
-              :class="{
-                'text-green-600': event.paymentStatus === 'Pagado',
-                'text-red-600': event.paymentStatus === 'Pendiente',
-                'text-sm font-medium': true,
-              }"
+            <ButtonComponent
+              type="button"
+              variant="secondary"
+              @click="handleTogglePaymentStatus(event)"
+              class="p-1.5 rounded-full hover:bg-gray-100 transition-colors transform hover:scale-105 active:scale-95 focus:outline-none"
+              :title="
+                event.paymentStatus === 'Pagado'
+                  ? 'Marcar como Pendiente'
+                  : 'Marcar como Pagado'
+              "
             >
-              {{ event.paymentStatus }}
-            </span>
-            <div class="flex gap-1">
-              <button
-                @click="handleTogglePaymentStatus(event)"
-                class="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
-                :title="
-                  event.paymentStatus === 'Pagado'
-                    ? 'Marcar como Pendiente'
-                    : 'Marcar como Pagado'
-                "
-              >
-                <CheckCircleIcon
-                  v-if="event.paymentStatus === 'Pendiente'"
-                  class="h-5 w-5 text-green-600"
-                />
-                <ClockIcon v-else class="h-5 w-5 text-red-600" />
-              </button>
+              <CheckCircleIcon
+                v-if="event.paymentStatus === 'Pendiente'"
+                class="h-5 w-5 text-green-600"
+              />
+              <ClockIcon v-else class="h-5 w-5 text-red-600" />
+            </ButtonComponent>
+            <div class="flex gap-3">
               <ButtonComponent
                 type="button"
                 variant="secondary"
@@ -87,8 +80,18 @@
 
           <!-- Fila 2: Descripción | Ubicación | Hora -->
           <div class="flex justify-between items-center text-sm text-gray-600">
-            <p class="flex-1">{{ event.description }}</p>
+            <p
+              :class="{
+                'text-green-600': event.paymentStatus === 'Pagado',
+                'text-red-600': event.paymentStatus === 'Pendiente',
+                'text-sm font-medium': true,
+                'flex-1': true,
+              }"
+            >
+              {{ event.paymentStatus }}
+            </p>
             <div class="flex items-center gap-4 ml-4">
+              <p class="flex-1">{{ event.description }}</p>
               <span class="flex items-center gap-1">
                 <MapPinIcon class="h-4 w-4 text-gray-500" />
                 {{ event.location }}
@@ -114,7 +117,7 @@
 
     <!-- Event View Modal -->
     <EventViewModal
-      v-if="isViewModalOpen"
+      v-if="isViewModalOpen && selectedEvent"
       :model-value="isViewModalOpen"
       @update:model-value="$emit('update:isViewModalOpen', $event)"
       :event="selectedEvent"
@@ -157,10 +160,10 @@ import {
   CheckCircleIcon,
   ClockIcon,
   MapPinIcon,
-} from "../utils/icons.js"; // Cambiamos la importación para usar nuestro archivo de iconos
+} from "../utils/icons";
 import { useEventStore } from "../stores/eventStore"; // Eliminar cualquier referencia a Supabase
-import { defineProps, defineEmits, withDefaults } from "vue";
-import { defineAsyncComponent, ref, computed } from "vue";
+import { withDefaults } from "vue";
+import { defineAsyncComponent, computed } from "vue";
 
 const props = withDefaults(
   defineProps<{
@@ -193,7 +196,7 @@ interface Emits {
   (e: "edit-from-view"): void;
   (e: "event-saved"): void;
   (e: "toggle-payment-status", event: MusicEvent): void;
-  (e: "delete-event", event: DeleteEvent): void;
+  (e: "delete-event", event: typeof DeleteEvent): void;
 }
 const DeleteConfirmationModal = defineAsyncComponent(
   () => import("./DeleteConfirmationModal.vue")
@@ -201,8 +204,6 @@ const DeleteConfirmationModal = defineAsyncComponent(
 // console.log("selectedEvent", props.selectedEvent);
 
 const eventStore = useEventStore();
-const isLoading = ref(false);
-const errorMessage = ref("");
 
 const emit = defineEmits<Emits>();
 
@@ -213,8 +214,6 @@ const handleTogglePaymentStatus = async (event: MusicEvent) => {
   }
   try {
     const newStatus = event.paymentStatus === "Pendiente" ? "Pagado" : "Pendiente";
-    console.log("Marcando como pagado el evento:", event.paymentStatus);
-    console.log("Cambiando estado para evento:", newStatus);
     emit("toggle-payment-status", { ...event, paymentStatus: newStatus });
   } catch (error) {
     console.error("Error al cambiar el estado de pago:", error);

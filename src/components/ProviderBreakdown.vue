@@ -54,9 +54,7 @@
               </div>
               <div class="flex-grow text-center">
                 <span class="font-medium text-red-600">
-                  {{
-                    formatCurrency(events.reduce((sum: number, event: { amount: number }) => sum + event.amount, 0))
-                  }}
+                  {{ formatCurrency(calculateEventsTotal(events)) }}
                 </span>
               </div>
               <button
@@ -84,7 +82,7 @@
             <!-- Detalle de eventos para el proveedor (Pendientes) -->
             <div v-if="expandedProvider === provider" class="pl-4">
               <div
-                v-for="event in sortedEvents(events)"
+                v-for="event in sortEventsByDate(events)"
                 :key="event.id"
                 class="flex justify-between items-center p-2 bg-gray-50 rounded"
               >
@@ -139,7 +137,7 @@
             <!-- Detalle de eventos para el proveedor (Pagados) -->
             <div v-if="expandedProvider === provider" class="pl-4">
               <div
-                v-for="event in sortedEvents(events)"
+                v-for="event in sortEventsByDate(events)"
                 :key="event.id"
                 class="flex justify-between items-center p-2 bg-gray-50 rounded"
               >
@@ -162,7 +160,6 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits } from "vue";
 import { ChevronDownIcon } from "../utils/icons";
 import { formatCurrency } from "../utils/helpers";
 import { format, parseISO } from "date-fns";
@@ -177,34 +174,44 @@ type Event = {
   date: string;
   location: string;
   amount: number;
+  description?: string; // Add description property
+  time?: string; // Add time property
 };
 
 const calculateTotalAmount = (events: Event[]): number => {
   return events.reduce((sum, event) => sum + (event?.amount ?? 0), 0);
 };
+
+// Función de utilidad para calcular el total
+const calculateEventsTotal = (events: Event[]): number => {
+  if (!events?.length) return 0;
+  return events.reduce((sum, event) => sum + (event?.amount || 0), 0);
+};
+
+// Agregar función de ordenamiento local
+const sortEventsByDate = (events: Event[]): Event[] => {
+  return [...events].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+};
+
 // Definición de props requeridas
 const props = defineProps<{
   monthlyStats: { totalEvents: number; totalRevenue: number; averagePerEvent: number };
   totalPendingAmount: number;
   totalCompletedAmount: number;
-  groupedPendingPayments: Record<string, any>;
-  groupedCompletedPayments: Record<string, any>;
+  groupedPendingPayments: Record<string, Event[]>;
+  groupedCompletedPayments: Record<string, Event[]>;
   sortedProviderStatsByRevenue: Array<{ name: string; revenue: number }>;
   expandedProvider: string | null;
-  sortedEvents: (events: any[]) => any[];
+  sortedEvents: Event[]; // Cambiar a Event[] en lugar de función
   showPendingPayments: boolean;
   showCompletedPayments: boolean;
   showProviderRevenue: boolean;
 }>();
-import { computed } from "vue";
 
-// Eventos pendientes expandidos
-
-const expandedProviderEvents = computed(() => {
-  return props.expandedProvider
-    ? props.groupedPendingPayments[props.expandedProvider] || []
-    : [];
-});
+// Use props directly without destructuring
+console.log("props", props);
 
 // Definir emits
 const emit = defineEmits<{
@@ -218,10 +225,13 @@ const emit = defineEmits<{
 // Función para manejar la generación del PDF
 const handlePdfGeneration = async (provider: string, events: Event[]) => {
   try {
+    // Crear grupos de consola con emojis
     console.group(`📊 REPORTE DE EVENTOS PENDIENTES - ${provider.toUpperCase()}`);
     console.log("📅 Fecha de generación:", format(new Date(), "dd/MM/yyyy HH:mm:ss"));
     console.log("👤 Proveedor:", provider);
     console.log("📝 Resumen:");
+
+    // Tabla de resumen
     console.table({
       "Total Eventos": events.length,
       "Monto Total": formatCurrency(events.reduce((sum, event) => sum + event.amount, 0)),
@@ -230,6 +240,7 @@ const handlePdfGeneration = async (provider: string, events: Event[]) => {
       ),
     });
 
+    // Detalle de eventos
     console.log("\n📋 Detalle de Eventos:");
     const eventDetails = events.map((event) => ({
       Fecha: format(new Date(event.date), "dd/MM/yyyy"),
@@ -240,7 +251,7 @@ const handlePdfGeneration = async (provider: string, events: Event[]) => {
     }));
     console.table(eventDetails);
 
-    // Agrupar por ubicación
+    // Estadísticas por ubicación
     const locationStats = events.reduce((acc, event) => {
       acc[event.location] = (acc[event.location] || 0) + 1;
       return acc;
@@ -249,47 +260,36 @@ const handlePdfGeneration = async (provider: string, events: Event[]) => {
     console.log("\n📍 Eventos por Ubicación:");
     console.table(locationStats);
 
-    // Estadísticas adicionales
+    // Estadísticas de montos
     const amounts = events.map((e) => e.amount);
-    const stats = {
+    console.log("\n📈 Estadísticas de Montos:");
+    console.table({
       "Evento Menor": formatCurrency(Math.min(...amounts)),
       "Evento Mayor": formatCurrency(Math.max(...amounts)),
       Promedio: formatCurrency(amounts.reduce((a, b) => a + b, 0) / amounts.length),
-    };
+    });
 
-    console.log("\n📈 Estadísticas de Montos:");
-    console.table(stats);
-
-    // Proceder con la generación del PDF
-    const formattedEvents = events
-      .filter((event) => event && event.date && event.amount)
-      .map((event) => ({
-        date: event.date,
-        location: event.location || "Sin ubicación",
-        time: event.time || "00:00",
-        amount: Number(event.amount),
-        description: event.description || "Sin descripción",
-        provider: provider,
-        paymentStatus: "Pendiente",
-      }));
-
-    if (formattedEvents.length === 0) {
-      console.warn("❌ No hay eventos válidos para generar el PDF");
-      return;
-    }
+    // Formatear eventos para el PDF
+    const formattedEvents = events.map((event) => ({
+      id: event.id,
+      date: event.date,
+      location: event.location || "Sin ubicación",
+      time: event.time || "00:00",
+      description: event.description || "Sin descripción",
+      amount: Number(event.amount),
+      provider: provider,
+    }));
 
     console.log("\n🔄 Iniciando generación de PDF...");
     emit("generatePDF", provider, formattedEvents);
     console.groupEnd();
   } catch (error) {
-    console.error("❌ Error al preparar datos para PDF:", error);
+    console.error("❌ Error al preparar el PDF:", error);
     console.groupEnd();
   }
 };
 </script>
-
 <script lang="ts">
-// exportar componente
 export default {
   name: "ProviderBreakdown",
 };

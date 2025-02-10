@@ -13,6 +13,10 @@ export interface MusicEvent {
   provider: string;
   time: string;
   userIP: string;
+  coord?: {
+    lat: number;
+    lng: number;
+  } | null;
 }
 export type DeleteEvent = MusicEvent & { deleteMode: "single" | "all" };
 export type EventFormData = Omit<MusicEvent, 'createdAt' | 'createdBy' | 'userIP' | 'updatedAt'>;

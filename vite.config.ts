@@ -3,13 +3,19 @@ import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
 import { fileURLToPath, URL } from 'node:url'
 import { resolve } from 'path'
+import path from 'path'
 
 export default defineConfig({
   plugins: [
     vue(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'robots.txt', 'apple-touch-icon.png'],
+      includeAssets: [
+        'favicon.ico',
+        'apple-touch-icon.png',
+        'icons/icon-192.png',
+        'icons/icon-512.png'
+      ],
       manifest: {
         name: 'Modern Calendar',
         short_name: 'Calendar',
@@ -17,16 +23,20 @@ export default defineConfig({
         theme_color: '#ffffff',
         icons: [
           {
-            src: 'pwa-192x192.png',
+            src: '/icons/icon-192.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'pwa-512x512.png',
+            src: '/icons/icon-512.png',
             sizes: '512x512',
             type: 'image/png'
           }
-        ]
+        ],
+        start_url: '/',
+        display: 'standalone',
+        background_color: '#ffffff'
+        // Eliminar la propiedad screenshots
       },
       // Se añade configuración adicional para workbox (caching offline)
       workbox: {
@@ -42,21 +52,50 @@ export default defineConfig({
               }
             }
           }
-        ]
+        ],
+        maximumFileSizeToCacheInBytes: 3000000 // Aumentamos a 3MB
       }
     })
   ],
   server: {
-    port: 5173,
+    port: 3000,
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
-      'Cross-Origin-Opener-Policy': 'same-origin-allow-popups', // Cambiado para permitir popups
-      'Cross-Origin-Embedder-Policy': 'unsafe-none', // O ajusta según tus necesidades
-      'Cross-Origin-Resource-Policy': 'cross-origin'
+      'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+      'Cross-Origin-Embedder-Policy': 'unsafe-none',
+      'Cross-Origin-Resource-Policy': 'cross-origin',
+      'Content-Security-Policy': `
+        default-src 'self';
+        connect-src 'self' 
+          https://*.firebaseio.com 
+          https://*.googleapis.com 
+          wss://*.firebaseio.com 
+          https://*.firebaseapp.com
+          https://api.exchangerate-api.com 
+          https://nominatim.openstreetmap.org
+          https://*.openstreetmap.org
+          https://router.project-osrm.org
+          https://*.project-osrm.org
+          https://identitytoolkit.googleapis.com
+          https://securetoken.googleapis.com
+          https://www.googleapis.com;
+        img-src 'self' data: blob: https://*.tile.openstreetmap.org https://*.googleusercontent.com;
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://*.firebaseapp.com https://www.gstatic.com;
+        style-src 'self' 'unsafe-inline';
+        frame-src 'self' https://*.firebaseapp.com https://accounts.google.com https://apis.google.com;
+        font-src 'self' data: https://fonts.gstatic.com;
+        worker-src 'self' blob:;
+      `.replace(/\s+/g, ' ').trim()
     },
     proxy: {
+      '/auth': {
+        target: 'https://accounts.google.com',
+        changeOrigin: true,
+        secure: false,
+        ws: true
+      },
       '/auth/iframe': {
         target: 'https://accounts.google.com',
         changeOrigin: true,
@@ -101,11 +140,15 @@ export default defineConfig({
     }
   },
   resolve: {
-    extensions: ['.js', '.ts', '.jsx', '.tsx', '.json', '.vue'],
+    extensions: ['.js', '.ts', '.jsx', '.tsx', '.json', '.vue', '.css'],
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
-      '@assets': fileURLToPath(new URL('./src/assets', import.meta.url))
+      '@assets': fileURLToPath(new URL('./src/assets', import.meta.url)),
+      '@components': fileURLToPath(new URL('./src/components', import.meta.url))
     }
+  },
+  optimizeDeps: {
+    include: ['@vuepic/vue-datepicker', 'pdfmake/build/pdfmake', 'pdfmake/build/vfs_fonts']
   },
   build: {
     rollupOptions: {
@@ -121,14 +164,22 @@ export default defineConfig({
             '@heroicons/vue',
             '@headlessui/vue'
           ],
-          'pdf': ['pdfmake/build/pdfmake', 'pdfmake/build/vfs_fonts'],
+          // Dividir el PDF en chunks más pequeños
+          'pdf-core': ['pdfmake/build/pdfmake'],
+          'pdf-fonts': ['pdfmake/build/vfs_fonts'],
           'firebase-core': ['firebase/app'],
-          'firebase-services': ['firebase/auth', 'firebase/firestore'],
-          'components': [
+          'firebase-auth': ['firebase/auth'],
+          'firebase-firestore': ['firebase/firestore'],
+          'leaflet': ['leaflet'],
+          'calendar-components': [
             './src/components/MonthSelector.vue',
-            './src/components/EventsMetrics.vue',
+            './src/components/EventsMetrics.vue'
+          ],
+          'analytics-components': [
             './src/components/ProviderBreakdown.vue',
-            './src/components/ProviderDistribution.vue',
+            './src/components/ProviderDistribution.vue'
+          ],
+          'dashboard-components': [
             './src/components/LocationsPanel.vue',
             './src/components/TotalEventsPanel.vue',
             './src/components/AverageEventPanel.vue'
@@ -138,7 +189,8 @@ export default defineConfig({
             './src/utils/icons.ts',
             './src/utils/pdfMakeConfig.ts',
             './src/utils/pdfTemplates.ts'
-          ]
+          ],
+          pdfmake: ['pdfmake/build/pdfmake', 'pdfmake/build/vfs_fonts']
         },
         // Configurar el nombre de los chunks generados
         chunkFileNames: 'assets/js/[name]-[hash].js',
@@ -146,9 +198,14 @@ export default defineConfig({
         assetFileNames: 'assets/[ext]/[name]-[hash].[ext]'
       }
     },
-    chunkSizeWarningLimit: 1000, // Aumentar el límite a 1000kb
+    chunkSizeWarningLimit: 1500, // Aumentamos el límite
     sourcemap: true,
-    outDir: 'dist'
+    outDir: 'dist',
+    commonjsOptions: {
+      include: [/node_modules/],
+      transformMixedEsModules: true
+    }
   },
-  envPrefix: 'VITE_'
+  envPrefix: 'VITE_',
+  assetsInclude: ['**/*.svg']
 })

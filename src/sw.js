@@ -11,6 +11,7 @@ const urlsToCache = [
   '/src/main.ts',
   '/src/App.vue',
   
+  
 ];
 
 // Instalación del SW

@@ -8,9 +8,15 @@ import {
     onAuthStateChanged as firebaseOnAuthStateChanged,
     EmailAuthProvider,
     reauthenticateWithCredential,
-    browserLocalPersistence, // O la constante que prefieras
+    browserLocalPersistence,
+    signInWithPopup,
+    GoogleAuthProvider,
+    setPersistence,
+    signInWithRedirect,
+    getRedirectResult
   } from 'firebase/auth';
   import { auth } from '../firebase/config';
+  import router from '../router/indexBorrar';
   
   /**
    * Servicio de autenticación que encapsula las operaciones relacionadas con Firebase Auth.
@@ -167,6 +173,26 @@ import {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       return emailRegex.test(email);
     }
+
+    /**
+     * Maneja el inicio de sesión con Google.
+     */
+    const handleGoogleLogin = async () => {
+      try {
+        const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({
+          prompt: 'select_account',
+          auth_type: 'rerequest'
+          // Se eliminó el parámetro 'display'
+        });
+        // Usar signInWithPopup para obtener el usuario de inmediato
+        const result = await signInWithPopup(auth, provider);
+        return result.user;
+      } catch (error) {
+        console.error('Error en login con Google (popup):', error);
+        throw error;
+      }
+    };
   
     return {
       login,
@@ -177,7 +203,7 @@ import {
       onAuthStateChanged,
       setPersistence,
       validatePassword,
-      validateEmail
+      validateEmail,
+      handleGoogleLogin
     };
   }
-  

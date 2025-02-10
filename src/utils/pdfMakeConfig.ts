@@ -1,56 +1,28 @@
-import { TDocumentDefinitions } from 'pdfmake/interfaces';
-import pdfMake from 'pdfmake/build/pdfmake';
+import pdfMake from "pdfmake/build/pdfmake";
+import pdfFonts from "pdfmake/build/vfs_fonts";
 
-// Inicializar fuentes de forma dinámica
-const initializePdfMake = async () => {
-  if (typeof window !== 'undefined' && !pdfMake.vfs) {
-    try {
-      const pdfFonts = await import('pdfmake/build/vfs_fonts.js');
-      Object.defineProperty(pdfMake, 'vfs', {
-        value: pdfFonts.pdfMake.vfs,
-        writable: false
-      });
-    } catch (error) {
-      console.error('Error cargando fuentes:', error);
-    }
-  }
-  return pdfMake;
-};
+// Inicializar pdfMake con las fuentes
+pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
-export const createAndDownloadPdf = async (docDefinition: TDocumentDefinitions, fileName: string): Promise<void> => {
+export const createAndDownloadPdf = async (docDefinition: any, fileName: string): Promise<void> => {
   try {
-    const pdfInstance = await initializePdfMake();
+    // Crear el documento PDF
+    const pdfDoc = pdfMake.createPdf(docDefinition);
 
-    // Configurar estilos por defecto
-    const finalDocDefinition = {
-      ...docDefinition,
-      defaultStyle: {
-        font: 'Roboto',
-        fontSize: 10,
-        ...docDefinition.defaultStyle
-      }
-    };
-
+    // Forzar la descarga del archivo
     return new Promise((resolve, reject) => {
       try {
-        const pdfDoc = pdfInstance.createPdf(finalDocDefinition);
-        pdfDoc.getBlob((blob) => {
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = fileName;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          window.URL.revokeObjectURL(url);
+        pdfDoc.download(fileName, () => {
+          console.log('PDF descargado correctamente');
           resolve();
         });
       } catch (error) {
-        reject(new Error('Error generando PDF: ' + error));
+        console.error('Error al descargar el PDF:', error);
+        reject(error);
       }
     });
   } catch (error) {
-    console.error('Error en createAndDownloadPdf:', error);
+    console.error('Error al crear el PDF:', error);
     throw error;
   }
 };

@@ -1,8 +1,8 @@
 <template>
-  <div class="bg-gray-100 p-4 rounded-lg mt-6">
+  <div v-if="props.providerDistribution.length" class="bg-gray-100 p-4 rounded-lg mt-6">
     <div
       class="flex justify-between items-center cursor-pointer"
-      @click="$emit('toggleProviderDistribution')"
+      @click="emit('toggleProviderDistribution')"
     >
       <h3 class="text-lg font-medium text-gray-900">
         Distribución de Eventos por Proveedor
@@ -35,7 +35,13 @@
         </div>
 
         <transition name="slide">
-          <div v-if="expandedProvider === provider.name" class="divide-y divide-gray-100">
+          <div
+            v-if="
+              expandedProvider === provider.name &&
+              getProviderEvents(provider.name).length > 0
+            "
+            class="divide-y divide-gray-100"
+          >
             <div
               v-for="event in getProviderEvents(provider.name)"
               :key="event.id"
@@ -44,62 +50,96 @@
               <div class="flex justify-between items-start">
                 <div>
                   <p class="text-sm text-gray-900">
-                    {{ formatDate(event.date) }}
+                    {{ event.date ? formatDate(event.date) : "N/A" }}
                   </p>
-                  <p class="text-sm text-gray-600">{{ event.location }}</p>
-                  <p class="text-xs text-gray-500">{{ event.description }}</p>
+                  <p class="text-sm text-gray-600">{{ event.location || "N/A" }}</p>
+                  <p class="text-xs text-gray-500">{{ event.description || "N/A" }}</p>
                 </div>
                 <span class="font-medium text-gray-900">
-                  {{ formatCurrency(event.amount) }}
+                  {{ event.amount ? formatCurrency(event.amount) : "N/A" }}
                 </span>
               </div>
             </div>
+          </div>
+          <div v-else-if="expandedProvider === provider.name">
+            <p>No events for this provider.</p>
           </div>
         </transition>
       </div>
     </div>
   </div>
+  <div v-else class="bg-gray-100 p-4 rounded-lg mt-6">
+    <p class="text-gray-600">No hay datos disponibles</p>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { defineProps, ref } from "vue";
-import { ChevronDownIcon } from "../utils/icons";
-import { formatCurrency } from "../utils/helpers";
-import { parseISO, format } from "date-fns";
-const expandedProvider = ref<string | null>(null);
+// 1. Primero los tipos
+interface Event {
+  id: string;
+  date: string;
+  provider: string;
+  location: string;
+  amount: number;
+  description?: string;
+}
 
+interface Provider {
+  name: string;
+  eventCount: number;
+  percentage: string;
+}
+
+// 2. Props y Emits
 const props = defineProps<{
-  providerDistribution: Array<{ name: string; eventCount: number; percentage: string }>;
+  providerDistribution: Provider[];
   showProviderDistribution: boolean;
-  events: Array<{
-    id: string;
-    date: string;
-    provider: string;
-    location: string;
-    amount: number;
-    description?: string;
-  }>;
+  events: Event[];
 }>();
 
-const toggleProvider = (provider: string) => {
+const emit = defineEmits<{
+  (e: "toggleProviderDistribution"): void;
+}>();
+
+// 3. Importaciones
+import { ref } from "vue";
+import { ChevronDownIcon } from "../utils/icons";
+import { formatCurrency } from "../utils/helpers";
+import { format, parseISO } from "date-fns";
+import { es } from "date-fns/locale";
+
+// 4. Referencias y estado
+const expandedProvider = ref<string | null>(null);
+
+// 5. Funciones utilitarias
+const formatDate = (dateString?: string): string => {
+  if (!dateString) return "N/A";
+  try {
+    return format(parseISO(dateString), "dd/MM/yyyy");
+  } catch {
+    return "N/A";
+  }
+};
+
+const formatCurrencyHelper = (amount?: number): string => {
+  if (amount == null) return "N/A";
+  try {
+    return formatCurrency(amount);
+  } catch {
+    return "N/A";
+  }
+};
+
+// 6. Funciones del componente
+const toggleProvider = (provider: string): void => {
   expandedProvider.value = expandedProvider.value === provider ? null : provider;
 };
 
-const getProviderEvents = (provider: string) => {
+const getProviderEvents = (provider: string): Event[] => {
+  if (!props.events) return [];
   return props.events
     .filter((event) => event.provider === provider)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-};
-
-const formatDate = (dateString: string) => {
-  const date = parseISO(dateString);
-  return format(date, "dd/MM/yyyy");
-};
-</script>
-<script lang="ts">
-// exportar componente
-export default {
-  name: "ProviderDistribution",
 };
 </script>
 

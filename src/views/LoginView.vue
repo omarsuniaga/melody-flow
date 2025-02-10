@@ -1,8 +1,12 @@
 <template>
+  <!-- Vista de inicio de sesión:
+       Muestra la sección de bienvenida y el formulario de login dentro de un contenedor centrado -->
   <div class="min-h-screen p-2 sm:p-4 bg-gray-50">
     <div class="max-w-lg mx-auto">
       <div class="bg-white rounded-lg shadow p-3 sm:p-6">
+        <!-- Sección de bienvenida o descripción -->
         <HeroSection />
+        <!-- Formulario de inicio de sesión -->
         <LoginForm />
       </div>
     </div>
@@ -10,12 +14,25 @@
 </template>
 
 <script setup lang="ts">
+/**
+ * Componente LoginView
+ * Esta vista se encarga de renderizar la sección de héroe y el formulario de login.
+ * Se utiliza defineOptions para asignar un nombre al componente, lo que facilita la depuración.
+ */
+defineOptions({ name: "LoginView" });
+
 import HeroSection from "../components/HeroSection.vue";
 import LoginForm from "../components/LoginForm.vue";
 </script>
 
 <style scoped>
-/* Estilos para inputs */
+/* 
+  Estilos personalizados para LoginView.
+  Se incluyen estilos para campos de entrada (inputs) y botones.
+  Nota: Si estos estilos se utilizan en varios componentes, considera extraerlos a un archivo CSS global o a un módulo compartido.
+*/
+
+/* Estilos para campos de entrada */
 .input {
   appearance: none;
   position: relative;
@@ -34,7 +51,7 @@ import LoginForm from "../components/LoginForm.vue";
   color: #6b7280;
 }
 
-/* Estilos para botones */
+/* Estilos base para botones */
 .btn {
   padding: 0.5rem 1rem;
   border: 1px solid transparent;
@@ -46,6 +63,7 @@ import LoginForm from "../components/LoginForm.vue";
   transition: background-color 0.2s;
 }
 
+/* Botón primario */
 .btn-primary {
   color: #fff;
   background-color: #2563eb;
@@ -56,6 +74,7 @@ import LoginForm from "../components/LoginForm.vue";
   background-color: #1d4ed8;
 }
 
+/* Botón secundario */
 .btn-secondary {
   color: #fff;
   background-color: #6b7280;

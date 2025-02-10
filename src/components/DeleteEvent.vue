@@ -149,3 +149,9 @@ const formatDate = (dateString: string) => {
   flex: 1;
 }
 </style>
+
+<script lang="ts">
+export default {
+  name: "DeleteEvent",
+};
+</script>

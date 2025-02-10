@@ -11,6 +11,8 @@ export interface EventFormData {
   date: string
   amount: number
   userId: string
+  userIP: string
+  time: string
 
 }
 
@@ -29,5 +31,6 @@ export interface MusicEvent {
   time: string
   userIP: string
   userId: string
+  coord?: { lat: number; lng: number }
 
 }

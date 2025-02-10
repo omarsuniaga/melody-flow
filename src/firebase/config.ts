@@ -2,7 +2,7 @@ import { initializeApp, getApps } from 'firebase/app'
 import { getAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 import { getMessaging, Messaging, getToken as getFirebaseToken } from 'firebase/messaging'
-import { getAnalytics, logEvent } from 'firebase/analytics'
+// import { getAnalytics, logEvent } from 'firebase/analytics'
 
 // Verificar que las variables de entorno requeridas estén definidas
 const requiredEnvVars = [
@@ -34,24 +34,24 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0]
 
 // Inicializar Analytics solo en producción
-export const analytics = import.meta.env.PROD && typeof window !== 'undefined' 
-  ? getAnalytics(app)
-  : null;
+// export const analytics = import.meta.env.PROD && typeof window !== 'undefined' 
+//   ? getAnalytics(app)
+//   : null;
 
-// Función segura para logging de eventos logAnalyticsEvent
-export const logAnalyticsEvent = (eventName: string, params?: any) => {
-  if (import.meta.env.DEV) {
-    console.log('Analytics event (DEV):', eventName, params);
-    return;
-  }
-  if (analytics) {
-    try {
-      logEvent(analytics, eventName, params);
-    } catch (error) {
-      console.warn('Analytics event logging failed:', error);
-    }
-  }
-};
+// // Función segura para logging de eventos logAnalyticsEvent
+// export const logAnalyticsEvent = (eventName: string, params?: any) => {
+//   if (import.meta.env.DEV) {
+//     console.log('Analytics event (DEV):', eventName, params);
+//     return;
+//   }
+//   if (analytics) {
+//     try {
+//       logEvent(analytics, eventName, params);
+//     } catch (error) {
+//       console.warn('Analytics event logging failed:', error);
+//     }
+//   }
+// };
 
 // Exportaciones básicas
 export const auth = getAuth(app);

@@ -1,98 +1,72 @@
 <template>
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-    <TotalEventsPanel
-      :totalEvents="monthlyStats.totalEvents"
-      :events="events"
-      :showTotalEvents="showTotalEvents"
-      @toggleTotalEvents="$emit('toggleTotalEvents')"
-    />
+    <Suspense>
+      <template #default>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+          <!-- Total Events Panel -->
+          <lazy-total-events-panel
+            :totalEvents="monthlyStats.totalEvents"
+            :events="events"
+            :showTotalEvents="showTotalEvents"
+            @toggleTotalEvents="emit('toggleTotalEvents')"
+          />
 
-    <ProviderBreakdown
-      :monthlyStats="monthlyStats"
-      :totalPendingAmount="totalPendingAmount"
-      :totalCompletedAmount="totalCompletedAmount"
-      :groupedPendingPayments="groupedPendingPayments"
-      :groupedCompletedPayments="groupedCompletedPayments"
-      :sortedProviderStatsByRevenue="sortedProviderStatsByRevenue"
-      :expandedProvider="expandedProvider"
-      :sortedEvents="sortedEvents"
-      :showPendingPayments="showPendingPayments"
-      :showCompletedPayments="showCompletedPayments"
-      :showProviderRevenue="showProviderRevenue"
-      @togglePendingPayments="$emit('togglePendingPayments')"
-      @toggleCompletedPayments="$emit('toggleCompletedPayments')"
-      @toggleProvider="$emit('toggleProvider', $event)"
-      @toggleProviderRevenue="$emit('toggleProviderRevenue')"
-      @generatePDF="handlePdfGeneration"
-    />
+          <!-- Panel de Resumen Financiero -->
+          <lazy-provider-breakdown
+            :monthlyStats="monthlyStats"
+            :totalPendingAmount="totalPendingAmount"
+            :totalCompletedAmount="totalCompletedAmount"
+            :groupedPendingPayments="groupedPendingPayments"
+            :groupedCompletedPayments="groupedCompletedPayments"
+            :sortedProviderStatsByRevenue="sortedProviderStatsByRevenue"
+            :expandedProvider="expandedProvider"
+            :sortedEvents="sortedEvents"
+            :showPendingPayments="showPendingPayments"
+            :showCompletedPayments="showCompletedPayments"
+            :showProviderRevenue="showProviderRevenue"
+            @togglePendingPayments="emit('togglePendingPayments')"
+            @toggleCompletedPayments="emit('toggleCompletedPayments')"
+            @toggleProvider="emit('toggleProvider', $event)"
+            @toggleProviderRevenue="emit('toggleProviderRevenue')"
+            @generatePDF="handlePdfGeneration"
+          />
 
-    <AverageEventPanel :averageAmount="monthlyStats.averagePerEvent" />
+          <!-- Panel de Promedio por Evento -->
+          <lazy-average-event-panel :averageAmount="monthlyStats.averagePerEvent" />
+        </div>
+      </template>
+      <template #fallback>
+        <div class="col-span-3 flex justify-center items-center p-4">
+          <div class="animate-pulse text-gray-500">Cargando métricas...</div>
+        </div>
+      </template>
+    </Suspense>
   </div>
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits } from "vue";
-import TotalEventsPanel from "./TotalEventsPanel.vue";
-import ProviderBreakdown from "./ProviderBreakdown.vue";
-import AverageEventPanel from "./AverageEventPanel.vue";
+import { defineAsyncComponent } from "vue";
 
-// Actualizar la lista completa de eventos emitidos
-const emit = defineEmits<{
-  (e: "generatePDF", provider: string, events: any[]): void;
-  (e: "toggleTotalEvents"): void;
-  (e: "toggleProviderRevenue"): void;
-  (e: "togglePendingPayments"): void;
-  (e: "toggleCompletedPayments"): void;
-  (e: "toggleProvider", provider: string): void;
-  (e: "update:modelValue", value: boolean): void;
-  (e: "saved"): void;
-  (e: "close"): void;
-}>();
+// Tipos
+interface Event {
+  id: string;
+  date: string;
+  provider: string;
+  location: string;
+  amount: number;
+  paymentStatus: string;
+  description?: string;
+}
 
-// Función para manejar la generación del PDF
-const handlePdfGeneration = (provider: string, events: any[]) => {
-  console.log("EventsMetrics: Iniciando proceso de generación de PDF");
-  console.log("Proveedor:", provider);
-  console.log("Número de eventos:", events.length);
+interface MonthlyStats {
+  totalEvents: number;
+  totalRevenue: number;
+  averagePerEvent: number;
+}
 
-  // Validación básica antes de propagar el evento
-  if (!events || events.length === 0) {
-    console.warn("EventsMetrics: No hay eventos para generar PDF");
-    return;
-  }
-
-  // Verificar que los eventos tienen la estructura correcta
-  const validEvents = events.every(
-    (event) =>
-      event.date &&
-      event.location &&
-      typeof event.amount === "number" &&
-      event.description
-  );
-
-  if (!validEvents) {
-    console.warn("EventsMetrics: Algunos eventos no tienen la estructura correcta");
-    return;
-  }
-
-  console.log("EventsMetrics: Propagando evento generatePDF al componente padre");
-  emit("generatePDF", provider, events);
-};
-
-defineProps<{
-  monthlyStats: {
-    totalEvents: number;
-    totalRevenue: number;
-    averagePerEvent: number;
-  };
-  events: Array<{
-    id: string;
-    date: string;
-    provider: string;
-    location: string;
-    amount: number;
-    paymentStatus: string;
-  }>;
+interface Props {
+  monthlyStats: MonthlyStats;
+  events: Event[];
   showTotalEvents: boolean;
   showProviderRevenue: boolean;
   showPendingPayments: boolean;
@@ -100,16 +74,58 @@ defineProps<{
   expandedProvider: string | null;
   totalPendingAmount: number;
   totalCompletedAmount: number;
-  groupedPendingPayments: Record<string, any>;
-  groupedCompletedPayments: Record<string, any>;
+  groupedPendingPayments: Record<string, Event[]>;
+  groupedCompletedPayments: Record<string, Event[]>;
   sortedProviderStatsByRevenue: Array<{ name: string; revenue: number }>;
-  sortedEvents: (events: any[]) => any[];
-}>();
-</script>
+  sortedEvents: Event[]; // Cambiar a Event[] en lugar de función
+}
 
-<script lang="ts">
-export default {
-  name: "EventsMetrics",
+// Lazy loading de componentes
+const LazyTotalEventsPanel = defineAsyncComponent(
+  () => import("./TotalEventsPanel.vue")
+);
+const LazyProviderBreakdown = defineAsyncComponent(
+  () => import("./ProviderBreakdown.vue")
+);
+const LazyAverageEventPanel = defineAsyncComponent(
+  () => import("./AverageEventPanel.vue")
+);
+
+// Props con tipado estricto
+const props = defineProps<Props>();
+console.log(props);
+// Removed unused destructured elements
+
+// Eventos tipados
+const emit = defineEmits<{
+  (e: "generatePDF", provider: string, events: Event[]): any;
+  (e: "toggleProviderRevenue"): void;
+  (e: "togglePendingPayments"): void;
+  (e: "toggleCompletedPayments"): void;
+  (e: "toggleProvider", provider: string): void;
+  (e: "toggleTotalEvents"): void;
+}>();
+
+// Handler para generación de PDF con validación
+const handlePdfGeneration = (provider: string, events: Event[]): void => {
+  try {
+    if (!events?.length) {
+      throw new Error("No hay eventos para generar el PDF");
+    }
+
+    const validEvents = events.every(
+      (event) => event.date && event.location && typeof event.amount === "number"
+    );
+
+    if (!validEvents) {
+      throw new Error("Datos de eventos incompletos o inválidos");
+    }
+
+    emit("generatePDF", provider, events);
+  } catch (error) {
+    console.error("Error al generar PDF:", error);
+    // Aquí podrías emitir un evento de error si lo necesitas
+  }
 };
 </script>
 
@@ -118,11 +134,13 @@ export default {
 .slide-leave-active {
   transition: all 0.3s ease-out;
 }
+
 .slide-enter-from,
 .slide-leave-to {
   transform: translateY(-20px);
   opacity: 0;
 }
+
 .slide-enter-to,
 .slide-leave-from {
   transform: translateY(0);

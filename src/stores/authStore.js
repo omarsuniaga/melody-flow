@@ -1,6 +1,11 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { useAuthService } from '../services/authService';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
+// Corrección: se eliminó el carácter "|" erróneo
+import { getToken, onMessage } from 'firebase/messaging';
+import { messaging, auth } from '../firebase/config'; // Importa la configuración correctamente
+
 export const useAuthStore = defineStore('auth', () => {
     const authService = useAuthService();
     const user = ref(null);
@@ -74,6 +79,22 @@ export const useAuthStore = defineStore('auth', () => {
             loading.value = false;
         }
     }
+    async function handleGoogleLogin() {
+        try {
+            const provider = new GoogleAuthProvider();
+            const result = await signInWithPopup(auth, provider);
+            const googleUser = result.user;
+            user.value = googleUser;
+            return googleUser;
+        } catch (error) {
+            if (error.code === 'auth/popup-closed-by-user') {
+                console.warn('El usuario cerró el popup de autenticación.');
+                return;
+            }
+            console.error('Error en login con Google (popup):', error);
+            throw error;
+        }
+    }
     async function resetPassword(email) {
         try {
             loading.value = true;
@@ -99,6 +120,7 @@ export const useAuthStore = defineStore('auth', () => {
         register,
         logout,
         updatePassword,
-        resetPassword
+        resetPassword,
+        handleGoogleLogin
     };
 });

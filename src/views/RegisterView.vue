@@ -290,11 +290,11 @@ import UserPlusIcon from "@heroicons/vue/24/outline/UserPlusIcon";
 import { auth } from "@/firebase/config";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { useAnalytics } from "../composables/useAnalytics";
+// import { useAnalytics } from "../composables/useAnalytics";
 import { useDeviceInfo } from "../composables/useDeviceInfo";
 
 const router = useRouter();
-const { logEvent } = useAnalytics();
+// const { logEvent } = useAnalytics();
 const { collectDeviceInfo } = useDeviceInfo();
 
 const form = ref({
@@ -397,8 +397,8 @@ const handleRegister = async () => {
   errors.value = { fullName: "", email: "", password: "", confirmPassword: "" };
 
   try {
-    const deviceInfo = await collectDeviceInfo();
-    logEvent("registration_attempt", { deviceInfo });
+    await collectDeviceInfo();
+    // logEvent("registration_attempt", { deviceInfo });
 
     const userCredential = await createUserWithEmailAndPassword(
       auth,
@@ -410,10 +410,10 @@ const handleRegister = async () => {
       displayName: form.value.fullName,
     });
 
-    logEvent("registration_success", {
-      userId: userCredential.user.uid,
-      deviceInfo,
-    });
+    // logEvent("registration_success", {
+    //   userId: userCredential.user.uid,
+    //   deviceInfo,
+    // });
 
     router.push("/");
   } catch (error: any) {
@@ -422,10 +422,10 @@ const handleRegister = async () => {
       error: error.code,
     });
 
-    logEvent("registration_failure", {
-      error: error.code,
-      email: form.value.email,
-    });
+    // logEvent("registration_failure", {
+    //   error: error.code,
+    //   email: form.value.email,
+    // });
 
     if (error.code === "auth/email-already-in-use") {
       errors.value.email = "El correo electrónico ya está en uso";
@@ -444,23 +444,23 @@ const handleRegister = async () => {
 const handleGoogleSignup = async () => {
   loading.value = true;
   try {
-    const deviceInfo = await collectDeviceInfo();
-    logEvent("google_registration_attempt", { deviceInfo });
+    await collectDeviceInfo();
+    // logEvent("google_registration_attempt", { deviceInfo });
 
-    const result = await signInWithPopup(auth, googleProvider);
+    await signInWithPopup(auth, googleProvider);
 
-    logEvent("registration_success", {
-      userId: result.user.uid,
-      method: "google",
-      deviceInfo,
-    });
+    // logEvent("registration_success", {
+    //   userId: result.user.uid,
+    //   method: "google",
+    //   deviceInfo,
+    // });
 
     router.push("/");
   } catch (error: any) {
     console.error("Error al registrarse con Google:", error);
-    logEvent("google_registration_failure", {
-      error: error.code,
-    });
+    // logEvent("google_registration_failure", {
+    //   error: error.code,
+    // });
   } finally {
     loading.value = false;
   }

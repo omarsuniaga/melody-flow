@@ -27,7 +27,7 @@ import CalendarDay from "./CalendarDay.vue";
 
 import { PropType } from "vue";
 
-const props = defineProps({
+defineProps({
   calendarDays: {
     type: Array as PropType<{ date: Date; isCurrentMonth: boolean }[]>,
     required: true,
@@ -47,10 +47,6 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["selectDate"]);
-
-function selectDate(date: Date): void {
-  emit("selectDate", date);
-}
 
 function handleDayClick(date: Date): void {
   emit("selectDate", date);

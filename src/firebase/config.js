@@ -2,7 +2,7 @@ import { initializeApp, getApps } from 'firebase/app'
 import { getAuth, setPersistence, browserLocalPersistence } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 import { getMessaging, getToken as getFirebaseToken } from 'firebase/messaging'
-import { getAnalytics, logEvent } from 'firebase/analytics'
+// import { getAnalytics, logEvent } from 'firebase/analytics'
 
 // Verificar que las variables de entorno requeridas estén definidas
 const requiredEnvVars = [
@@ -45,9 +45,9 @@ export const app = firebaseApp;  // Exportación nombrada principal
 export const auth = authInstance;  // Asegurar que auth está exportado
 export const db = getFirestore(firebaseApp);
 export const messaging = getMessaging(firebaseApp);
-export const analytics = import.meta.env.PROD && typeof window !== 'undefined' 
-  ? getAnalytics(firebaseApp)
-  : null;
+// export const analytics = import.meta.env.PROD && typeof window !== 'undefined' 
+//   ? getAnalytics(firebaseApp)
+//   : null;
 
 // Función segura para logging de eventos
 export const logAnalyticsEvent = (eventName, params) => {

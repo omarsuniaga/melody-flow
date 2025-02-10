@@ -1,5 +1,5 @@
 <template>
-  <!-- Se agregan los eventos touchstart y touchend en el contenedor raíz -->
+  <!-- Contenedor principal con soporte para gestos táctiles (swipe) -->
   <div
     class="min-h-screen p-2 sm:p-4"
     @touchstart="handleTouchStart"
@@ -7,7 +7,7 @@
   >
     <div class="max-w-7xl mx-auto">
       <div class="bg-white rounded-lg shadow p-3 sm:p6">
-        <!-- Subcomponente para la selección del mes -->
+        <!-- Selector de mes -->
         <MonthSelector
           :selectedMonth="selectedMonth"
           @previous="previousMonth"
@@ -15,7 +15,7 @@
           @reset="resetToCurrentMonth"
         />
 
-        <!-- Subcomponente para las métricas principales -->
+        <!-- Métricas de eventos del mes -->
         <EventsMetrics
           :monthlyStats="monthlyStats"
           :showTotalEvents="showTotalEvents"
@@ -29,7 +29,7 @@
           :groupedCompletedPayments="groupedCompletedPayments"
           :sortedProviderStatsByRevenue="sortedProviderStatsByRevenue"
           :expandedProvider="expandedProvider"
-          :sortedEvents="sortedEvents"
+          :sortedEvents="sortedMonthEvents"
           :showPendingPayments="showPendingPayments"
           :showCompletedPayments="showCompletedPayments"
           :showProviderRevenue="showProviderRevenue"
@@ -40,7 +40,7 @@
           @generatePDF="generateProviderPDF"
         />
 
-        <!-- Subcomponente para la distribución de eventos por proveedor -->
+        <!-- Distribución de eventos por proveedor -->
         <ProviderDistribution
           :providerDistribution="providerDistribution"
           :showProviderDistribution="showProviderDistribution"
@@ -48,7 +48,7 @@
           @toggleProviderDistribution="toggleProviderDistribution"
         />
 
-        <!-- Subcomponente para las ubicaciones con mayor actividad -->
+        <!-- Panel de ubicaciones con mayor actividad -->
         <LocationsPanel
           :sortedLocationsByRecurrence="sortedLocationsByRecurrence"
           :showTopLocations="showTopLocations"
@@ -58,7 +58,7 @@
     </div>
   </div>
 
-  <!-- Botón flotante para abrir el modal makePayments -->
+  <!-- Botón flotante para abrir el modal de pagos -->
   <div class="fixed bottom-14 right-6">
     <button
       @click="showMakePayments = true"
@@ -68,21 +68,28 @@
     </button>
   </div>
 
-  <!-- Componente makePayments -->
+  <!-- Modal para realizar pagos -->
   <make-payments v-if="showMakePayments" @close="showMakePayments = false" />
 </template>
 
 <script setup lang="ts">
+/**
+ * Componente MonthlyBalanceView
+ * Muestra las métricas mensuales, distribución de eventos por proveedor, ubicaciones de mayor actividad
+ * y permite la navegación entre meses mediante gestos táctiles.
+ */
+defineOptions({ name: "MonthlyBalanceView" });
+
 import { ref, computed } from "vue";
 import { format, addMonths, subMonths, startOfMonth, endOfMonth } from "date-fns";
 import { BanknotesIcon } from "../utils/icons";
 import { useToast } from "vue-toastification";
 import { useEventStore } from "../stores/eventStore";
-import { createAndDownloadPdf } from "../utils/pdfMakeConfig"; // Simplificar importación
+import { createAndDownloadPdf } from "../utils/pdfMakeConfig";
 import { getPendingEventsTemplate } from "../utils/pdfTemplates";
 import { defineAsyncComponent } from "vue";
 
-// Componentes cargados dinámicamente
+// Componentes cargados de forma asíncrona para optimizar el rendimiento
 const MonthSelector = defineAsyncComponent(
   () => import("../components/MonthSelector.vue")
 );
@@ -97,10 +104,11 @@ const LocationsPanel = defineAsyncComponent(
 );
 const makePayments = defineAsyncComponent(() => import("../components/makePayments.vue"));
 
-// Estado principal
+// Estado y utilidades principales
 const toast = useToast();
 const eventStore = useEventStore();
 
+// Estado de selección y toggles
 const selectedMonth = ref(new Date());
 const showTotalEvents = ref(false);
 const showTotalRevenue = ref(false);
@@ -108,51 +116,34 @@ const showPendingPayments = ref(false);
 const showCompletedPayments = ref(false);
 const expandedProvider = ref<string | null>(null);
 const showProviderDistribution = ref(false);
-const showProviderRevenue = ref(false); // Se puede usar en ProviderBreakdown si es necesario
+const showProviderRevenue = ref(false);
 const showTopLocations = ref(false);
 const showMakePayments = ref(false);
 
-// Toggle functions para los paneles
-const toggleTotalEvents = () => {
-  showTotalEvents.value = !showTotalEvents.value;
-};
-const toggleTotalRevenue = () => {
-  showTotalRevenue.value = !showTotalRevenue.value;
-};
-const togglePendingPayments = () => {
-  showPendingPayments.value = !showPendingPayments.value;
-};
-const toggleCompletedPayments = () => {
-  showCompletedPayments.value = !showCompletedPayments.value;
-};
-const toggleProvider = (provider: string) => {
-  expandedProvider.value = expandedProvider.value === provider ? null : provider;
-};
-const toggleProviderRevenue = () => {
-  showProviderRevenue.value = !showProviderRevenue.value;
-};
-const toggleProviderDistribution = () => {
-  showProviderDistribution.value = !showProviderDistribution.value;
-};
-const toggleTopLocations = () => {
-  showTopLocations.value = !showTopLocations.value;
-};
+// Funciones para alternar visibilidad de paneles y secciones
+const toggleTotalEvents = () => (showTotalEvents.value = !showTotalEvents.value);
+const toggleTotalRevenue = () => (showTotalRevenue.value = !showTotalRevenue.value);
+const togglePendingPayments = () =>
+  (showPendingPayments.value = !showPendingPayments.value);
+const toggleCompletedPayments = () =>
+  (showCompletedPayments.value = !showCompletedPayments.value);
+const toggleProvider = (provider: string) =>
+  (expandedProvider.value = expandedProvider.value === provider ? null : provider);
+const toggleProviderRevenue = () =>
+  (showProviderRevenue.value = !showProviderRevenue.value);
+const toggleProviderDistribution = () =>
+  (showProviderDistribution.value = !showProviderDistribution.value);
+const toggleTopLocations = () => (showTopLocations.value = !showTopLocations.value);
 
-// Change month functions
-const previousMonth = () => {
-  selectedMonth.value = subMonths(selectedMonth.value, 1);
-};
-const nextMonth = () => {
-  selectedMonth.value = addMonths(selectedMonth.value, 1);
-};
-const resetToCurrentMonth = () => {
-  selectedMonth.value = new Date();
-};
+// Funciones para cambiar el mes seleccionado
+const previousMonth = () => (selectedMonth.value = subMonths(selectedMonth.value, 1));
+const nextMonth = () => (selectedMonth.value = addMonths(selectedMonth.value, 1));
+const resetToCurrentMonth = () => (selectedMonth.value = new Date());
 
-// Implementación del swipe
+// Implementación de gestos táctiles (swipe) para cambiar de mes
 const touchStartX = ref<number | null>(null);
 const touchEndX = ref<number | null>(null);
-const swipeThreshold = 50; // píxeles
+const swipeThreshold = 50; // Umbral en píxeles para considerar un swipe
 
 const handleTouchStart = (e: TouchEvent) => {
   touchStartX.value = e.changedTouches[0].clientX;
@@ -163,18 +154,15 @@ const handleTouchEnd = (e: TouchEvent) => {
   if (touchStartX.value !== null && touchEndX.value !== null) {
     const diff = touchStartX.value - touchEndX.value;
     if (Math.abs(diff) > swipeThreshold) {
-      if (diff > 0) {
-        nextMonth();
-      } else {
-        previousMonth();
-      }
+      diff > 0 ? nextMonth() : previousMonth();
     }
   }
+  // Reiniciar valores para el próximo gesto
   touchStartX.value = null;
   touchEndX.value = null;
 };
 
-// Filtrar eventos para el mes seleccionado
+// Computed: Filtrar eventos según el mes seleccionado
 const monthEvents = computed(() => {
   const start = startOfMonth(selectedMonth.value);
   const end = endOfMonth(selectedMonth.value);
@@ -184,7 +172,7 @@ const monthEvents = computed(() => {
   });
 });
 
-// Estadísticas mensuales
+// Computed: Estadísticas mensuales
 const monthlyStats = computed(() => {
   const events = monthEvents.value;
   const totalRevenue = events.reduce((sum, event) => sum + event.amount, 0);
@@ -195,7 +183,7 @@ const monthlyStats = computed(() => {
   };
 });
 
-// Estadísticas por proveedor
+// Computed: Estadísticas por proveedor
 const providerStats = computed(() => {
   const stats = new Map<string, { eventCount: number; revenue: number }>();
   monthEvents.value.forEach((event) => {
@@ -205,16 +193,14 @@ const providerStats = computed(() => {
       revenue: current.revenue + event.amount,
     });
   });
-  return Array.from(stats.entries()).map(([name, data]) => ({
-    name,
-    ...data,
-  }));
+  return Array.from(stats.entries()).map(([name, data]) => ({ name, ...data }));
 });
+
 const sortedProviderStatsByRevenue = computed(() =>
   [...providerStats.value].sort((a, b) => b.revenue - a.revenue)
 );
 
-// Provider Distribution: porcentaje y orden descendente
+// Computed: Distribución de eventos por proveedor en porcentaje
 const providerDistribution = computed(() => {
   const totalEvents = monthlyStats.value.totalEvents;
   if (totalEvents === 0) return [];
@@ -227,13 +213,14 @@ const providerDistribution = computed(() => {
     .sort((a, b) => b.eventCount - a.eventCount);
 });
 
-// Propiedades de pago
+// Computed: Filtrar eventos por estado de pago
 const pendingPayments = computed(() =>
   monthEvents.value.filter((event) => event.paymentStatus === "Pendiente")
 );
 const completedPayments = computed(() =>
   monthEvents.value.filter((event) => event.paymentStatus === "Pagado")
 );
+
 const totalPendingAmount = computed(() =>
   pendingPayments.value.reduce((sum, event) => sum + event.amount, 0)
 );
@@ -241,7 +228,7 @@ const totalCompletedAmount = computed(() =>
   completedPayments.value.reduce((sum, event) => sum + event.amount, 0)
 );
 
-// Agrupar eventos por proveedor
+// Tipado de eventos musicales
 type MusicEvent = {
   id: string;
   date: string;
@@ -258,116 +245,85 @@ type MusicEvent = {
   userId: string;
   isFixed: boolean;
 };
+
+interface Event {
+  date: string;
+  location: string;
+  amount: number;
+  provider: string;
+  paymentStatus: string;
+  description: string;
+  time: string;
+}
 interface EventGroups {
   [key: string]: MusicEvent[];
 }
-const groupedPendingPayments = computed(
-  (): EventGroups => {
-    return pendingPayments.value.reduce((groups: EventGroups, event) => {
-      if (!groups[event.provider]) {
-        groups[event.provider] = [];
-      }
-      groups[event.provider].push({
-        ...event,
-        isFixed: event.activityType === "Fija",
-      });
-      return groups;
-    }, {});
-  }
-);
-const groupedCompletedPayments = computed(
-  (): EventGroups => {
-    return completedPayments.value.reduce((groups: EventGroups, event) => {
-      if (!groups[event.provider]) {
-        groups[event.provider] = [];
-      }
-      groups[event.provider].push({
-        ...event,
-        isFixed: event.activityType === "Fija",
-      });
-      return groups;
-    }, {});
-  }
+
+// Computed: Agrupar eventos pendientes y completados por proveedor
+const groupedPendingPayments = computed<EventGroups>(() =>
+  pendingPayments.value.reduce((groups: EventGroups, event) => {
+    if (!groups[event.provider]) {
+      groups[event.provider] = [];
+    }
+    groups[event.provider].push({
+      ...event,
+      isFixed: event.activityType === "Fija",
+    });
+    return groups;
+  }, {})
 );
 
-// Estadísticas por ubicaciones
+const groupedCompletedPayments = computed<EventGroups>(() =>
+  completedPayments.value.reduce((groups: EventGroups, event) => {
+    if (!groups[event.provider]) {
+      groups[event.provider] = [];
+    }
+    groups[event.provider].push({
+      ...event,
+      isFixed: event.activityType === "Fija",
+    });
+    return groups;
+  }, {})
+);
+
+// Computed: Estadísticas por ubicaciones y ordenarlas según recurrencia
 const locationStats = computed(() => {
   const stats = new Map<string, { count: number }>();
   monthEvents.value.forEach((event) => {
     const current = stats.get(event.location) || { count: 0 };
     stats.set(event.location, { count: current.count + 1 });
   });
-  return Array.from(stats.entries()).map(([name, data]) => ({
-    name,
-    ...data,
-  }));
+  return Array.from(stats.entries()).map(([name, data]) => ({ name, ...data }));
 });
+
 const sortedLocationsByRecurrence = computed(() =>
   [...locationStats.value].sort((a, b) => b.count - a.count)
 );
 
-// Utility: ordenar eventos descendente por fecha
-function sortedEvents(events: MusicEvent[]) {
-  return [...events].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
-}
+// Computed: Ordenar eventos del mes de forma descendente por fecha
+const sortedMonthEvents = computed(() => {
+  return monthEvents.value
+    .slice()
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+});
 
-// Generar PDF para proveedor
-const generateProviderPDF = async (provider: string, events: MusicEvent[]) => {
+// Función para generar y descargar PDF de eventos de un proveedor
+const generateProviderPDF = async (provider: string, events: Event[]) => {
   try {
-    console.log('MonthlyBalanceView recibió solicitud de PDF:', {
-      provider,
-      eventsCount: events?.length
-    });
+    const fileName = `reporte_eventos_${provider.replace(/\s+/g, '_')}_${format(
+      new Date(),
+      'yyyyMMdd'
+    )}.pdf`;
 
-    if (!provider?.trim()) {
-      console.warn("Proveedor no válido:", provider);
-      toast.error("Proveedor no válido");
-      return;
-    }
+    toast.info('Generando PDF...');
 
-    if (!Array.isArray(events) || events.length === 0) {
-      console.warn("No hay eventos para procesar:", events);
-      toast.error("No hay eventos para generar el PDF");
-      return;
-    }
-
-    toast.info("Generando PDF...");
-    console.log('Eventos originales:', events);
-
-    // Validar y formatear los eventos
-    const formattedEvents = events
-      .filter(event => event && typeof event === 'object')
-      .map(event => ({
-        date: event.date || new Date().toISOString(),
-        location: event.location || 'Sin ubicación',
-        time: event.time || '00:00',
-        amount: Number(event.amount) || 0,
-        description: event.description || 'Sin descripción',
-        provider: event.provider || provider,
-        paymentStatus: event.paymentStatus || 'Pendiente'
-      }));
-
-    console.log('Eventos formateados:', formattedEvents);
-
-    if (formattedEvents.length === 0) {
-      console.warn('No hay eventos válidos después del formateo');
-      throw new Error('No hay eventos válidos para procesar');
-    }
-
-    // Generar la definición del documento
-    const docDefinition = await getPendingEventsTemplate(provider, formattedEvents);
-    console.log('Definición del documento generada:', docDefinition);
-
-    const fileName = `eventos_${provider.replace(/\s+/g, '_')}_${format(new Date(), "yyyyMMdd")}.pdf`;
-    console.log('Intentando crear PDF con nombre:', fileName);
-
+    const docDefinition = getPendingEventsTemplate(provider, events);
+    
     await createAndDownloadPdf(docDefinition, fileName);
-    console.log('PDF generado exitosamente');
-    toast.success("PDF generado correctamente");
+    
+    toast.success('PDF generado y descargado correctamente');
   } catch (error) {
-    console.error("Error detallado al generar PDF:", error);
+    console.error('Error al generar PDF:', error);
     toast.error(`Error al generar el PDF: ${(error as Error).message}`);
   }
 };

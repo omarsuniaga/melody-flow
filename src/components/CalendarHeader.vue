@@ -1,10 +1,10 @@
 <template>
   <div class="flex flex-col sm:flex-row justify-between items-center mb-4 sm:mb-6 gap-3">
     <h2 class="text-xl sm:text-2xl font-bold text-gray-800">
-      {{ title }}
+      {{ props.title }}
     </h2>
     <CalendarNavigationButtons
-      :currentDate="currentDate"
+      :currentDate="props.currentDate"
       @update:currentDate="$emit('update:currentDate', $event)"
     />
   </div>
@@ -24,9 +24,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits<{
-  (e: "update:currentDate", value: Date): void;
-}>();
+// Removed unused emit declaration
 </script>
 <script lang="ts">
 export default {

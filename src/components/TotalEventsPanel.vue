@@ -1,18 +1,20 @@
 <!-- TotalEventsPanel.vue -->
 <template>
-  <div class="bg-blue-50 p-4 rounded-lg">
+  <div class="bg-indigo-50 p-4 rounded-lg">
     <div
       @click="$emit('toggleTotalEvents')"
       class="cursor-pointer flex justify-between items-center"
     >
-      <h3 class="text-lg font-medium text-blue-900">
-        <span>Eventos Totales</span>
+      <h3 class="text-lg font-medium text-indigo-900">
+        <span>Total de Eventos</span>
       </h3>
-      <p class="text-3xl font-bold text-blue-600">{{ totalEvents }}</p>
-      <ChevronDownIcon
-        class="h-5 w-5 ml-2 transform transition-transform duration-200"
-        :class="{ 'rotate-180': showTotalEvents }"
-      />
+      <div class="flex items-center">
+        <p class="text-3xl font-bold text-indigo-600">{{ totalEvents }}</p>
+        <ChevronDownIcon
+          class="h-5 w-5 ml-2 transform transition-transform duration-200"
+          :class="{ 'rotate-180': showTotalEvents }"
+        />
+      </div>
     </div>
 
     <transition name="slide">
@@ -24,13 +26,13 @@
         >
           <div class="flex justify-between items-start">
             <div>
-              <p class="font-medium text-blue-900">{{ event.provider }}</p>
+              <p class="font-medium text-indigo-900">{{ event.provider }}</p>
               <p class="text-sm text-gray-600">
                 {{ formatDate(event.date) }}
               </p>
               <p class="text-xs text-gray-500">{{ event.location }}</p>
             </div>
-            <span class="font-medium text-blue-600">
+            <span class="font-medium text-indigo-600">
               {{ formatCurrency(event.amount) }}
             </span>
           </div>
@@ -39,13 +41,9 @@
     </transition>
   </div>
 </template>
-<script lang="ts">
-export default {
-  name: "TotalEventsPanel",
-};
-</script>
+
 <script setup lang="ts">
-import { defineProps, computed } from "vue";
+import { computed } from "vue";
 import { ChevronDownIcon } from "../utils/icons";
 import { formatCurrency } from "../utils/helpers";
 import { format } from "date-fns";
@@ -63,16 +61,26 @@ const props = defineProps<{
   showTotalEvents: boolean;
 }>();
 
+defineEmits<{
+  (e: "toggleTotalEvents"): void;
+}>();
+
 const formatDate = (date: string) => {
-  return format(new Date(date), "EEEE d 'de' MMMM", { locale: es });
+  try {
+    return format(new Date(date), "EEEE d 'de' MMMM", { locale: es });
+  } catch {
+    return "Fecha inválida";
+  }
 };
 
 const sortedEvents = computed(() => {
+  if (!props.events?.length) return [];
   return [...props.events].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
 });
 </script>
+
 <style scoped>
 .slide-enter-active,
 .slide-leave-active {

@@ -10,6 +10,8 @@ export interface EventFormData {
   time: string;
   amount: number;
   userId: string;
+  userIP: string;
+  coord: { lat: number; lng: number };
 
 }
 
@@ -24,4 +26,7 @@ export interface MusicEvent {
   paymentStatus: "Pendiente" | "Pagado";
   activityType: string;
   userId: string;
+  userIP: string;
+  coord: { lat: number; lng: number };
+  
 }

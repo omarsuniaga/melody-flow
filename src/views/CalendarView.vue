@@ -1,19 +1,21 @@
 <template>
-  <!-- Se agregan los eventos touchstart y touchend al contenedor raíz -->
+  <!-- Contenedor principal del calendario.
+       Se han agregado eventos touch para detectar gestos de swipe y cambiar de mes -->
   <div
     class="min-h-screen p-2 sm:p-4"
     @touchstart="handleTouchStart"
     @touchend="handleTouchEnd"
   >
     <div class="max-w-7xl mx-auto">
-      <div class="bg-white rounded-lg shadow p-3 sm:p6">
-        <!-- Encabezado del calendario -->
+      <!-- Contenedor del calendario con encabezado y grilla de días -->
+      <div class="bg-white rounded-lg shadow p-3 sm:p-6 mb-4">
+        <!-- Encabezado del calendario: muestra la fecha actual en formato "MMMM yyyy" -->
         <CalendarHeader
           :currentDate="currentDate"
           :title="format(currentDate, 'MMMM yyyy')"
           @update:currentDate="currentDate = $event"
         />
-        <!-- Grilla de días -->
+        <!-- Grilla de días que muestra los eventos asociados a cada fecha -->
         <CalendarGrid
           :calendarDays="calendarDays"
           :getDateEvents="getDateEvents"
@@ -23,8 +25,24 @@
         />
       </div>
     </div>
-
-    <!-- Modal para eventos -->
+    <div>
+      <!-- Card de proximidad - Comentamos temporalmente la condición de isEventListModalOpen -->
+      <Transition
+        enter-active-class="transform transition ease-out duration-300"
+        enter-from-class="translate-y-2 opacity-0"
+        enter-to-class="translate-y-0 opacity-100"
+        leave-active-class="transform transition ease-in duration-300"
+        leave-from-class="translate-y-0 opacity-100"
+        leave-to-class="translate-y-2 opacity-0"
+      >
+        <CalendarDistance
+          v-if="hasActiveEvent"
+          :active-event="getCurrentEvent()"
+          class="transition-all duration-300 ease-in-out max-w-7xl mx-auto"
+        />
+      </Transition>
+    </div>
+    <!-- Modal para la visualización y edición de eventos -->
     <CalendarModal
       :selected-date-events="selectedDateEvents"
       :selected-date="selectedDate"
@@ -48,21 +66,31 @@
       @toggle-payment-status="togglePaymentStatus"
     />
 
-    <!-- Componente para procesar prompts de eventos -->
+    <!-- Componente para procesar prompts de eventos.
+         Cuando se procesa un evento, se dispara el método handleProcessedEvent -->
     <AddPrompt @event-processed="handleProcessedEvent" class="AddPrompt" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import { format, addMonths, subMonths } from "date-fns";
+/**
+ * Componente CalendarView
+ * Esta vista muestra el calendario, permite la navegación entre meses mediante gestos de swipe,
+ * y gestiona la visualización, edición y creación de eventos.
+ * Se utiliza un composable (useCalendarLogic) para encapsular la lógica del calendario.
+ */
+defineOptions({ name: "CalendarView" });
+
+import { ref, computed } from "vue";
+import { format, addMonths, subMonths, parse } from "date-fns";
 import CalendarHeader from "../components/CalendarHeader.vue";
 import CalendarGrid from "../components/CalendarGrid.vue";
 import CalendarModal from "../components/CalendarModal.vue";
 import AddPrompt from "../components/AddPrompt.vue";
+import CalendarDistance from "../components/CalendarDistance.vue";
 import { useCalendarLogic } from "../composables/calendarLogic";
 
-// Desestructuramos la lógica del calendario desde el composable
+// Extraemos la lógica del calendario mediante un composable para mantener el código limpio y modular.
 const {
   currentDate,
   selectedDate,
@@ -88,48 +116,54 @@ const {
 } = useCalendarLogic();
 
 /**
- * Maneja el evento procesado desde el AddPrompt:
- * - Cierra los modales abiertos.
- * - Pre-llena el formulario con los datos recibidos.
- * - Abre el formulario para crear/editar evento.
+ * Maneja el evento procesado desde el componente AddPrompt.
+ * - Cierra todos los modales abiertos.
+ * - Reinicia el evento seleccionado para indicar un nuevo evento.
+ * - Guarda el mensaje compartido (preprocesado) y abre el formulario de evento.
+ *
+ * @param eventData - Datos del evento procesado.
  */
 const handleProcessedEvent = (eventData: any) => {
-  // Cerrar todos los modales
+  // Cerrar todos los modales abiertos
   isEventListModalOpen.value = false;
   isViewModalOpen.value = false;
   isEditModalOpen.value = false;
   isDeleteModalOpen.value = false;
 
-  // Reiniciar el evento seleccionado para indicar un nuevo evento
+  // Reiniciar el evento seleccionado para indicar la creación de un nuevo evento
   selectedEvent.value = null;
-  // Guardamos el mensaje preprocesado (podrías mejorar el formato según sea necesario)
+  // Guardar el mensaje compartido, se puede formatear según sea necesario
   sharedMessage.value = JSON.stringify(eventData);
 
-  // Abrir el formulario de evento
+  // Abrir el formulario de evento para crear o editar
   isEventFormOpen.value = true;
 };
 
-/* ---------------------------
-   Implementación del swipe
-   --------------------------- */
+/* ===================================================
+   Implementación de detección de gestos (swipe)
+   =================================================== */
 
-// Variables para almacenar la posición inicial y final del toque
+// Variables reactivas para almacenar la posición inicial y final del toque
 const touchStartX = ref<number | null>(null);
 const touchEndX = ref<number | null>(null);
-const swipeThreshold = 50; // Umbral en píxeles
+const swipeThreshold = 50; // Umbral en píxeles para considerar un swipe
 
 /**
- * Guarda la posición X inicial del toque.
+ * Registra la posición X inicial del toque.
+ *
+ * @param e - Evento touchstart.
  */
 const handleTouchStart = (e: TouchEvent) => {
   touchStartX.value = e.changedTouches[0].clientX;
 };
 
 /**
- * Al finalizar el toque, compara la posición inicial y final.
- * Si la diferencia horizontal supera el umbral, actualiza el mes:
+ * Compara la posición inicial y final del toque y, si la diferencia supera el umbral,
+ * actualiza el mes mostrado en el calendario.
  * - Swipe de derecha a izquierda: avanza un mes.
  * - Swipe de izquierda a derecha: retrocede un mes.
+ *
+ * @param e - Evento touchend.
  */
 const handleTouchEnd = (e: TouchEvent) => {
   touchEndX.value = e.changedTouches[0].clientX;
@@ -137,22 +171,55 @@ const handleTouchEnd = (e: TouchEvent) => {
     const diff = touchStartX.value - touchEndX.value;
     if (Math.abs(diff) > swipeThreshold) {
       if (diff > 0) {
-        // Swipe hacia la izquierda: siguiente mes
+        // Swipe hacia la izquierda: avanzar un mes
         currentDate.value = addMonths(currentDate.value, 1);
       } else {
-        // Swipe hacia la derecha: mes anterior
+        // Swipe hacia la derecha: retroceder un mes
         currentDate.value = subMonths(currentDate.value, 1);
       }
     }
   }
-  // Resetear valores
+  // Reiniciar las posiciones para el próximo gesto
   touchStartX.value = null;
   touchEndX.value = null;
+};
+
+// Modificar la lógica de eventos activos
+const hasActiveEvent = computed(() => {
+  const now = new Date();
+  const todayEvents = getDateEvents(now);
+  return todayEvents.some((event) => {
+    return event.coord !== undefined && event.coord !== null;
+  });
+});
+
+const getCurrentEvent = () => {
+  const now = new Date();
+  const todayEvents = getDateEvents(now);
+
+  if (!todayEvents || todayEvents.length === 0) {
+    return null;
+  }
+
+  const activeEvents = todayEvents.filter((event) => {
+    return event.coord !== undefined && event.coord !== null;
+  });
+
+  if (activeEvents.length === 0) {
+    return null;
+  }
+
+  // Ordenar por hora y retornar el más próximo
+  return activeEvents.sort((a, b) => {
+    const timeA = parse(a.time, "HH:mm", now);
+    const timeB = parse(b.time, "HH:mm", now);
+    return timeA.getTime() - timeB.getTime();
+  })[0];
 };
 </script>
 
 <style lang="postcss">
-/* Badge en cada día del calendario */
+/* Badge para cada día del calendario */
 .calendar-day-badge {
   position: absolute;
   top: 0.25rem;
@@ -160,7 +227,7 @@ const handleTouchEnd = (e: TouchEvent) => {
   transform: translate(25%, -25%);
 }
 
-/* Estilos responsive para modales y badges */
+/* Estilos responsivos para modales y badges */
 @media (max-width: 640px) {
   .calendar-day-badge {
     transform: translate(15%, -15%);
@@ -178,12 +245,12 @@ const handleTouchEnd = (e: TouchEvent) => {
   }
 }
 
-/* Asegurar que el calendario ocupe todo el espacio disponible */
+/* Asegurar que el calendario ocupe todo el ancho disponible */
 .grid-cols-7 {
   grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 
-/* Optimización para pantallas pequeñas */
+/* Optimización para pantallas con altura reducida */
 @media (max-height: 667px) {
   .grid-cols-7 > div {
     min-height: 40px !important;
@@ -198,7 +265,7 @@ const handleTouchEnd = (e: TouchEvent) => {
   }
 }
 
-/* Ajuste vertical general */
+/* Asegurar que el contenedor principal ocupe todo el alto de la pantalla */
 .min-h-screen {
   min-height: 100vh;
   height: 100%;

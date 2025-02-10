@@ -4,13 +4,19 @@
     @update:model-value="$emit('update:modelValue', $event)"
     :title="`Nuevo Evento - ${selectedDate ? format(selectedDate, 'MMMM d, yyyy') : ''}`"
   >
-    <!-- Agregar mensaje de error si existe -->
-    <div v-if="errorMessage" class="mb-4 p-2 bg-red-100 text-red-700 rounded">
+    <!-- Mensaje de error -->
+    <div
+      v-if="errorMessage"
+      class="mb-4 p-2 bg-red-100 text-red-700 rounded transition-all duration-200"
+    >
       {{ errorMessage }}
     </div>
 
-    <!-- Formulario principal -->
-    <form @submit.prevent="handleSubmit" class="space-y-6">
+    <!-- Contenedor unificado del formulario -->
+    <form
+      @submit.prevent="handleSubmit"
+      class="space-y-6 p-4 bg-white rounded-lg shadow-lg transition-all duration-300"
+    >
       <!-- Tipo de Actividad -->
       <div class="space-y-2">
         <label class="block text-sm font-medium text-gray-700">Tipo de Actividad</label>
@@ -20,7 +26,7 @@
               type="radio"
               v-model="eventForm.activityType"
               value="Eventual"
-              class="form-radio text-blue-600"
+              class="form-radio text-blue-600 transition-colors duration-200"
             />
             <span class="ml-2">Evento Único</span>
           </label>
@@ -29,7 +35,7 @@
               type="radio"
               v-model="eventForm.activityType"
               value="Fija"
-              class="form-radio text-blue-600"
+              class="form-radio text-blue-600 transition-colors duration-200"
             />
             <span class="ml-2">Evento Fijo Semanal</span>
           </label>
@@ -49,7 +55,7 @@
               type="radio"
               v-model="eventForm.paymentStatus"
               value="Pagado"
-              class="form-radio text-green-600"
+              class="form-radio text-green-600 transition-colors duration-200"
             />
             <span class="ml-2">Pagado</span>
           </label>
@@ -58,7 +64,7 @@
               type="radio"
               v-model="eventForm.paymentStatus"
               value="Pendiente"
-              class="form-radio text-red-600"
+              class="form-radio text-red-600 transition-colors duration-200"
             />
             <span class="ml-2">Pendiente</span>
           </label>
@@ -76,7 +82,7 @@
             required
             @focus="fetchSuggestions('provider')"
             list="provider-list"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
           />
           <datalist id="provider-list">
             <option
@@ -96,7 +102,7 @@
             required
             @focus="fetchSuggestions('description')"
             list="description-list"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
           />
           <datalist id="description-list">
             <option
@@ -116,7 +122,7 @@
             required
             @focus="fetchSuggestions('location')"
             list="location-list"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
           />
           <datalist id="location-list">
             <option
@@ -135,7 +141,7 @@
               v-model="eventForm.date"
               type="date"
               required
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
             />
           </div>
           <div>
@@ -144,7 +150,7 @@
               v-model="eventForm.time"
               type="time"
               required
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
             />
           </div>
         </div>
@@ -156,7 +162,7 @@
             v-model.number="eventForm.amount"
             type="number"
             required
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
           />
         </div>
       </div>
@@ -168,10 +174,16 @@
           variant="secondary"
           @click="close"
           :disabled="isSubmitting"
+          class="hover:bg-gray-200 transition-colors duration-200"
         >
           Cancelar
         </ButtonComponent>
-        <ButtonComponent type="submit" variant="primary" :disabled="isSubmitting">
+        <ButtonComponent
+          type="submit"
+          variant="primary"
+          :disabled="isSubmitting"
+          class="hover:bg-blue-600 transition-colors duration-200"
+        >
           {{ isSubmitting ? "Guardando..." : "Guardar" }}
         </ButtonComponent>
         <!--

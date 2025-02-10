@@ -6,6 +6,7 @@
       type="button"
       class="inline-flex items-center gap-2 rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
       :aria-expanded="isOpen"
+      :id="id"
       aria-haspopup="true"
       @click="toggle"
     >
@@ -30,75 +31,76 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import { useEventListener } from '@vueuse/core'
+import { ref, onMounted, onUnmounted } from "vue";
+import { useEventListener } from "@vueuse/core";
 
 const props = defineProps<{
-  id: string
-}>()
+  id: string;
+}>();
 
-const isOpen = ref(false)
-const triggerRef = ref<HTMLElement | null>(null)
-const menuRef = ref<HTMLElement | null>(null)
+const id = props.id;
+const isOpen = ref(false);
+const triggerRef = ref<HTMLElement | null>(null);
+const menuRef = ref<HTMLElement | null>(null);
 
 const toggle = () => {
-  isOpen.value = !isOpen.value
-}
+  isOpen.value = !isOpen.value;
+};
 
 const close = () => {
-  isOpen.value = false
-}
+  isOpen.value = false;
+};
 
 // Close when clicking outside
-useEventListener(document, 'click', (event: Event) => {
-  const target = event.target as HTMLElement
+useEventListener(document, "click", (event: Event) => {
+  const target = event.target as HTMLElement;
   if (!triggerRef.value?.contains(target) && !menuRef.value?.contains(target)) {
-    close()
+    close();
   }
-})
+});
 
 // Handle keyboard navigation
 const handleKeyDown = (event: KeyboardEvent) => {
-  if (!isOpen.value) return
+  if (!isOpen.value) return;
 
-  const menuItems = menuRef.value?.querySelectorAll('[role="menuitem"]')
-  if (!menuItems?.length) return
+  const menuItems = menuRef.value?.querySelectorAll('[role="menuitem"]');
+  if (!menuItems?.length) return;
 
-  const currentIndex = Array.from(menuItems).indexOf(document.activeElement as Element)
+  const currentIndex = Array.from(menuItems).indexOf(document.activeElement as Element);
 
   switch (event.key) {
-    case 'ArrowDown':
-      event.preventDefault()
+    case "ArrowDown":
+      event.preventDefault();
       if (currentIndex === menuItems.length - 1) {
-        ;(menuItems[0] as HTMLElement).focus()
+        (menuItems[0] as HTMLElement).focus();
       } else {
-        ;(menuItems[currentIndex + 1] as HTMLElement).focus()
+        (menuItems[currentIndex + 1] as HTMLElement).focus();
       }
-      break
-    case 'ArrowUp':
-      event.preventDefault()
+      break;
+    case "ArrowUp":
+      event.preventDefault();
       if (currentIndex === 0) {
-        ;(menuItems[menuItems.length - 1] as HTMLElement).focus()
+        (menuItems[menuItems.length - 1] as HTMLElement).focus();
       } else {
-        ;(menuItems[currentIndex - 1] as HTMLElement).focus()
+        (menuItems[currentIndex - 1] as HTMLElement).focus();
       }
-      break
-    case 'Home':
-      event.preventDefault()
-      ;(menuItems[0] as HTMLElement).focus()
-      break
-    case 'End':
-      event.preventDefault()
-      ;(menuItems[menuItems.length - 1] as HTMLElement).focus()
-      break
+      break;
+    case "Home":
+      event.preventDefault();
+      (menuItems[0] as HTMLElement).focus();
+      break;
+    case "End":
+      event.preventDefault();
+      (menuItems[menuItems.length - 1] as HTMLElement).focus();
+      break;
   }
-}
+};
 
 onMounted(() => {
-  document.addEventListener('keydown', handleKeyDown)
-})
+  document.addEventListener("keydown", handleKeyDown);
+});
 
 onUnmounted(() => {
-  document.removeEventListener('keydown', handleKeyDown)
-})
+  document.removeEventListener("keydown", handleKeyDown);
+});
 </script>
