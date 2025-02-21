@@ -40,6 +40,9 @@
           @generatePDF="generateProviderPDF"
         />
 
+        <!-- Eventos realizados pasados -->
+        <BalanceMonthlyProjection :events="monthEvents" />
+
         <!-- Distribución de eventos por proveedor -->
         <ProviderDistribution
           :providerDistribution="providerDistribution"
@@ -84,7 +87,7 @@ import { createAndDownloadPdf } from "../utils/pdfMakeConfig";
 import type { TDocumentDefinitions } from "pdfmake/interfaces";
 import { getPendingEventsTemplate } from "../utils/pdfTemplates";
 import { defineAsyncComponent } from "vue";
-
+import BalanceMonthlyProjection from "../components/BalanceMonthlyProjection.vue";
 // Estado y utilidades principales
 const toast = useToast();
 const eventStore = useEventStore();

@@ -21,6 +21,15 @@ const today = computed(() => isToday(props.date));
 
 const hasEvents = computed(() => props.events.length > 0);
 
+// Nuevo computed para identificar día pasado
+const isPast = computed(() => {
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const dayDate = new Date(props.date);
+  dayDate.setHours(0, 0, 0, 0);
+  return dayDate.getTime() < now.getTime();
+});
+
 const dayColorClass = computed(() => {
   if (hasEvents.value) {
     const hasUnpaidEvents = props.events.some(
@@ -42,6 +51,7 @@ function selectDate() {
       'p-1 sm:p-2 min-h-[45px] sm:min-h-[80px] md:min-h-[100px] border rounded-md relative',
       today ? 'border-blue-500' : 'border-gray-200',
       hasEvents ? dayColorClass : '',
+      isPast ? 'past-day' : '',
       'cursor-pointer hover:border-blue-300',
       !isCurrentMonth ? 'opacity-50' : '',
     ]"
@@ -109,6 +119,10 @@ function selectDate() {
   .event-badge {
     @apply top-0.5 right-0.5;
   }
+}
+
+.past-day {
+  @apply opacity-50;
 }
 </style>
 <script lang="ts">

@@ -6,10 +6,10 @@
       class="cursor-pointer flex justify-between items-center"
     >
       <h3 class="text-lg font-medium text-indigo-900">
-        <span>Total de Eventos</span>
+        <span>Total de Eventos Realizados</span>
       </h3>
       <div class="flex items-center">
-        <p class="text-3xl font-bold text-indigo-600">{{ totalEvents }}</p>
+        <p class="text-3xl font-bold text-indigo-600">{{ pastEvents.length }}</p>
         <ChevronDownIcon
           class="h-5 w-5 ml-2 transform transition-transform duration-200"
           :class="{ 'rotate-180': showTotalEvents }"
@@ -44,13 +44,13 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { isBefore } from "date-fns";
 import { ChevronDownIcon } from "../utils/icons";
 import { formatCurrency } from "../utils/helpers";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
 const props = defineProps<{
-  totalEvents: number;
   events: Array<{
     id: string;
     date: string;
@@ -73,12 +73,25 @@ const formatDate = (date: string) => {
   }
 };
 
+const now = new Date();
+
+// Filtrar solo los eventos pasados: aquellos cuya fecha es menor que el instante actual
+const pastEvents = computed(() =>
+  props.events.filter((event) => new Date(event.date).getTime() < now.getTime())
+);
+
 const sortedEvents = computed(() => {
-  if (!props.events?.length) return [];
-  return [...props.events].sort(
+  if (!pastEvents.value.length) return [];
+  return [...pastEvents.value].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
 });
+</script>
+
+<script lang="ts">
+export default {
+  name: "BalanceTotalEventsPanel",
+};
 </script>
 
 <style scoped>
