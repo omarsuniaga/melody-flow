@@ -1,13 +1,48 @@
+// ModelStorageService.ts
 import * as tf from '@tensorflow/tfjs';
 
-/**
- * Maneja almacenamiento en IndexedDB (modelo TensorFlow)
- * y en localStorage (vocabulario y datos de entrenamiento).
- */
+import { collection, getFirestore, addDoc, getDocs } from 'firebase/firestore';
+
+export interface TrainingExample {
+  text: string;
+  prediction: any; // Puede ser ParsedEventData o similar
+  correction: any;
+  reward: number;
+  timestamp?: Date;
+}
+
 export class ModelStorageService {
+  // Claves para IndexedDB y localStorage
   private static readonly MODEL_KEY = 'nlp_model';
   private static readonly VOCAB_KEY = 'nlp_vocabulary';
   private static readonly TRAINING_DATA_KEY = 'nlp_training_data';
+
+  // Colección en Firestore para ejemplos de entrenamiento
+  private static firestoreCollection = collection(getFirestore(), 'nlp_training');
+
+  // --- Métodos Firestore (entrenamiento en la nube) ---
+
+  /**
+   * Agrega un ejemplo de entrenamiento a Firestore.
+   */
+  static async addTrainingExampleToFirestore(example: TrainingExample): Promise<void> {
+    example.timestamp = new Date();
+    await addDoc(this.firestoreCollection, example);
+  }
+
+  /**
+   * Carga los ejemplos de entrenamiento desde Firestore.
+   */
+  static async loadTrainingDataFromFirestore(): Promise<TrainingExample[]> {
+    const snapshot = await getDocs(this.firestoreCollection);
+    const trainingData: TrainingExample[] = [];
+    snapshot.forEach(doc => {
+      trainingData.push(doc.data() as TrainingExample);
+    });
+    return trainingData;
+  }
+
+  // --- Métodos IndexedDB (almacenar el modelo) ---
 
   /**
    * Guarda el modelo en IndexedDB usando la clave MODEL_KEY.
@@ -23,23 +58,21 @@ export class ModelStorageService {
   }
 
   /**
-   * Carga el modelo desde IndexedDB. Si no existe, retorna null.
+   * Elimina el modelo almacenado en IndexedDB.
    */
-  static async loadModel(): Promise<tf.LayersModel | null> {
+  static async clearModel(): Promise<void> {
     try {
-      const model = await tf.loadLayersModel(`indexeddb://${this.MODEL_KEY}`);
-      console.log('Modelo cargado exitosamente de IndexedDB');
-      return model;
+      await tf.io.removeModel(`indexeddb://${this.MODEL_KEY}`);
+      console.log('Modelo borrado de IndexedDB');
     } catch (error) {
-      console.warn('No se encontró un modelo guardado en IndexedDB');
-      return null;
+      console.warn('No se pudo borrar el modelo de IndexedDB:', error);
     }
   }
 
+  // --- Métodos localStorage (almacenar vocabulario y datos de entrenamiento local) ---
+
   /**
    * Guarda el vocabulario (arreglo de palabras) en localStorage.
-   * 
-   * @param vocabulary - Arreglo de palabras.
    */
   static saveVocabulary(vocabulary: string[]): void {
     try {
@@ -64,10 +97,9 @@ export class ModelStorageService {
 
   /**
    * Guarda los datos de entrenamiento en localStorage.
-   * 
-   * @param data - Arreglo con objetos de ejemplo: { text, prediction, correction, reward, ... } 
+   * @param data - Arreglo de ejemplos de entrenamiento.
    */
-  static saveTrainingData(data: any[]): void {
+  static saveTrainingDataLocal(data: any[]): void {
     try {
       localStorage.setItem(this.TRAINING_DATA_KEY, JSON.stringify(data));
     } catch (error) {
@@ -78,7 +110,7 @@ export class ModelStorageService {
   /**
    * Carga los datos de entrenamiento desde localStorage.
    */
-  static loadTrainingData(): any[] {
+  static loadTrainingDataLocal(): any[] {
     try {
       const stored = localStorage.getItem(this.TRAINING_DATA_KEY);
       return stored ? JSON.parse(stored) : [];
@@ -90,38 +122,32 @@ export class ModelStorageService {
 
   /**
    * Retorna las últimas 'count' predicciones con reward > 0.7,
-   * ordenadas por mayor recompensa.
+   * ordenadas de mayor a menor recompensa.
    */
-  static getLastPredictions(count: number = 5): any[] {
-    const data = this.loadTrainingData();
+  static getLastPredictionsLocal(count: number = 5): any[] {
+    const data = this.loadTrainingDataLocal();
     return data
-      .filter(item => item.reward > 0.7)     // sólo predicciones exitosas
-      .sort((a, b) => b.reward - a.reward)   // orden descendente por reward
-      .slice(0, count);                      // tomar las primeras 'count'
+      .filter((item: any) => item.reward > 0.7)
+      .sort((a: any, b: any) => b.reward - a.reward)
+      .slice(0, count);
   }
 
   /**
-   * Agrega un nuevo ejemplo de entrenamiento y lo persiste en localStorage.
+   * Agrega un nuevo ejemplo de entrenamiento a los datos almacenados en localStorage.
    */
-  static addTrainingExample(example: any): void {
-    const trainingData = this.loadTrainingData();
+  static addTrainingExampleLocal(example: any): void {
+    const trainingData = this.loadTrainingDataLocal();
     trainingData.push(example);
-    this.saveTrainingData(trainingData);
+    this.saveTrainingDataLocal(trainingData);
   }
 
   /**
-   * (Opcional) Limpia todo el almacenamiento local (modelo, vocabulario, training).
-   * Útil para debug o reinicio completo.
+   * Limpia todo el almacenamiento:
+   * - Elimina el modelo de IndexedDB.
+   * - Borra el vocabulario y los datos de entrenamiento de localStorage.
    */
   static async clearAll(): Promise<void> {
-    try {
-      // Borrar modelo en IndexedDB
-      await tf.io.removeModel(`indexeddb://${this.MODEL_KEY}`);
-      console.log('Modelo borrado de IndexedDB');
-    } catch (error) {
-      console.warn('No se pudo borrar el modelo de IndexedDB:', error);
-    }
-    // Borrar keys de localStorage
+    await this.clearModel();
     localStorage.removeItem(this.VOCAB_KEY);
     localStorage.removeItem(this.TRAINING_DATA_KEY);
   }

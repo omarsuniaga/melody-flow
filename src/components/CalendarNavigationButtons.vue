@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ChevronLeftIcon, ChevronRightIcon } from "../utils/icons";
+import { ChevronRightIcon } from "../utils/icons";
+import { ChevronLeftIcon } from "../utils/icons";
 import ButtonComponent from "./ButtonComponent.vue";
 import { format, addMonths, subMonths } from "date-fns";
 import { computed } from "vue";

@@ -47,8 +47,8 @@
 <script setup lang="ts">
 import { defineAsyncComponent } from "vue";
 
-// Tipos
-interface Event {
+// Renombrar la interfaz para evitar conflicto con el tipo Event
+interface AppEvent {
   id: string;
   date: string;
   provider: string;
@@ -66,7 +66,7 @@ interface MonthlyStats {
 
 interface Props {
   monthlyStats: MonthlyStats;
-  events: Event[];
+  events: AppEvent[]; // Actualizar el tipo a AppEvent[]
   showTotalEvents: boolean;
   showProviderRevenue: boolean;
   showPendingPayments: boolean;
@@ -74,21 +74,21 @@ interface Props {
   expandedProvider: string | null;
   totalPendingAmount: number;
   totalCompletedAmount: number;
-  groupedPendingPayments: Record<string, Event[]>;
-  groupedCompletedPayments: Record<string, Event[]>;
+  groupedPendingPayments: Record<string, AppEvent[]>;
+  groupedCompletedPayments: Record<string, AppEvent[]>;
   sortedProviderStatsByRevenue: Array<{ name: string; revenue: number }>;
-  sortedEvents: Event[]; // Cambiar a Event[] en lugar de función
+  sortedEvents: AppEvent[]; // Actualizar el tipo a AppEvent[]
 }
 
 // Lazy loading de componentes
 const LazyTotalEventsPanel = defineAsyncComponent(
-  () => import("./TotalEventsPanel.vue")
+  () => import("./BalanceTotalEventsPanel.vue")
 );
 const LazyProviderBreakdown = defineAsyncComponent(
-  () => import("./ProviderBreakdown.vue")
+  () => import("./BalanceProviderBreakdown.vue")
 );
 const LazyAverageEventPanel = defineAsyncComponent(
-  () => import("./AverageEventPanel.vue")
+  () => import("./BalanceAverageEventPanel.vue")
 );
 
 // Props con tipado estricto
@@ -98,7 +98,7 @@ console.log(props);
 
 // Eventos tipados
 const emit = defineEmits<{
-  (e: "generatePDF", provider: string, events: Event[]): any;
+  (e: "generatePDF", provider: string, events: AppEvent[]): void;
   (e: "toggleProviderRevenue"): void;
   (e: "togglePendingPayments"): void;
   (e: "toggleCompletedPayments"): void;
@@ -107,7 +107,7 @@ const emit = defineEmits<{
 }>();
 
 // Handler para generación de PDF con validación
-const handlePdfGeneration = (provider: string, events: Event[]): void => {
+const handlePdfGeneration = (provider: string, events: AppEvent[]): void => {
   try {
     if (!events?.length) {
       throw new Error("No hay eventos para generar el PDF");

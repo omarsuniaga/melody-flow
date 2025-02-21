@@ -1,3 +1,4 @@
+//FirestoreNLPService.ts
 import { db } from '../firebase/config';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 
@@ -62,6 +63,16 @@ export class FirestoreNLPService {
     const snapshot = await getDoc(vocabDoc);
     if (!snapshot.exists()) return [];
     return snapshot.data()?.words ?? [];
+  }
+  /**
+   * 
+   * Método para cargar los datos de entrenamiento desde Firestore.
+   */
+
+  static async loadTrainingData(): Promise<any[]> {
+    const trainingDataDoc = doc(db, this.COLLECTION, 'training_data');
+    const snapshot = await getDoc(trainingDataDoc);
+    return snapshot.exists() ? snapshot.data()?.data : [];
   }
 
   // ==========================

@@ -7,8 +7,7 @@
     >
       <PlusIcon class="h-6 w-6" />
     </button>
-
-    <!-- Modal para describir y procesar el evento -->
+    <!-- Modal -->
     <ModalComponent
       :model-value="isOpen"
       @update:model-value="closeModal"
@@ -16,7 +15,6 @@
       class="prompt-modal"
     >
       <div class="p-4">
-        <!-- Área de texto para el prompt -->
         <textarea
           v-model="promptText"
           class="w-full h-32 p-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -24,7 +22,10 @@
           :disabled="isProcessing"
         ></textarea>
 
-        <!-- Sección de interpretación -->
+        <!-- Nueva sección para elegir modo de interpretación -->
+        <div class="mt-4 flex justify-center gap-4"></div>
+        <!-- Fin de la nueva sección -->
+
         <div v-if="parsedResult" class="interpretation-section">
           <div class="interpretation-header">
             <h3 class="text-lg font-semibold text-gray-800">
@@ -34,12 +35,9 @@
               </span>
             </h3>
           </div>
-
           <div class="interpretation-content">
-            <!-- Mostrar cada campo interpretado -->
             <div v-for="(value, key) in displayFields" :key="key" class="field-item">
               <div class="field-label">{{ fieldLabels[key] }}:</div>
-              <!-- Campo editable en modo edición -->
               <template v-if="isEditing">
                 <input
                   v-if="['provider', 'description', 'location'].includes(key)"
@@ -61,31 +59,51 @@
                   type="time"
                   class="field-input"
                 />
-                <input
-                  v-else-if="key === 'amount'"
-                  v-model.number="parsedResult[key]"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  class="field-input"
-                />
+                <template v-else-if="key === 'amount'">
+                  <input
+                    v-model.number="parsedResult.amount.value"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    class="field-input"
+                  />
+                </template>
               </template>
-              <!-- Modo de solo lectura -->
-              <div v-else class="field-value" :class="getFieldClass(value, key)">
+              <div v-else class="field-value" :class="getFieldClass(value)">
                 <span>{{ formatFieldValue(value, key) }}</span>
               </div>
             </div>
-
-            <!-- Acciones de la sección de interpretación -->
             <div class="interpretation-actions">
-              <ButtonComponent
-                variant="secondary"
-                class="edit-button"
-                @click="toggleEditMode"
-              >
-                <PencilIcon class="w-4 h-4 mr-2" />
-                {{ isEditing ? "Guardar cambios" : "Editar" }}
-              </ButtonComponent>
+              <template v-if="!showCorrection">
+                <ButtonComponent
+                  variant="secondary"
+                  class="edit-button"
+                  @click="toggleEditMode"
+                >
+                  <template v-if="isProcessing && isEditing">
+                    <svg class="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24">
+                      <circle
+                        class="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        stroke-width="4"
+                      ></circle>
+                      <path
+                        class="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v8z"
+                      ></path>
+                    </svg>
+                    Guardando...
+                  </template>
+                  <template v-else>
+                    <PencilIcon class="w-4 h-4 mr-2" />
+                    {{ isEditing ? "Guardar cambios" : "Editar" }}
+                  </template>
+                </ButtonComponent>
+              </template>
               <ButtonComponent
                 variant="primary"
                 class="confirm-button"
@@ -98,24 +116,36 @@
             </div>
           </div>
         </div>
-
-        <!-- Mensaje de error -->
-        <div v-if="error" class="mt-2 text-red-600 text-sm">
-          {{ error }}
-        </div>
-
-        <!-- Botones de acción finales -->
+        <div v-if="error" class="mt-2 text-red-600 text-sm">{{ error }}</div>
         <div class="mt-4 flex justify-end gap-2">
-          <ButtonComponent variant="secondary" @click="closeModal">
-            Cancelar
-          </ButtonComponent>
-          <ButtonComponent
-            variant="primary"
-            @click="processPrompt"
-            :loading="isProcessing"
+          <button
+            @click="processPromptWithAI"
+            class="flex items-center px-3 py-2 rounded bg-green-600 text-white hover:bg-green-700 transition-colors"
+            :disabled="!geminiAvailable || isProcessing"
+            title="Interpretar con AI (GeminiService)"
           >
-            Procesar
-          </ButtonComponent>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              class="size-6"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M9 4.5a.75.75 0 0 1 .721.544l.813 2.846a3.75 3.75 0 0 0 2.576 2.576l2.846.813a.75.75 0 0 1 0 1.442l-2.846.813a3.75 3.75 0 0 0-2.576 2.576l-.813 2.846a.75.75 0 0 1-1.442 0l-.813-2.846a3.75 3.75 0 0 0-2.576-2.576l-2.846-.813a.75.75 0 0 1 0-1.442l2.846-.813A3.75 3.75 0 0 0 7.466 7.89l.813-2.846A.75.75 0 0 1 9 4.5ZM18 1.5a.75.75 0 0 1 .728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 0 1 0 1.456l-1.036.258c-.94.236-1.674.97-1.91 1.91l-.258 1.036a.75.75 0 0 1-1.456 0l-.258-1.036a2.625 2.625 0 0 0-1.91-1.91l-1.036-.258a.75.75 0 0 1 0-1.456l1.036-.258a2.625 2.625 0 0 0 1.91-1.91l.258-1.036A.75.75 0 0 1 18 1.5ZM16.5 15a.75.75 0 0 1 .712.513l.394 1.183c.15.447.5.799.948.948l1.183.395a.75.75 0 0 1 0 1.422l-1.183.395c-.447.15-.799.5-.948.948l-.395 1.183a.75.75 0 0 1-1.422 0l-.395-1.183a1.5 1.5 0 0 0-.948-.948l-1.183-.395a.75.75 0 0 1 0-1.422l1.183-.395c.447-.15.799-.5.948-.948l.395-1.183A.75.75 0 0 1 16.5 15Z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </button>
+          <!-- boton de interpretar que muestra una animacion de engranaja al cargar  -->
+          <button
+            @click="processPromptLocal"
+            class="flex items-center px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+            :disabled="isProcessing"
+            title="Interpretar localmente"
+          >
+            <CogIcon class="w-6 h-6" />
+          </button>
         </div>
       </div>
     </ModalComponent>
@@ -127,11 +157,13 @@ import { ref, computed } from "vue";
 import PlusIcon from "@heroicons/vue/24/solid/PlusIcon";
 import PencilIcon from "@heroicons/vue/24/solid/PencilIcon";
 import CheckIcon from "@heroicons/vue/24/solid/CheckIcon";
+import CogIcon from "@heroicons/vue/24/solid/CogIcon"; // Nuevo: icono de engranaje para local
 import ModalComponent from "./ModalComponent.vue";
 import ButtonComponent from "./ButtonComponent.vue";
-import { MessageParserService } from "../services/MessageParserService";
 import { LocalNLPService } from "../services/LocalNLPService";
-import { MistralService } from "../services/mistralService";
+import { CorrectionService } from "../services/CorrectionService"; // Nuevo import
+
+const geminiAvailable = ref(true); // Bandera para indicar disponibilidad de GeminiService
 
 const emit = defineEmits(["eventProcessed"]);
 
@@ -150,58 +182,7 @@ const fieldLabels = {
 };
 
 const isEditing = ref(false);
-
-/**
- * Alterna el modo edición.
- * Si se está guardando, llama a handleCorrect y muestra el mensaje correspondiente.
- */
-const toggleEditMode = async () => {
-  if (isEditing.value) {
-    // Guardar cambios en modo edición
-    try {
-      await handleCorrect();
-      isEditing.value = false;
-      error.value = "Cambios guardados correctamente";
-    } catch (err) {
-      error.value = "Error al guardar los cambios";
-      console.error(err);
-    }
-  } else {
-    isEditing.value = true;
-  }
-};
-
-/**
- * Computada que agrupa los campos a mostrar.
- */
-const displayFields = computed(() => ({
-  provider: parsedResult.value?.provider,
-  description: parsedResult.value?.description,
-  location: parsedResult.value?.location,
-  date: parsedResult.value?.date,
-  time: parsedResult.value?.time,
-  amount: parsedResult.value?.amount,
-}));
-
-/**
- * Valida que al menos uno de los campos tenga valor.
- */
-const isValid = computed(() => {
-  return parsedResult.value && Object.values(displayFields.value).some((value) => value);
-});
-
-/** Interfaz para el resultado procesado del prompt */
-interface ParsedResult {
-  provider: string | null;
-  description: string | null;
-  location: string | null;
-  date: string | null;
-  time: string | null;
-  amount: number | null;
-  confidence?: number;
-}
-
-const parsedResult = ref<ParsedResult | null>(null);
+const parsedResult = ref<any>(null); // Mejorar tipado según sea posible
 const showCorrection = ref(false);
 
 const openModal = () => {
@@ -211,21 +192,22 @@ const openModal = () => {
 const closeModal = () => {
   isOpen.value = false;
   promptText.value = "";
+  error.value = "";
+  parsedResult.value = null;
 };
 
-/**
- * Computada para obtener el nivel de confianza.
- */
-const confidence = computed(() => {
-  if (!parsedResult.value) return 0;
-  return parsedResult.value.confidence || 0;
-});
+const confidence = computed(() => parsedResult.value?.confidence || 0);
 
-/**
- * Retorna un placeholder según el campo.
- * @param key Campo a procesar
- */
-const getPlaceholder = (key: string) => {
+const getPlaceholder = (
+  key: keyof {
+    provider: string;
+    description: string;
+    location: string;
+    date: string;
+    time: string;
+    amount: string;
+  }
+) => {
   const placeholders = {
     provider: "Nombre del proveedor",
     description: "Descripción del evento",
@@ -234,104 +216,34 @@ const getPlaceholder = (key: string) => {
     time: "Hora del evento",
     amount: "Monto a cobrar",
   };
-  return placeholders[key as keyof typeof placeholders];
+  return placeholders[key];
 };
 
-/**
- * Formatea el valor del campo según el tipo.
- * Para 'date', intenta convertir formatos ISO o dd/mm/yyyy.
- * @param value Valor a formatear
- * @param key Clave del campo
- */
 const formatFieldValue = (value: any, key: string) => {
   if (!value) return "No detectado";
-
   switch (key) {
     case "amount":
       return `$${value}`;
     case "date":
       try {
-        // Si el valor es ISO (yyyy-mm-dd)
         if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
           const [year, month, day] = value.split("-");
           return `${day}/${month}/${year}`;
         }
-        // Si ya está en formato dd/mm/yyyy
-        if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
-          return value;
-        }
-        // Intentar parsear como fecha
-        const date = new Date(value);
-        return date.toLocaleDateString();
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) return value;
+        return new Date(value).toLocaleDateString();
       } catch {
         return value;
       }
-    case "time":
-      return value;
     default:
       return value;
   }
 };
 
-/**
- * Procesa el prompt usando primero MistralService y, en caso de error, usa MessageParserService.
- */
-const processPrompt = async () => {
-  if (!promptText.value.trim()) return;
+// Removed unused processPrompt function.
 
-  try {
-    isProcessing.value = true;
-    error.value = "";
-    parsedResult.value = null;
-
-    // Intentar primero con Mistral
-    try {
-      const mistralResult = await MistralService.processEventText(promptText.value);
-      if (!mistralResult.error) {
-        console.log("Resultado de Mistral:", mistralResult);
-        parsedResult.value = mistralResult;
-        return;
-      }
-    } catch (mistralError) {
-      console.warn("Error con Mistral, usando fallback local:", mistralError);
-    }
-
-    // Fallback a MessageParserService
-    const result = await MessageParserService.parseSharedMessage(promptText.value);
-    console.log("Resultado del procesamiento:", result);
-
-    if (!result || result.error) {
-      error.value = result?.message || "Error al procesar el texto";
-      parsedResult.value = result;
-      return;
-    }
-
-    // Validar campos requeridos
-    const requiredFields: (keyof ParsedResult)[] = ["provider", "date", "time"];
-    const missingFields = requiredFields.filter((field) => !result[field]);
-    if (missingFields.length > 0) {
-      error.value = `Falta información: ${missingFields
-        .map((f) => fieldLabels[f as keyof typeof fieldLabels])
-        .join(", ")}`;
-      parsedResult.value = result;
-      return;
-    }
-
-    parsedResult.value = result;
-  } catch (err) {
-    error.value = "Error al procesar el texto";
-    console.error("Error en processPrompt:", err);
-  } finally {
-    isProcessing.value = false;
-  }
-};
-
-/**
- * Maneja la confirmación del evento, formatea los datos y emite el evento procesado.
- */
 const handleConfirm = async () => {
   if (!parsedResult.value) return;
-
   try {
     const eventData = {
       provider: parsedResult.value.provider || "",
@@ -341,57 +253,25 @@ const handleConfirm = async () => {
         parsedResult.value.date || new Date().toISOString().split("T")[0]
       ),
       time: parsedResult.value.time || "",
-      amount: parsedResult.value.amount || 0,
+      amount:
+        typeof parsedResult.value.amount === "object" &&
+        parsedResult.value.amount !== null
+          ? parsedResult.value.amount.value
+          : parsedResult.value.amount || 0,
       activityType: "Eventual",
       paymentStatus: "Pendiente",
     };
-
     console.log("Datos del evento formateados:", eventData);
     emit("eventProcessed", eventData);
     closeModal();
-
-    // Resetear estados
-    parsedResult.value = null;
-    showCorrection.value = false;
-    promptText.value = "";
   } catch (err) {
     console.error("Error al procesar el evento:", err);
     error.value = "No se pudo crear el evento";
   }
 };
 
-/**
- * Permite enviar correcciones para mejorar el modelo de procesamiento.
- */
-const handleCorrect = async () => {
-  if (!parsedResult.value) return;
+// Removed unused handleCorrect function as it was not utilized in the component.
 
-  try {
-    isProcessing.value = true;
-    const originalText = promptText.value;
-    const correctedData = { ...parsedResult.value };
-
-    // Obtener la predicción original
-    const originalPrediction = await MessageParserService.parseMessage(originalText);
-
-    // Enviar datos para "aprender" del usuario
-    await LocalNLPService.learn(originalText, correctedData, originalPrediction);
-
-    showCorrection.value = true;
-    error.value = "¡Gracias! El sistema usará esta corrección para mejorar.";
-  } catch (err) {
-    console.error("Error al procesar la corrección:", err);
-    error.value = "No se pudo procesar la corrección";
-  } finally {
-    isProcessing.value = false;
-  }
-};
-
-/**
- * Retorna clases CSS según la confianza y el estado del valor.
- * @param value Valor a evaluar.
- * @param key Campo correspondiente.
- */
 const getFieldClass = (value: any) => ({
   "text-yellow-600": !value,
   "text-green-600": value?.confidence > 0.8,
@@ -399,45 +279,104 @@ const getFieldClass = (value: any) => ({
   "text-gray-600": value?.confidence <= 0.5,
 });
 
-/**
- * Convierte una fecha en diferentes formatos a ISO (yyyy-MM-dd).
- * @param dateStr Cadena con la fecha.
- */
 const formatDateToISO = (dateStr: string): string => {
-  // Si ya está en formato ISO
-  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-    return dateStr;
-  }
-  // Si está en formato dd/mm/yyyy
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
   const match = dateStr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
   if (match) {
     const [_, day, month, year] = match;
     return `${year}-${month}-${day}`;
   }
-  // Si está en formato yyyy/mm/dd
   if (/^\d{4}\/\d{2}\/\d{2}$/.test(dateStr)) {
     const [yyyy, mm, dd] = dateStr.split("/");
     return `${yyyy}-${mm}-${dd}`;
   }
-  // Intentar parsear con Date
   const date = new Date(dateStr);
-  if (!isNaN(date.getTime())) {
-    return date.toISOString().split("T")[0];
-  }
-  return dateStr;
+  return !isNaN(date.getTime()) ? date.toISOString().split("T")[0] : dateStr;
 };
 
-/**
- * Maneja la validación del campo de fecha en caso de formato incorrecto.
- * @param e Evento de invalidación.
- */
 const handleDateInvalid = (e: Event) => {
   const target = e.target as HTMLInputElement;
   if (target.validity.badInput) {
     error.value = `El valor "${target.value}" no cumple el formato requerido: yyyy-MM-dd`;
   }
 };
+
+const displayFields = computed(() => ({
+  provider: parsedResult.value?.provider,
+  description: parsedResult.value?.description,
+  location: parsedResult.value?.location,
+  date: parsedResult.value?.date,
+  time: parsedResult.value?.time,
+  // Mostrar amount de forma segura
+  amount: parsedResult.value?.amount ? parsedResult.value.amount.value : 6000,
+}));
+
+const isValid = computed(() => {
+  return (
+    parsedResult.value && Object.values(displayFields.value).some((value) => !!value)
+  );
+});
+
+// Agregar función para guardar la corrección y reentrenar el modelo
+const saveCorrection = async () => {
+  if (!parsedResult.value) return;
+  isProcessing.value = true;
+  try {
+    // Se envía el texto original, la predicción original y la versión corregida
+    await CorrectionService.correctAndLearn(
+      promptText.value, // Texto original
+      parsedResult.value, // Predicción original
+      { ...parsedResult.value } // Corrección (se asume que el usuario editó manualmente los campos)
+    );
+    console.log("Corrección guardada y modelo reentrenado.");
+  } catch (error) {
+    console.error("Error al guardar la corrección:", error);
+  } finally {
+    isProcessing.value = false;
+  }
+};
+
+// Modificar toggleEditMode para llamar a saveCorrection al salir del modo edición
+const toggleEditMode = () => {
+  isEditing.value = !isEditing.value;
+  if (!isEditing.value && parsedResult.value) {
+    saveCorrection();
+  }
+};
+
+// Agregar dos métodos para interpretar con AI o local
+const processPromptWithAI = async () => {
+  if (!geminiAvailable.value) return;
+  isProcessing.value = true;
+  error.value = "";
+  try {
+    // Se invoca LocalNLPService pero forzando el uso de Gemini (podrías implementar un flag en LocalNLPService)
+    const result = await LocalNLPService.parseText(promptText.value);
+    parsedResult.value = result;
+  } catch (err) {
+    console.error("Error en interpretación AI:", err);
+    error.value = "Error en interpretación AI.";
+  } finally {
+    isProcessing.value = false;
+  }
+};
+
+const processPromptLocal = async () => {
+  if (!promptText.value.trim()) return;
+  isProcessing.value = true;
+  error.value = "";
+  try {
+    const result = await LocalNLPService.parseText(promptText.value);
+    parsedResult.value = result;
+  } catch (err) {
+    console.error("Error en procesamiento local:", err);
+    error.value = "Error en procesamiento local.";
+  } finally {
+    isProcessing.value = false;
+  }
+};
 </script>
+
 <script lang="ts">
 export default {
   name: "AddPrompt",

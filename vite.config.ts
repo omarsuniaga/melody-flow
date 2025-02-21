@@ -58,7 +58,8 @@ export default defineConfig({
     })
   ],
   server: {
-    port: 3000,
+    host: '0.0.0.0', // Permite acceso desde otros dispositivos en la red local
+    port: 5173,
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',

@@ -73,11 +73,6 @@
 </template>
 
 <script setup lang="ts">
-/**
- * Componente MonthlyBalanceView
- * Muestra las métricas mensuales, distribución de eventos por proveedor, ubicaciones de mayor actividad
- * y permite la navegación entre meses mediante gestos táctiles.
- */
 defineOptions({ name: "MonthlyBalanceView" });
 
 import { ref, computed } from "vue";
@@ -86,6 +81,7 @@ import { BanknotesIcon } from "../utils/icons";
 import { useToast } from "vue-toastification";
 import { useEventStore } from "../stores/eventStore";
 import { createAndDownloadPdf } from "../utils/pdfMakeConfig";
+import type { TDocumentDefinitions } from "pdfmake/interfaces";
 import { getPendingEventsTemplate } from "../utils/pdfTemplates";
 import { defineAsyncComponent } from "vue";
 
@@ -98,15 +94,17 @@ const MonthSelector = defineAsyncComponent(
   () => import("../components/MonthSelector.vue")
 );
 const EventsMetrics = defineAsyncComponent(
-  () => import("../components/EventsMetrics.vue")
+  () => import("../components/BalanceEventsMetrics.vue")
 );
 const ProviderDistribution = defineAsyncComponent(
-  () => import("../components/ProviderDistribution.vue")
+  () => import("../components/BalanceProviderDistribution.vue")
 );
 const LocationsPanel = defineAsyncComponent(
-  () => import("../components/LocationsPanel.vue")
+  () => import("../components/BalanceLocationsPanel.vue")
 );
-const makePayments = defineAsyncComponent(() => import("../components/makePayments.vue"));
+const makePayments = defineAsyncComponent(
+  () => import("../components/BalanceMakePayments.vue")
+);
 
 // Estado de selección y toggles
 const selectedMonth = ref(new Date());
@@ -243,27 +241,15 @@ type MusicEvent = {
   createdBy: string;
   time: string;
   userId: string;
-  isFixed: boolean;
+  isFixed?: boolean;
 };
 
-interface Event {
-  id: string;
-  date: string;
-  location: string;
-  amount: number;
-  provider: string;
-  paymentStatus: string;
-  activityType: string;
-  description: string;
-  createdAt: string;
-  updatedAt?: string;
-  createdBy: string;
-  time: string;
-  userId: string;
-  isFixed: boolean;
-}
+// Renombrar alias para evitar conflicto con el tipo global Event
+// Antes: type Event = MusicEvent;
+type AppEvent = MusicEvent;
+
 interface EventGroups {
-  [key: string]: MusicEvent[];
+  [key: string]: AppEvent[];
 }
 
 // Computed: Agrupar eventos pendientes y completados por proveedor
@@ -315,7 +301,11 @@ const sortedMonthEvents = computed(() => {
 });
 
 // Función para generar y descargar PDF de eventos de un proveedor
-const generateProviderPDF = async (provider: string, events: Event[]) => {
+// Actualizar firma para usar AppEvent[] en lugar de Event[]
+const generateProviderPDF = async (
+  provider: string,
+  events: AppEvent[]
+): Promise<void> => {
   try {
     const fileName = `reporte_eventos_${provider.replace(/\s+/g, "_")}_${format(
       new Date(),
@@ -325,8 +315,9 @@ const generateProviderPDF = async (provider: string, events: Event[]) => {
     toast.info("Generando PDF...");
 
     const docDefinition = getPendingEventsTemplate(provider, events);
-
-    await createAndDownloadPdf(docDefinition, fileName);
+    await createAndDownloadPdf((docDefinition as unknown) as TDocumentDefinitions, {
+      fileName,
+    });
 
     toast.success("PDF generado y descargado correctamente");
   } catch (error) {

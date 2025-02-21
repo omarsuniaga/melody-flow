@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import ModalComponent from "./ModalComponent.vue";
 import ButtonComponent from "./ButtonComponent.vue";
 import { useEventStore } from "../stores/eventStore";
@@ -35,6 +35,26 @@ const eventForm = ref<EventFormData>({
   amount: props.event.amount,
   userId: props.event.userId,
 });
+
+// Agregar watcher para reiniciar eventForm al cambiar el evento recibido
+watch(
+  () => props.event,
+  (newEvent) => {
+    eventForm.value = {
+      id: newEvent.id,
+      activityType: newEvent.activityType,
+      paymentStatus: newEvent.paymentStatus,
+      provider: newEvent.provider,
+      description: newEvent.description,
+      location: newEvent.location,
+      date: newEvent.date,
+      time: newEvent.time,
+      amount: newEvent.amount,
+      userId: newEvent.userId,
+    };
+  },
+  { immediate: true }
+);
 
 const isFormValid = computed(() => {
   return (
@@ -110,28 +130,51 @@ export default {
     title="Editar Evento"
   >
     <form @submit.prevent="handleSubmit" class="space-y-4">
-      <div class="form-group">
-        <label for="description">Descripción</label>
-        <input
-          id="description"
-          v-model="eventForm.description"
-          type="text"
-          required
-          class="form-input"
-        />
+      <div class="grid grid-cols-2 gap-4">
+        <!-- Nuevo campo para provider -->
+        <div class="form-group">
+          <label for="provider">Proveedor</label>
+          <input
+            id="provider"
+            v-model="eventForm.provider"
+            type="text"
+            required
+            class="form-input"
+          />
+        </div>
+        <div class="form-group">
+          <label for="location">Ubicación</label>
+          <input
+            id="location"
+            v-model="eventForm.location"
+            type="text"
+            required
+            class="form-input"
+          />
+        </div>
+        <div class="form-group">
+          <label for="description">Descripción</label>
+          <input
+            id="description"
+            v-model="eventForm.description"
+            type="text"
+            required
+            class="form-input"
+          />
+        </div>
+        <div class="form-group">
+          <label for="amount">Monto</label>
+          <input
+            id="amount"
+            v-model.number="eventForm.amount"
+            type="number"
+            min="0"
+            step="0.01"
+            required
+            class="form-input"
+          />
+        </div>
       </div>
-
-      <div class="form-group">
-        <label for="location">Ubicación</label>
-        <input
-          id="location"
-          v-model="eventForm.location"
-          type="text"
-          required
-          class="form-input"
-        />
-      </div>
-
       <div class="grid grid-cols-2 gap-4">
         <div class="form-group">
           <label for="date">Fecha</label>
@@ -153,36 +196,26 @@ export default {
             class="form-input"
           />
         </div>
-      </div>
+        <div class="form-group">
+          <label for="paymentStatus">Estado de Pago</label>
+          <select
+            id="paymentStatus"
+            v-model="eventForm.paymentStatus"
+            class="form-select"
+          >
+            <option value="Pendiente">Pendiente</option>
+            <option value="Pagado">Pagado</option>
+          </select>
+        </div>
 
-      <div class="form-group">
-        <label for="amount">Monto</label>
-        <input
-          id="amount"
-          v-model.number="eventForm.amount"
-          type="number"
-          min="0"
-          step="0.01"
-          required
-          class="form-input"
-        />
-      </div>
-
-      <div class="form-group">
-        <label for="paymentStatus">Estado de Pago</label>
-        <select id="paymentStatus" v-model="eventForm.paymentStatus" class="form-select">
-          <option value="Pendiente">Pendiente</option>
-          <option value="Pagado">Pagado</option>
-        </select>
-      </div>
-
-      <!-- Agregar opción para modificar activityType -->
-      <div class="form-group">
-        <label for="activityType">Tipo de Actividad</label>
-        <select id="activityType" v-model="eventForm.activityType" class="form-select">
-          <option value="Eventual">Evento Único</option>
-          <option value="Fija">Evento Fijo Semanal</option>
-        </select>
+        <!-- Agregar opción para modificar activityType -->
+        <div class="form-group">
+          <label for="activityType">Tipo de Actividad</label>
+          <select id="activityType" v-model="eventForm.activityType" class="form-select">
+            <option value="Eventual">Evento Único</option>
+            <option value="Fija">Evento Fijo Semanal</option>
+          </select>
+        </div>
       </div>
 
       <p v-if="errorMessage" class="text-red-500 text-sm mt-2">

@@ -4,15 +4,16 @@
       <router-link
         to="/calendar"
         class="flex flex-col items-center"
-        :class="{ 'text-purple-600': isActive('/calendar') }"
+        :class="{ 'text-purple-600': isActive('calendar') }"
       >
         <CalendarIcon class="h-6 w-6" />
         <span class="text-xs">Calendario</span>
       </router-link>
+      <!-- Se actualiza el link de balance para usar la ruta nombrada "balance" -->
       <router-link
-        to="/balance"
+        :to="{ name: 'balance' }"
         class="flex flex-col items-center"
-        :class="{ 'text-blue-600': isActive('/balance') }"
+        :class="{ 'text-blue-600': isActive('balance') }"
       >
         <ChartBarIcon class="h-6 w-6" />
         <span class="text-xs">Balance</span>
@@ -20,7 +21,7 @@
       <router-link
         to="/profile"
         class="flex flex-col items-center"
-        :class="{ 'text-orange-600': isActive('/profile') }"
+        :class="{ 'text-orange-600': isActive('profile') }"
       >
         <UserIcon class="h-6 w-6" />
         <span class="text-xs">Perfil</span>
@@ -31,21 +32,19 @@
 
 <script setup lang="ts">
 import { useRoute } from "vue-router";
-import { ChartBarIcon } from "@heroicons/vue/24/outline";
-import { UserIcon } from "@heroicons/vue/24/outline";
-import { CalendarIcon } from "@heroicons/vue/24/outline";
+import { CalendarIcon, UserIcon, ChartBarIcon } from "@heroicons/vue/24/outline";
 
+// Función para comparar el nombre de la ruta actual
 const route = useRoute();
-
-function isActive(path: string): boolean {
-  return route.path === path;
+function isActive(routeName: string): boolean {
+  return route.name === routeName;
 }
-
-defineOptions({
-  name: "footerLayout",
-});
 </script>
-
+<script lang="ts">
+export default {
+  name: "FooterLayout",
+};
+</script>
 <style scoped>
 nav {
   background-color: #fff;

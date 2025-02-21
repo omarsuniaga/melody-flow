@@ -13,7 +13,6 @@
         <ProfileCurrency />
         <ProfileNotifications />
         <ProfileDistance />
-
         <!-- Acción: Cerrar Sesión -->
         <div class="mt-6">
           <button
@@ -41,7 +40,8 @@ import { useRouter } from "vue-router";
 import { auth } from "../firebase/config";
 
 // Importación de íconos de Heroicons
-import { UserCircleIcon, ArrowRightOnRectangleIcon } from "../utils/icons";
+import { UserCircleIcon } from "../utils/icons";
+import { ArrowRightOnRectangleIcon } from "../utils/icons";
 
 // Importación de los componentes de configuración de perfil
 import ProfilePassword from "../components/ProfilePassword.vue";

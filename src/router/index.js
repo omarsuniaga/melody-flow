@@ -25,7 +25,7 @@ const routes = [
       {
         path: 'balance',
         name: 'balance',
-        component: () => import('../views/MonthlyBalanceView.vue'),
+        component: () => import('../views/BalanceView.vue'),
         meta: { requiresAuth: true }
       },
       {

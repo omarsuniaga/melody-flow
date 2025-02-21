@@ -16,19 +16,19 @@
       <!-- Lista de ubicaciones -->
       <div class="mb-4 border rounded-lg overflow-hidden">
         <div
-          v-for="location in locationsWithRoutes"
-          :key="location.id"
+          v-for="(location, index) in locationsWithRoutes"
+          :key="index"
           class="flex items-center justify-between p-4 hover:bg-gray-50 cursor-pointer"
-          :class="location.coordinates ? 'bg-green-50' : 'bg-red-50'"
+          :class="location.coord ? 'bg-green-100' : 'bg-red-100'"
           @click="openEditModal(location)"
         >
           <!-- Información de ubicación -->
           <div class="flex-grow">
             <h4 class="font-medium">{{ location.location }}</h4>
-            <div v-if="location.coordinates" class="text-sm text-gray-600">
+            <div v-if="location.coord" class="text-sm text-gray-600">
               <p class="flex items-center gap-2">
                 <MapPinIcon class="h-4 w-4" />
-                {{ formatCoordinates(location.coordinates) }}
+                {{ formatCoordinates(location.coord) }}
               </p>
               <p v-if="location.routeInfo" class="flex items-center gap-2 mt-1">
                 <ClockIcon class="h-4 w-4" />
@@ -39,7 +39,6 @@
               </p>
             </div>
           </div>
-
           <!-- Botones de acción -->
           <div class="flex items-center gap-2">
             <button
@@ -50,7 +49,7 @@
               <PencilIcon class="h-4 w-4" />
             </button>
             <button
-              v-if="location.coordinates"
+              v-if="location.coord"
               @click.stop="recalculateRoute(location)"
               class="btn-icon"
               :disabled="location.isCalculating"
@@ -91,25 +90,27 @@
           <h3 class="text-lg font-medium mb-4 pr-8">
             {{ selectedLocation ? "Editar" : "Nueva" }} Ubicación
           </h3>
-
           <div class="space-y-4">
             <!-- Nombre de referencia -->
             <div>
-              <label class="block text-sm font-medium text-gray-700">
-                Nombre de referencia
-              </label>
+              <label class="block text-sm font-medium text-gray-700"
+                >Nombre de referencia</label
+              >
               <input
                 v-model="editingLocation.location"
                 type="text"
                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
               />
+              <p v-if="formErrors.location" class="text-xs text-red-500 mt-1">
+                {{ formErrors.location }}
+              </p>
             </div>
 
             <!-- Campo de búsqueda con botón -->
             <div>
-              <label class="block text-sm font-medium text-gray-700">
-                Buscar ubicación
-              </label>
+              <label class="block text-sm font-medium text-gray-700"
+                >Buscar ubicación</label
+              >
               <div class="flex gap-2">
                 <input
                   v-model="searchQuery"
@@ -128,7 +129,7 @@
 
             <!-- Coordenadas -->
             <div>
-              <label class="block text-sm font-medium text-gray-700"> Coordenadas </label>
+              <label class="block text-sm font-medium text-gray-700">Coordenadas</label>
               <input
                 v-model="coordinatesInput"
                 type="text"
@@ -136,10 +137,13 @@
                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
                 readonly
               />
+              <p v-if="formErrors.coordinates" class="text-xs text-red-500 mt-1">
+                {{ formErrors.coordinates }}
+              </p>
             </div>
 
             <!-- Mapa -->
-            <div class="h-96 bg-gray-100 rounded-lg overflow-hidden">
+            <div class="h-64 sm:h-96 bg-gray-100 rounded-lg overflow-hidden">
               <LMap
                 v-if="showEditModal"
                 :zoom="mapZoom"
@@ -147,7 +151,7 @@
                 @click="onMapClick"
                 class="h-full w-full"
               >
-                <LTileLayer :url="tileLayerUrl" />
+                <LTileLayer :url="tileLayerUrl" crossorigin="anonymous" />
                 <LMarker v-if="markerPosition" :lat-lng="markerPosition" />
               </LMap>
             </div>
@@ -202,14 +206,9 @@
 </template>
 
 <script setup lang="ts">
+import "leaflet/dist/leaflet.css";
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { getUserLocation } from "../utils/geolocation";
-import {
-  getLocations,
-  deleteLocation as deleteLocationService,
-  updateLocation,
-  addLocation,
-} from "../services/LocationsServices"; // Agregar updateLocation y addLocation
 import { calculateRoute, formatDistance, formatDuration } from "../services/RouteService";
 import { ChevronDownIcon } from "../utils/icons";
 import { MapPinIcon } from "../utils/icons";
@@ -222,36 +221,29 @@ import { XMarkIcon } from "../utils/icons";
 import { LMap } from "@vue-leaflet/vue-leaflet";
 import { LTileLayer } from "@vue-leaflet/vue-leaflet";
 import { LMarker } from "@vue-leaflet/vue-leaflet";
-import "leaflet/dist/leaflet.css";
 import { useEventStore } from "../stores/eventStore";
 
-// Estados
+// Estados fundamentales
 const open = ref(false);
 const eventStore = useEventStore();
 const currentPosition = ref<{ lat: number; lng: number } | null>(null);
 const locations = ref<any[]>([]);
 const routeCache = ref(new Map());
-const updateInterval = ref<number | null>(null); // Referencia para el intervalo
+const updateInterval = ref<number | null>(null);
 
-// Añadir estados para el mapa
+// Estados del mapa
 const mapZoom = ref(13);
 const mapCenter = ref<[number, number]>([0, 0]);
 const markerPosition = ref<{ lat: number; lng: number } | null>(null);
-const tileLayerUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+const tileLayerUrl = "https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png";
 const searchQuery = ref("");
 const coordinatesInput = ref("");
 
-// Funciones de carga de datos
-async function loadLocations() {
-  try {
-    locations.value = await getLocations();
-    await calculateAllRoutes();
-  } catch (error) {
-    console.error("Error cargando ubicaciones:", error);
-  }
-}
+// Estado para el formulario y validación
+const editingLocation = ref({ location: "", coordinates: "" });
+const formErrors = ref<{ location?: string; coordinates?: string }>({});
 
-// Estado para los modales
+// Estado para modales
 const showEditModal = ref(false);
 const showDeleteModal = ref(false);
 const selectedLocation = ref<{
@@ -259,33 +251,93 @@ const selectedLocation = ref<{
   location?: string;
   coordinates?: { lat: number; lng: number };
 } | null>(null);
-const editingLocation = ref({
-  location: "",
-  coordinates: "",
-});
 
-// Computed
+// Computed para obtener los eventos con rutas
 const locationsWithRoutes = computed(() => {
-  return locations.value.map((loc) => ({
-    ...loc,
-    routeInfo: routeCache.value.get(loc.id),
-    isCalculating: false,
-  }));
+  return eventStore.events.map((location) => {
+    const routeInfo = routeCache.value.get(location);
+    return { ...location, routeInfo, isCalculating: false };
+  });
 });
 
-// Métodos
+// Función para alternar el panel
 const toggle = () => (open.value = !open.value);
 
+// Formateo de coordenadas
 const formatCoordinates = (coords: { lat: number; lng: number }) =>
   `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`;
 
+// Validación del formulario
+function validateForm(): boolean {
+  let isValid = true;
+  formErrors.value = {};
+
+  if (!editingLocation.value.location || editingLocation.value.location.trim() === "") {
+    formErrors.value.location = "El nombre de la ubicación es requerido.";
+    isValid = false;
+  }
+
+  if (
+    !markerPosition.value ||
+    isNaN(markerPosition.value.lat) ||
+    isNaN(markerPosition.value.lng)
+  ) {
+    formErrors.value.coordinates = "Debe seleccionar una ubicación válida en el mapa.";
+    isValid = false;
+  }
+  return isValid;
+}
+
+// Guardar ubicación (actualización o creación)
+async function saveLocation() {
+  if (!validateForm()) return;
+
+  try {
+    const newLocationName = editingLocation.value.location.trim();
+    const newCoordinates = markerPosition.value;
+
+    if (!selectedLocation.value) {
+      alert(
+        "Por favor, selecciona una ubicación existente para actualizar sus coordenadas."
+      );
+      return;
+    }
+
+    // Si el nombre de la referencia ha cambiado, actualizar la propiedad "location" del evento
+    if (selectedLocation.value.location !== newLocationName) {
+      await eventStore.updateEventsLocation(
+        selectedLocation.value.location!,
+        newLocationName
+      );
+    }
+    // Actualizar la propiedad "coord" del evento
+    await eventStore.updateEventsCoordinates(newLocationName, newCoordinates!);
+
+    await loadLocations();
+    closeEditModal();
+  } catch (error) {
+    console.error("Error al guardar la ubicación:", error);
+    alert("Error al guardar la ubicación");
+  }
+}
+
+// Carga de ubicaciones
+async function loadLocations() {
+  try {
+    const data = await eventStore.getLocations();
+    locations.value = Array.isArray(data) ? data : [];
+    await calculateAllRoutes();
+  } catch (error) {
+    console.error("Error cargando ubicaciones:", error);
+  }
+}
+
+// Gestión de rutas
 async function calculateRouteForLocation(location: any) {
   if (!location.coordinates || !currentPosition.value) return;
-
   location.isCalculating = true;
   try {
     const route = await calculateRoute(currentPosition.value, location.coordinates);
-
     routeCache.value.set(location.id, {
       distance: formatDistance(route.distance),
       duration: formatDuration(route.duration),
@@ -304,7 +356,6 @@ async function recalculateRoute(location: any) {
 
 async function calculateAllRoutes() {
   if (!currentPosition.value) return;
-
   for (const location of locations.value) {
     if (location.coordinates) {
       await calculateRouteForLocation(location);
@@ -312,28 +363,31 @@ async function calculateAllRoutes() {
   }
 }
 
-// Funciones para el modal de edición
+// Apertura y cierre del modal de edición
 function openEditModal(location: any) {
   selectedLocation.value = location;
   editingLocation.value = {
     location: location.location,
+    // Si la ubicación posee coordenadas, también se asigna su valor, de lo contrario dejar vacío
     coordinates: location.coordinates
       ? `${location.coordinates.lat},${location.coordinates.lng}`
       : "",
   };
-
-  // Configurar el mapa
-  if (location.coordinates) {
-    mapCenter.value = [location.coordinates.lat, location.coordinates.lng];
-    markerPosition.value = location.coordinates;
-    coordinatesInput.value = `${location.coordinates.lat},${location.coordinates.lng}`;
+  // Pre-cargar el campo de búsqueda con el nombre de referencia
+  searchQuery.value = editingLocation.value.location;
+  // Forzar que el mapa se centre en la posición actual del usuario
+  if (currentPosition.value) {
+    mapCenter.value = [currentPosition.value.lat, currentPosition.value.lng];
+    markerPosition.value = location.coordinates ? location.coordinates : null;
+    coordinatesInput.value = location.coordinates
+      ? `${location.coordinates.lat},${location.coordinates.lng}`
+      : "";
   } else {
-    // Si no hay coordenadas, centrar en la ubicación actual del usuario
+    // Si no se conoce la posición actual, se obtiene antes de abrir el modal
     getUserLocation().then((pos) => {
       mapCenter.value = [pos.lat, pos.lng];
     });
   }
-
   showEditModal.value = true;
 }
 
@@ -341,60 +395,36 @@ function closeEditModal() {
   showEditModal.value = false;
   selectedLocation.value = null;
   editingLocation.value = { location: "", coordinates: "" };
+  formErrors.value = {};
 }
 
-async function saveLocation() {
-  if (!markerPosition.value) {
-    alert("Por favor, selecciona una ubicación en el mapa");
-    return;
-  }
-
-  try {
-    const locationData = {
-      location: editingLocation.value.location,
-      coordinates: markerPosition.value,
-    };
-
-    if (selectedLocation.value?.id) {
-      await updateLocation(String(selectedLocation.value.id), locationData);
-      await eventStore.updateEventsCoordinates(
-        String(selectedLocation.value.id),
-        locationData.coordinates as { lat: number; lng: number }
-      );
-    } else {
-      await addLocation(locationData.location, locationData.coordinates);
-    }
-
-    await loadLocations();
-    closeEditModal();
-  } catch (error) {
-    console.error("Error al guardar la ubicación:", error);
-    alert("Error al guardar la ubicación");
-  }
-}
-
-// Función para manejar el clic en el mapa
+// Función para manejar clics en el mapa
 function onMapClick(e: any) {
   const { lat, lng } = e.latlng;
   markerPosition.value = { lat, lng };
   coordinatesInput.value = `${lat.toFixed(6)},${lng.toFixed(6)}`;
 }
 
-// Función para buscar ubicación
+// Búsqueda de ubicación mediante geocodificación
 async function geocodeSearch() {
   if (!searchQuery.value) {
     alert("Por favor ingresa un término de búsqueda");
     return;
   }
-
   try {
-    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+    let url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
       searchQuery.value
-    )}&format=json&limit=1`;
-
+    )}`;
+    // Si se conoce la posición actual, restringir resultados a una caja de aproximadamente 1 grado de diferencia
+    if (currentPosition.value) {
+      const lat = currentPosition.value.lat;
+      const lng = currentPosition.value.lng;
+      const viewbox = `${lng - 0.5},${lat + 0.5},${lng + 0.5},${lat - 0.5}`;
+      url += `&viewbox=${viewbox}&bounded=1`;
+    }
+    url += `&format=json&limit=1`;
     const response = await fetch(url);
     const data = await response.json();
-
     if (data.length > 0) {
       const { lat, lon } = data[0];
       mapCenter.value = [parseFloat(lat), parseFloat(lon)];
@@ -409,7 +439,7 @@ async function geocodeSearch() {
   }
 }
 
-// Funciones para el modal de eliminación
+// Modal de eliminación
 function confirmDelete(location: any) {
   selectedLocation.value = location;
   showDeleteModal.value = true;
@@ -417,10 +447,9 @@ function confirmDelete(location: any) {
 
 async function deleteLocation() {
   if (!selectedLocation.value?.id) return;
-
   try {
-    await deleteLocationService(String(selectedLocation.value.id));
-    await loadLocations(); // Ahora loadLocations está definida
+    await eventStore.deleteEvent(String(selectedLocation.value.id));
+    await loadLocations();
     showDeleteModal.value = false;
     selectedLocation.value = null;
   } catch (error) {
@@ -428,19 +457,12 @@ async function deleteLocation() {
   }
 }
 
-// Lifecycle hooks
+// Ciclo de vida
 onMounted(async () => {
   try {
-    // Obtener ubicación actual
     currentPosition.value = await getUserLocation();
-
-    // Cargar ubicaciones
-    locations.value = await getLocations();
-
-    // Calcular rutas iniciales
+    locations.value = await eventStore.getLocations();
     await calculateAllRoutes();
-
-    // Actualizar cada 5 minutos
     updateInterval.value = window.setInterval(async () => {
       currentPosition.value = await getUserLocation();
       await calculateAllRoutes();
@@ -450,12 +472,17 @@ onMounted(async () => {
   }
 });
 
-// Registrar onUnmounted antes de cualquier operación asíncrona
 onUnmounted(() => {
   if (updateInterval.value) {
     clearInterval(updateInterval.value);
   }
 });
+</script>
+
+<script lang="ts">
+export default {
+  name: "ProfileDistance",
+};
 </script>
 
 <style lang="postcss">
@@ -481,17 +508,25 @@ onUnmounted(() => {
   scrollbar-width: thin;
   scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
 }
-
 .overflow-y-auto::-webkit-scrollbar {
   width: 6px;
 }
-
 .overflow-y-auto::-webkit-scrollbar-track {
   background: transparent;
 }
-
 .overflow-y-auto::-webkit-scrollbar-thumb {
   background-color: rgba(156, 163, 175, 0.5);
   border-radius: 3px;
+}
+@media (max-width: 640px) {
+  .h-64 {
+    height: 16rem; /* 256px, ajustable para móviles */
+  }
+}
+
+/* Asegurar que el contenedor de Leaflet se visualice correctamente en dispositivos móviles */
+.leaflet-container {
+  height: 100% !important;
+  width: 100% !important;
 }
 </style>

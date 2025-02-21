@@ -292,6 +292,74 @@ export const useEventStore = defineStore('events', () => {
 			loading.value = false;
 		}
 	};
+	// Agregar funciones auxiliares
+	function normalizeLocation(loc: string): string {
+		return loc.normalize('NFD').replace(/[\u0300-\u036f]/g, "").toLowerCase();
+	}
+	
+	function isDuplicate(newLoc: string, existingLoc: string): boolean {
+		if (newLoc === existingLoc) return true;
+		
+		const newWords = newLoc.split(/\s+/).filter(w => w);
+		const existingWords = existingLoc.split(/\s+/).filter(w => w);
+		
+		let commonCount = 0;
+		for (const word of newWords) {
+		  for (const eWord of existingWords) {
+			if (
+			  word === eWord ||
+			  word === eWord + "s" ||
+			  word + "s" === eWord
+			) {
+			  commonCount++;
+			  break;
+			}
+		  }
+		}
+		
+		// Si alguna ubicación tiene menos de 3 palabras, se requiere coincidencia exacta en todas
+		if (newWords.length < 3 || existingWords.length < 3) {
+		  return newWords.length === existingWords.length && commonCount === newWords.length;
+		}
+		
+		return commonCount >= 3;
+	  }
+	
+	async function getLocations() {
+		try {
+			await fetchEvents();
+			// Crear un mapa para almacenar ubicaciones únicas con validación de duplicados
+			const uniqueLocations = new Map<string, { location: string; sinCoord: boolean; coord?: { lat: number; lng: number } }>();
+			
+			events.value.forEach((e) => {
+				if (e.location) {
+					const normNew = normalizeLocation(e.location);
+					let duplicateFound = false;
+					for (const [key] of uniqueLocations) {
+						const normExisting = normalizeLocation(key);
+						if (isDuplicate(normNew, normExisting)) {
+							duplicateFound = true;
+							break;
+						}
+					}
+					if (!duplicateFound) {
+						if (e.coord) {
+							uniqueLocations.set(e.location, { location: e.location, coord: e.coord, sinCoord: false });
+						} else {
+							uniqueLocations.set(e.location, { location: e.location, sinCoord: true });
+						}
+					}
+				}
+			});
+			
+			const locationsArray = Array.from(uniqueLocations.values());
+			console.log("Ubicaciones obtenidas:", locationsArray);
+			return locationsArray;
+		} catch (error) {
+			console.error("Error obteniendo las ubicaciones:", error);
+			throw error;
+		}
+	}
 	async function updateEventsLocation(oldLocation: string, newLocation: string): Promise<void> {
 		try {
 			const actividadesCollection = collection(db, "actividades");
@@ -355,7 +423,8 @@ export const useEventStore = defineStore('events', () => {
 		togglePaymentStatus,
 		deleteRecurringEvents,
 		updateEventsLocation,
-		updateEventsCoordinates
+		updateEventsCoordinates,
+		getLocations,
 	};
 }); // Cierre del defineStore
 

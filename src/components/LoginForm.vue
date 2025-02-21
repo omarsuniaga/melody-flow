@@ -154,7 +154,7 @@ async function onGoogleLogin() {
       // Manejo de errores específicos
       if (result.reason === "popup-closed-by-user") {
         toast.warning("El usuario cerró el popup de Google");
-      } else if (result.error) {
+      } else if ("error" in result && result.error) {
         loginError.value = result.error.message || "Error desconocido en Google Login";
       }
     }

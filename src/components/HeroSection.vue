@@ -1,9 +1,9 @@
 <template>
   <div class="mt-8 mb-8 text-center">
     <img src="/icons/icon-512x512.png" alt="MelodyFlow" class="w-24 h-24 mx-auto" />
-    <h2 class="text-2xl font-bold text-gray-900 mb-4">Bienvenido a MelodyFlow</h2>
+    <h2 class="text-2xl font-bold text-gray-900 mb-4">Apptividades</h2>
     <p class="text-gray-600 max-w-2xl mx-auto">
-      MelodyFlow es tu compañero perfecto para la gestión musical profesional. Organiza
+      Apptividades es tu compañero perfecto para la gestión musical profesional. Organiza
       tus eventos musicales, administra tu calendario, controla tus pagos y optimiza tu
       tiempo con nuestras herramientas diseñadas especialmente para músicos.
     </p>

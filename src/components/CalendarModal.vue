@@ -152,15 +152,13 @@ import ButtonComponent from "./ButtonComponent.vue";
 import EventFormModal from "./EventFormModal.vue";
 import EventViewModal from "./EventViewModal.vue";
 import EventEditModal from "./EventEditModal.vue";
-import DeleteEvent from "./DeleteEvent.vue";
-import {
-  PlusIcon,
-  EyeIcon,
-  PencilIcon,
-  CheckCircleIcon,
-  ClockIcon,
-  MapPinIcon,
-} from "../utils/icons";
+import DeleteEvent from "./EventDelete.vue";
+import { PlusIcon } from "../utils/icons";
+import { EyeIcon } from "../utils/icons";
+import { PencilIcon } from "../utils/icons";
+import { MapPinIcon } from "../utils/icons";
+import { ClockIcon } from "../utils/icons";
+import { CheckCircleIcon } from "../utils/icons";
 import { useEventStore } from "../stores/eventStore"; // Eliminar cualquier referencia a Supabase
 import { withDefaults } from "vue";
 import { defineAsyncComponent, computed } from "vue";

@@ -1,0 +1,46 @@
+[
+  {
+    "text": "este viernes tengo un evento organizado por Soriano, en el hotel ocean el faro, en el lobbys del hotel, a las 11:00pm, son 6500 pesos.",
+    "correction": {
+      "provider": "Soriano",
+      "description": "Lobby",
+      "location": "Hotel Ocean el Faro",
+      "date": "2025-02-21",
+      "time": "23:00",
+      "amount": 6500
+    }
+  },
+  {
+    "text": "mañana a las 7:30 am, en el restaurante El Buen Sabor, se realizará un brunch por 3200 pesos, organizado por Eventos VIP.",
+    "correction": {
+      "provider": "Eventos VIP",
+      "description": "Brunch",
+      "location": "Restaurante El Buen Sabor",
+      "date": "2025-02-22",
+      "time": "07:30",
+      "amount": 3200
+    }
+  },
+  {
+    "text": "el sábado, un evento especial en Casa Nueva, organizado por la empresa Galo, tendrá lugar a las 20:00, con un costo de 4800 pesos.",
+    "correction": {
+      "provider": "Galo",
+      "description": "Evento especial",
+      "location": "Casa Nueva",
+      "date": "2025-02-23",
+      "time": "20:00",
+      "amount": 4800
+    }
+  },
+  {
+    "text": "evento de música en vivo en el jardín principal con Music Pro, este domingo desde las 3pm, cobro de 4500",
+    "correction": {
+      "provider": "Music Pro",
+      "description": "Música en vivo",
+      "location": "Jardín Principal",
+      "date": "2025-02-23",
+      "time": "15:00",
+      "amount": 4500
+    }
+  }
+]

@@ -12,8 +12,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
 import { RouterView } from "vue-router";
-import FooterLayout from "./FooterLayout.vue";
 import { useEventStore } from "../stores/eventStore";
+import FooterLayout from "./FooterLayout.vue";
 import { startOfDay, endOfDay, parseISO } from "date-fns";
 import { auth } from "../firebase/config";
 import { onAuthStateChanged } from "firebase/auth";

@@ -93,7 +93,9 @@
 import { MusicEvent } from "../types/event";
 import ModalComponent from "./ModalComponent.vue";
 import ButtonComponent from "./ButtonComponent.vue";
-import { CalendarIcon, ClockIcon, MapPinIcon } from "../utils/icons";
+import { CalendarIcon } from "../utils/icons";
+import { MapPinIcon } from "../utils/icons";
+import { ClockIcon } from "../utils/icons";
 
 const props = defineProps<{
   modelValue: boolean;

@@ -30,12 +30,16 @@ const formatCurrency = (amount: number): string => {
 // Template del PDF
 export const getPendingEventsTemplate = (provider: string, events: Event[]) => {
   const user = useAuthStore();
-  const totalAmount = events.reduce((sum, event) => sum + event.amount, 0);
+  // Ordenar eventos por fecha (asumiendo que event.date es un string en formato reconocible por Date)
+  const sortedEvents = [...events].sort((a: Event, b: Event) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const totalAmount = sortedEvents.reduce((sum, event) => sum + event.amount, 0);
+  const currentDate = format(new Date(), 'yyyy-MM-dd');
 
   return {
+    fileName: `${provider}_${currentDate}.pdf`, // Nombre del archivo con proveedor y fecha de emisión
     pageSize: 'LETTER',
     pageMargins: [40, 80, 40, 60],
-    header: (currentPage: number, pageCount: number) => ({
+    header: () => ({
       columns: [
         {
           text: 'REPORTE DE ACTIVIDADES MUSICALES',
@@ -106,8 +110,8 @@ export const getPendingEventsTemplate = (provider: string, events: Event[]) => {
           { text: 'DESCRIPCIÓN', style: 'tableHeader' },
           { text: 'MONTO', style: 'tableHeader' }
         ],
-        ...events.map((event: Event, i: number) => [
-          { text: format(new Date(event.date), 'dd/MM/yyyy'), style: i % 2 === 0 ? 'evenRow' : 'oddRow' },
+        ...sortedEvents.map((event: Event, i: number) => [
+          { text: event.date, style: i % 2 === 0 ? 'evenRow' : 'oddRow' },
           { text: event.location, style: i % 2 === 0 ? 'evenRow' : 'oddRow' },
           { text: event.time || 'N/A', style: i % 2 === 0 ? 'evenRow' : 'oddRow' },
           { text: event.description, style: i % 2 === 0 ? 'evenRow' : 'oddRow' },
@@ -123,12 +127,12 @@ export const getPendingEventsTemplate = (provider: string, events: Event[]) => {
           hLineWidth: function (i: number, node: any): number {
         return (i === 0 || i === node.table.body.length) ? 0 : 0.5;
           },
-          vLineWidth: function (i: number, node: any): number {
+          vLineWidth: function (): number {
             return 0;
           },
           hLineColor: '#aaaaaa',
-          paddingTop: function(i, node) { return 4; },
-          paddingBottom: function(i, node) { return 4; }
+          paddingTop: function() { return 4; },
+          paddingBottom: function() { return 4; }
         },
         margin: [0, 0, 0, 30]
       },
@@ -138,14 +142,9 @@ export const getPendingEventsTemplate = (provider: string, events: Event[]) => {
         
         Agradezco la confanza depositada en mis servicios musicales y espero seguir contando con su preferencia para futuros eventos.
 Quedo atento a la gestión del pago correspondiente y a cualquier duda o aclaración adicional que pueda surgir.
-        `,
-        fontSize: 12,
-        margin: [0, 20, 0, 30]
-      },
-      
-      {
-        text: `
-Saludos Cordiales,`,
+
+Saludos Cordiales,
+`,
         fontSize: 12,
         margin: [0, 20, 0, 30]
       },

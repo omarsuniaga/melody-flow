@@ -145,23 +145,21 @@ export const useAuthStore = defineStore("auth", {
       this.loading = true;
       this.error = null;
       try {
-        const provider = new GoogleAuthProvider();
-        const result = await signInWithPopup(auth, provider);
-        this.user = result.user;
-        return { success: true, user: result.user };
+        const authService = useAuthService();
+        let result = await authService.handleGoogleLogin();
+        // Si result es undefined, se asigna un valor por defecto
+        if (!result) {
+          result = { success: false, reason: "undefined-result" };
+        }
+        if (result.success) {
+          this.user = result.user;
+          return { success: true, user: result.user };
+        }
+        return result; // { success: false, reason: ... }
       } catch (error: any) {
         console.error("Error en Google login:", error);
-        // Manejo específico de error si el popup se cierra
-        if (error.code === "auth/popup-closed-by-user") {
-          return { success: false, reason: "popup-closed-by-user" };
-        }
-        // Manejo de errores generales
         this.error = error.message || "Error desconocido";
-        return {
-          success: false,
-          reason: "general-error",
-          error,
-        };
+        return { success: false, reason: "general-error", error };
       } finally {
         this.loading = false;
       }

@@ -1,0 +1,4 @@
+/*    /index.html   200
+# Opcional: redirigir URLs sin extensión a index.html
+/[^\\.]+   /index.html   200
+
