@@ -1,25 +1,23 @@
 <script setup lang="ts">
-import { computed, withDefaults, ref, onMounted, onUnmounted, watch } from "vue";
+import { computed, ref, onMounted, onUnmounted } from "vue";
+import { isSameDay, parse } from "date-fns";
 import { formatCurrency } from "../utils/helpers";
-import { format, parse } from "date-fns";
-import { es } from "date-fns/locale";
-import { isSameDay } from "date-fns";
 
-// Definir tipos mínimos para evento
 interface Event {
   id: string;
-  date: string;
+  date: string; // "yyyy-MM-dd"
   provider: string;
   location: string;
   amount: number;
-  time?: string; // hora del evento, formato "HH:mm"
+  time?: string; // "HH:mm"
 }
 
-const props = withDefaults(defineProps<{ events: Event[] }>(), { events: () => [] });
+const props = defineProps<{ events: Event[] }>();
 
-// Crear variable reactiva para la hora actual
+// Reloj reactivo
 const currentTime = ref(new Date());
 let intervalId: number | null = null;
+
 onMounted(() => {
   intervalId = window.setInterval(() => {
     currentTime.value = new Date();
@@ -29,50 +27,37 @@ onUnmounted(() => {
   if (intervalId) clearInterval(intervalId);
 });
 
-// Watch para ver la actualización de la hora
-watch(currentTime, (newTime, oldTime) => {
-  console.log("Current time updated:", newTime);
-});
+// Parseo local de la fecha (ignora UTC)
+function parseLocalDate(dateStr: string): Date {
+  return parse(dateStr, "yyyy-MM-dd", new Date());
+}
 
-// Computed: Eventos pasados y futuros usando isSameDay
-const pastEvents = computed(() => {
-  return props.events.filter((event) => {
-    const eventDate = new Date(event.date);
-    // Si el evento no es hoy, se compara la fecha completa
-    if (!isSameDay(eventDate, currentTime.value)) {
-      return eventDate.getTime() < currentTime.value.getTime();
-    }
-    // Si es hoy, se construye la fecha completa usando event.time (si existe)
-    if (event.time) {
-      const [hours, minutes] = event.time.split(":").map(Number);
-      const eventDateTime = new Date(eventDate);
-      eventDateTime.setHours(hours, minutes, 0, 0);
-      return eventDateTime.getTime() < currentTime.value.getTime();
-    }
-    // Si es hoy y no hay hora, se asume que aún no ocurrió
-    return false;
-  });
-});
+// Combina fecha y hora
+function getEventDateTime(event: Event): Date {
+  const date = parseLocalDate(event.date);
+  if (event.time) {
+    const [hours, minutes] = event.time.split(":").map(Number);
+    date.setHours(hours, minutes, 0, 0);
+  }
+  return date;
+}
 
-const futureEvents = computed(() => {
-  return props.events.filter((event) => {
-    const eventDate = new Date(event.date);
-    if (!isSameDay(eventDate, currentTime.value)) {
-      return eventDate.getTime() > currentTime.value.getTime();
-    }
-    if (event.time) {
-      const [hours, minutes] = event.time.split(":").map(Number);
-      const eventDateTime = new Date(eventDate);
-      eventDateTime.setHours(hours, minutes, 0, 0);
-      return eventDateTime.getTime() >= currentTime.value.getTime();
-    }
-    // Si es hoy y sin hora, se asume que el evento es futuro
-    return true;
-  });
-});
+// ¿Es pasado?
+function isEventPast(event: Event): boolean {
+  const eventDateTime = getEventDateTime(event);
+  return eventDateTime.getTime() < currentTime.value.getTime();
+}
 
-console.log("Eventos pasados:", pastEvents.value);
-console.log("Eventos futuros:", futureEvents.value);
+// ¿Es futuro?
+function isEventFuture(event: Event): boolean {
+  const eventDateTime = getEventDateTime(event);
+  return eventDateTime.getTime() >= currentTime.value.getTime();
+}
+
+// Filtramos
+const pastEvents = computed(() => props.events.filter((e) => isEventPast(e)));
+
+const futureEvents = computed(() => props.events.filter((e) => isEventFuture(e)));
 
 const totalPastRevenue = computed(() =>
   pastEvents.value.reduce((sum, event) => sum + event.amount, 0)
@@ -86,9 +71,7 @@ const projectedTotalRevenue = computed(
   () => totalPastRevenue.value + totalFutureRevenue.value
 );
 </script>
-
 <script lang="ts">
-// Exportar componente
 export default {
   name: "BalanceMonthlyProjection",
 };
@@ -99,10 +82,10 @@ export default {
     <h3 class="text-lg font-medium text-gray-800 mb-4">Proyección Total del Mes</h3>
     <div class="space-y-2">
       <div class="flex justify-between">
-        <span
-          >Eventos Realizados:
-          {{ pastEvents.length ? "(" + pastEvents.length + ")" : "" }}</span
-        >
+        <span>
+          Eventos Realizados:
+          {{ pastEvents.length ? "(" + pastEvents.length + ")" : "" }}
+        </span>
         <span>{{ formatCurrency(totalPastRevenue) }}</span>
       </div>
       <div class="flex justify-between">
@@ -121,5 +104,5 @@ export default {
 </template>
 
 <style scoped>
-/* ...existing styles si aplican... */
+/* ...existing styles... */
 </style>

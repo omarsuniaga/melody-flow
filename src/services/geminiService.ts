@@ -4,7 +4,7 @@ import type { ParsedEventData } from '../types/event';
 import { ModelStorageService } from './ModelStorageService';
 
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const API_URL = 'https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent';
+const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
 /**
  * Genera una carta predeterminada basada en el proveedor y monto.
@@ -64,12 +64,12 @@ export const processEventText = async (text: string): Promise<ParsedEventData> =
     const prompt = `Analiza el siguiente texto y extrae la información del evento en formato JSON. 
 Usa este formato específico:
 {
-  "provider": "nombre del proveedor o empresa",
-  "description": "breve descripción del evento",
-  "location": "lugar del evento",
-  "date": "YYYY-MM-DD",
-  "time": "HH:mm",
-  "amount": número (sin símbolos de moneda)
+  "provider": "nombre del proveedor o empresa o persona",
+  "description": "breve descripción del evento, si es un lobby, una piscina, restaurant, o el elemento sobrante que no forma parte del resto de propiedades",
+  "location": "lugar del evento, si es un hotel, un restaurante, un parque, una piscina, etc.",
+  "date": "YYYY-MM-DD, revisa si en el texto aparece palabras como mañana, pasado mañana, hoy, o un dia de la semana en especifico, revisa la fecha actual y busca en la semana actual la fecha del dia que se especifica en el texto",
+  "time": "busca en el texto HH:mm o en formato de 12 horas, revisa si en el texto aparece palabras pm o am ejemplo: 7pm y devuelve 19:00",
+  "amount": número normalmente de 4 digitos, tambien revisa si el texto contiene montos por ejemplo 7mil que representan 7000, omite el tipo de moneda
 }
 
 Si algún campo no está presente, déjalo como null.
