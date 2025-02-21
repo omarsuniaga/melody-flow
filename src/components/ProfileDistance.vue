@@ -151,7 +151,11 @@
                 @click="onMapClick"
                 class="h-full w-full"
               >
-                <LTileLayer :url="tileLayerUrl" crossorigin="anonymous" />
+                <LTileLayer
+                  :url="tileLayerUrl"
+                  attribution="&copy; OpenStreetMap contributors"
+                  crossOrigin="anonymous"
+                />
                 <LMarker v-if="markerPosition" :lat-lng="markerPosition" />
               </LMap>
             </div>
@@ -235,7 +239,9 @@ const updateInterval = ref<number | null>(null);
 const mapZoom = ref(13);
 const mapCenter = ref<[number, number]>([0, 0]);
 const markerPosition = ref<{ lat: number; lng: number } | null>(null);
-const tileLayerUrl = "https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png";
+// const tileLayerUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+const tileLayerUrl = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+
 const searchQuery = ref("");
 const coordinatesInput = ref("");
 

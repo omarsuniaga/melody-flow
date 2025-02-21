@@ -19,9 +19,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineProps } from "vue";
+import { computed } from "vue";
 import { format } from "date-fns";
-import { ChartBarIcon, ChevronLeftIcon, ChevronRightIcon } from "../utils/icons";
+import { ChartBarIcon } from "../utils/icons";
+import { ChevronLeftIcon } from "../utils/icons";
+import { ChevronRightIcon } from "../utils/icons";
 
 const props = defineProps<{
   selectedMonth: Date;
