@@ -27,6 +27,7 @@ dist-ssr
 # Archivos de entorno
 .env
 .env.local
+EntrenamientoDataset.py
 
 # Asegúrate que no haya una línea que excluya *.toml
 
