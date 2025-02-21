@@ -1,6 +1,6 @@
-# MelodyFlow
+# Apptividades
 
-**MelodyFlow** es una aplicación web progresiva (PWA) para la gestión de eventos musicales, diseñada para músicos, agrupaciones y organizadores de eventos. La aplicación permite administrar eventos, controlar horarios, gestionar pagos y mucho más, ofreciendo una experiencia de usuario óptima y escalable.
+**Apptividades** es una aplicación web progresiva (PWA) para la gestión de eventos musicales, diseñada para músicos, agrupaciones y organizadores de eventos. La aplicación permite administrar eventos, controlar horarios, gestionar pagos y mucho más, ofreciendo una experiencia de usuario óptima y escalable.
 
 ---
 
