@@ -70,7 +70,7 @@ Usa este formato específico:
   "location": "lugar del evento, si es un hotel, un restaurante, un parque, una piscina, etc.",
   "date": "YYYY-MM-DD, revisa si en el texto aparecen palabras como mañana, pasado mañana, hoy u otro día de la semana; utiliza la fecha actual para ubicar el día especificado",
   "time": "busca en el texto un formato HH:mm o de 12 horas; por ejemplo, si aparece '7pm' devuelve '19:00'",
-  "amount": "número normalmente de 4 dígitos; también revisa si el texto contiene montos escritos como '7mil' que representen 7000; omite el tipo de moneda"
+  "amount": "número normalmente de 4 dígitos en adelante; también revisa si el texto contiene montos escritos como '7mil' que representen 7000; omite el tipo de moneda"
 }
 
 Adicionalmente, si el texto menciona nombres que puedan corresponder a proveedores, empresas o personas, identifícalos y asígnalos al campo 'provider'. 
