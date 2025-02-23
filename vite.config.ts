@@ -2,8 +2,11 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
 import { fileURLToPath, URL } from 'node:url'
-import { resolve } from 'path'
-import path from 'path'
+
+// Ejemplo: si quieres usar path en Node 14 o anterior
+// import path from 'path';
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   plugins: [
@@ -36,9 +39,7 @@ export default defineConfig({
         start_url: '/',
         display: 'standalone',
         background_color: '#ffffff'
-        // Eliminar la propiedad screenshots
       },
-      // Se añade configuración adicional para workbox (caching offline)
       workbox: {
         runtimeCaching: [
           {
@@ -53,43 +54,12 @@ export default defineConfig({
             }
           }
         ],
-        maximumFileSizeToCacheInBytes: 3000000 // Aumentamos a 3MB
+        maximumFileSizeToCacheInBytes: 3000000 // Cache de hasta 3MB
       }
     })
   ],
+
   server: {
-    host: '0.0.0.0', // Permite acceso desde otros dispositivos en la red local
-    port: 5173,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
-      'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
-      'Cross-Origin-Embedder-Policy': 'unsafe-none',
-      'Cross-Origin-Resource-Policy': 'cross-origin',
-      'Content-Security-Policy': `
-        default-src 'self';
-        connect-src 'self' 
-          https://*.firebaseio.com 
-          https://*.googleapis.com 
-          wss://*.firebaseio.com 
-          https://*.firebaseapp.com
-          https://api.exchangerate-api.com 
-          https://nominatim.openstreetmap.org
-          https://*.openstreetmap.org
-          https://router.project-osrm.org
-          https://*.project-osrm.org
-          https://identitytoolkit.googleapis.com
-          https://securetoken.googleapis.com
-          https://www.googleapis.com;
-        img-src 'self' data: blob: https://*.tile.openstreetmap.org https://*.googleusercontent.com;
-        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://*.firebaseapp.com https://www.gstatic.com;
-        style-src 'self' 'unsafe-inline';
-        frame-src 'self' https://*.firebaseapp.com https://accounts.google.com https://apis.google.com;
-        font-src 'self' data: https://fonts.gstatic.com;
-        worker-src 'self' blob:;
-      `.replace(/\s+/g, ' ').trim()
-    },
     proxy: {
       '/auth': {
         target: 'https://accounts.google.com',
@@ -115,24 +85,6 @@ export default defineConfig({
         changeOrigin: true,
         secure: true
       },
-      '/firebase': {
-        target: 'https://firestore.googleapis.com',
-        changeOrigin: true,
-        secure: true,
-        headers: {
-          'Cross-Origin-Resource-Policy': 'cross-origin'
-        }
-      },
-      '/v1alpha': {
-        target: 'https://firebase.googleapis.com',
-        changeOrigin: true,
-        secure: true,
-        configure: (proxy, options) => {
-          proxy.on('proxyReq', (proxyReq, req, res) => {
-            proxyReq.setHeader('Origin', 'https://firebase.googleapis.com')
-          })
-        }
-      },
       '/google.firestore.v1.Firestore': {
         target: 'https://firestore.googleapis.com',
         changeOrigin: true,
@@ -140,7 +92,9 @@ export default defineConfig({
       }
     }
   },
+
   resolve: {
+    // Puedes ajustar según tus necesidades
     extensions: ['.js', '.ts', '.jsx', '.tsx', '.json', '.vue', '.css'],
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
@@ -148,13 +102,20 @@ export default defineConfig({
       '@components': fileURLToPath(new URL('./src/components', import.meta.url))
     }
   },
+
   optimizeDeps: {
-    include: ['@vuepic/vue-datepicker', 'pdfmake/build/pdfmake', 'pdfmake/build/vfs_fonts']
+    include: [
+      '@vuepic/vue-datepicker',
+      'pdfmake/build/pdfmake',
+      'pdfmake/build/vfs_fonts'
+    ]
   },
+
   build: {
     rollupOptions: {
       output: {
         manualChunks: {
+          // Librerías principales
           'vendor': [
             'vue',
             'vue-router',
@@ -165,13 +126,18 @@ export default defineConfig({
             '@heroicons/vue',
             '@headlessui/vue'
           ],
-          // Dividir el PDF en chunks más pequeños
-          'pdf-core': ['pdfmake/build/pdfmake'],
-          'pdf-fonts': ['pdfmake/build/vfs_fonts'],
+          // Chunks específicos de PDFMake
+          'pdfmake': [
+            'pdfmake/build/pdfmake',
+            'pdfmake/build/vfs_fonts'
+          ],
+          // Firebase
           'firebase-core': ['firebase/app'],
           'firebase-auth': ['firebase/auth'],
           'firebase-firestore': ['firebase/firestore'],
+          // Leaflet
           'leaflet': ['leaflet'],
+          // Ejemplo de componentes agrupados
           'calendar-components': [
             './src/components/MonthSelector.vue',
             './src/components/EventsMetrics.vue'
@@ -190,23 +156,22 @@ export default defineConfig({
             './src/utils/icons.ts',
             './src/utils/pdfMakeConfig.ts',
             './src/utils/pdfTemplates.ts'
-          ],
-          pdfmake: ['pdfmake/build/pdfmake', 'pdfmake/build/vfs_fonts']
+          ]
         },
-        // Configurar el nombre de los chunks generados
         chunkFileNames: 'assets/js/[name]-[hash].js',
         entryFileNames: 'assets/js/[name]-[hash].js',
         assetFileNames: 'assets/[ext]/[name]-[hash].[ext]'
       }
     },
-    chunkSizeWarningLimit: 1500, // Aumentamos el límite
-    sourcemap: true,
+    chunkSizeWarningLimit: 1500, // Ajusta el límite de advertencia según tus necesidades
+    sourcemap: true,             // Si no lo necesitas, cámbialo a false
     outDir: 'dist',
     commonjsOptions: {
       include: [/node_modules/],
       transformMixedEsModules: true
     }
   },
+
   envPrefix: 'VITE_',
   assetsInclude: ['**/*.svg']
 })
