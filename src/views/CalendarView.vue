@@ -15,6 +15,13 @@
           :title="format(currentDate, 'MMMM yyyy')"
           @update:currentDate="currentDate = $event"
         />
+        <!-- Nuevo bloque de notificación en header -->
+        <div
+          v-if="todayEventSummary"
+          class="notification-header p-2 my-2 bg-yellow-100 rounded shadow"
+        >
+          {{ todayEventSummary }}
+        </div>
         <!-- Grilla de días que muestra los eventos asociados a cada fecha -->
         <CalendarGrid
           :calendarDays="calendarDays"
@@ -216,6 +223,15 @@ const getCurrentEvent = () => {
     return timeA.getTime() - timeB.getTime();
   })[0];
 };
+
+// Nuevo computed que genera el resumen del primer evento del día actual
+const todayEventSummary = computed(() => {
+  const now = new Date();
+  const eventsToday = getDateEvents(now);
+  if (!eventsToday || eventsToday.length === 0) return "";
+  const firstEvent = eventsToday[0];
+  return `${firstEvent.provider} - ${firstEvent.description} - ${firstEvent.time}`;
+});
 </script>
 
 <style lang="postcss">

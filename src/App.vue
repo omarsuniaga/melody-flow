@@ -25,11 +25,9 @@ import { RouterView } from "vue-router";
 import { useAuthStore } from "./stores/authStore";
 import { useEventStore } from "./stores/eventStore";
 import { NotificationService } from "./services/NotificationService";
-
 // Instanciar los stores de autenticación y eventos
 const authStore = useAuthStore();
 const eventStore = useEventStore();
-
 /**
  * Inicializa la autenticación.
  * Nota: Si ya se inicializa la autenticación en main.ts, verifica que no se
@@ -62,5 +60,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+@import "leaflet/dist/leaflet.css";
 /* Estilos específicos para el componente App.vue */
 </style>

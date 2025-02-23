@@ -73,6 +73,7 @@ import {
   endOfMonth,
   eachDayOfInterval,
   isSameMonth,
+  parseISO,
 } from "date-fns";
 import { MusicEvent } from "../types/event";
 import ChevronLeftIcon from "@heroicons/vue/24/outline/ChevronLeftIcon";
@@ -135,17 +136,23 @@ const currentMonthName = computed(() => {
 const calendarDays = computed(() => {
   const start = startOfMonth(currentDate.value);
   const end = endOfMonth(currentDate.value);
-  const days = eachDayOfInterval({ start, end }).map((date) => {
+  return eachDayOfInterval({ start, end }).map((date) => {
     return {
       date,
       isCurrentMonth: isSameMonth(date, currentDate.value),
-      events: props.events.filter(
-        (event) =>
-          format(new Date(event.date), "yyyy-MM-dd") === format(date, "yyyy-MM-dd")
-      ),
+      events: props.events.filter((event) => {
+        let eventDate;
+        if (event.activityType === "Fija") {
+          // Crear fecha local a partir de la cadena YYYY-MM-DD
+          const [year, month, day] = event.date.split("-").map(Number);
+          eventDate = new Date(year, month - 1, day);
+        } else {
+          eventDate = parseISO(event.date);
+        }
+        return format(eventDate, "yyyy-MM-dd") === format(date, "yyyy-MM-dd");
+      }),
     };
   });
-  return days;
 });
 </script>
 <script lang="ts">

@@ -60,8 +60,9 @@
                   class="field-input"
                 />
                 <template v-else-if="key === 'amount'">
+                  <!-- Usar computed editableAmount para suportar numero u objeto -->
                   <input
-                    v-model.number="parsedResult.amount.value"
+                    v-model.number="editableAmount"
                     type="number"
                     min="0"
                     step="0.01"
@@ -162,6 +163,7 @@ import ModalComponent from "./ModalComponent.vue";
 import ButtonComponent from "./ButtonComponent.vue";
 import { LocalNLPService } from "../services/LocalNLPService";
 import { CorrectionService } from "../services/CorrectionService"; // Nuevo import
+import { processEventText } from "../services/geminiService"; // Nuevo import
 
 const geminiAvailable = ref(true); // Bandera para indicar disponibilidad de GeminiService
 
@@ -171,6 +173,9 @@ const isOpen = ref(false);
 const promptText = ref("");
 const isProcessing = ref(false);
 const error = ref("");
+
+// Nueva variable reactiva para asegurar edición de interpretaciones
+const interpretation = ref("");
 
 const fieldLabels = {
   provider: "Proveedor",
@@ -184,6 +189,27 @@ const fieldLabels = {
 const isEditing = ref(false);
 const parsedResult = ref<any>(null); // Mejorar tipado según sea posible
 const showCorrection = ref(false);
+
+// Nueva propiedad computada para el monto editable
+const editableAmount = computed({
+  get() {
+    return typeof parsedResult.value?.amount === "number"
+      ? parsedResult.value.amount
+      : parsedResult.value?.amount?.value || 0;
+  },
+  set(val: number) {
+    if (parsedResult.value) {
+      if (
+        typeof parsedResult.value.amount === "object" &&
+        parsedResult.value.amount !== null
+      ) {
+        parsedResult.value.amount.value = val;
+      } else {
+        parsedResult.value.amount = val;
+      }
+    }
+  },
+});
 
 const openModal = () => {
   isOpen.value = true;
@@ -307,8 +333,10 @@ const displayFields = computed(() => ({
   location: parsedResult.value?.location,
   date: parsedResult.value?.date,
   time: parsedResult.value?.time,
-  // Mostrar amount de forma segura
-  amount: parsedResult.value?.amount ? parsedResult.value.amount.value : 6000,
+  amount:
+    typeof parsedResult.value?.amount === "number"
+      ? parsedResult.value.amount
+      : parsedResult.value?.amount?.value ?? "No detectado",
 }));
 
 const isValid = computed(() => {
@@ -350,9 +378,10 @@ const processPromptWithAI = async () => {
   isProcessing.value = true;
   error.value = "";
   try {
-    // Se invoca LocalNLPService pero forzando el uso de Gemini (podrías implementar un flag en LocalNLPService)
-    const result = await LocalNLPService.parseText(promptText.value);
+    // Consumir el servicio de Gemini para interpretar el texto
+    const result = await processEventText(promptText.value);
     parsedResult.value = result;
+    console.log("Resultado de Gemini AI:", result);
   } catch (err) {
     console.error("Error en interpretación AI:", err);
     error.value = "Error en interpretación AI.";

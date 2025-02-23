@@ -13,6 +13,7 @@
         <ProfileCurrency />
         <ProfileNotifications />
         <ProfileDistance />
+
         <!-- Acción: Cerrar Sesión -->
         <div class="mt-6">
           <button

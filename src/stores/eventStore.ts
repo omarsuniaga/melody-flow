@@ -48,7 +48,9 @@ export const useEventStore = defineStore('events', () => {
 			};
 
 			if (eventData.activityType === 'Fija') { // Para eventos fijos, crear instancias para todas las semanas del mes
-				const eventDate = new Date(eventData.date);
+				// Se crea la fecha correctamente sin efecto UTC
+				const [year, month, day] = eventData.date.split("-").map(Number);
+				const eventDate = new Date(year, month - 1, day);
 				let currentDate = eventDate;
 
 				while (isSameMonth(currentDate, eventDate)) {
@@ -353,7 +355,6 @@ export const useEventStore = defineStore('events', () => {
 			});
 			
 			const locationsArray = Array.from(uniqueLocations.values());
-			console.log("Ubicaciones obtenidas:", locationsArray);
 			return locationsArray;
 		} catch (error) {
 			console.error("Error obteniendo las ubicaciones:", error);

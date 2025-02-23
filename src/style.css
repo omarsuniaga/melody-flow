@@ -16,6 +16,13 @@ body {
   min-height: 100vh;
 }
 
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+}
+
 .btn {
   @apply px-4 py-2 rounded-md font-medium transition-colors duration-200;
 }

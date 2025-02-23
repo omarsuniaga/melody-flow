@@ -49,6 +49,7 @@ en beneficio de ambas partes.
         }]
       }
     );
+    console.log('Respuesta de Gemini (Letter):', response.data);
     return response.data.candidates[0].content.parts[0].text;
   } catch (error) {
     console.error('Error generando la carta:', error);
@@ -64,15 +65,15 @@ export const processEventText = async (text: string): Promise<ParsedEventData> =
     const prompt = `Analiza el siguiente texto y extrae la información del evento en formato JSON. 
 Usa este formato específico:
 {
-  "provider": "nombre del proveedor o empresa o persona",
-  "description": "breve descripción del evento, si es un lobby, una piscina, restaurant, o el elemento sobrante que no forma parte del resto de propiedades",
+  "provider": "nombre del proveedor o empresa o persona; si el texto contiene un nombre reconocido (por ejemplo, de un diccionario de proveedores) así como nombres de personas, utilízalo; de lo contrario, asigna una cadena vacía",
+  "description": "breve descripción del evento, si es un lobby, una piscina, restaurant o el elemento sobrante que no forma parte del resto de propiedades",
   "location": "lugar del evento, si es un hotel, un restaurante, un parque, una piscina, etc.",
-  "date": "YYYY-MM-DD, revisa si en el texto aparece palabras como mañana, pasado mañana, hoy, o un dia de la semana en especifico, revisa la fecha actual y busca en la semana actual la fecha del dia que se especifica en el texto",
-  "time": "busca en el texto HH:mm o en formato de 12 horas, revisa si en el texto aparece palabras pm o am ejemplo: 7pm y devuelve 19:00",
-  "amount": número normalmente de 4 digitos, tambien revisa si el texto contiene montos por ejemplo 7mil que representan 7000, omite el tipo de moneda
+  "date": "YYYY-MM-DD, revisa si en el texto aparecen palabras como mañana, pasado mañana, hoy u otro día de la semana; utiliza la fecha actual para ubicar el día especificado",
+  "time": "busca en el texto un formato HH:mm o de 12 horas; por ejemplo, si aparece '7pm' devuelve '19:00'",
+  "amount": "número normalmente de 4 dígitos; también revisa si el texto contiene montos escritos como '7mil' que representen 7000; omite el tipo de moneda"
 }
 
-Si algún campo no está presente, déjalo como null.
+Adicionalmente, si el texto menciona nombres que puedan corresponder a proveedores, empresas o personas, identifícalos y asígnalos al campo 'provider'. 
 
 Texto a analizar: "${text}"
 
@@ -86,7 +87,7 @@ Responde SOLO con el JSON, sin explicaciones adicionales.`;
         }]
       }
     );
-
+    console.log('Respuesta de Gemini (processEventText):', response.data);
     let responseText = response.data.candidates[0].content.parts[0].text.trim();
 
     // Limpia la respuesta eliminando posibles bloques de código Markdown
@@ -95,12 +96,12 @@ Responde SOLO con el JSON, sin explicaciones adicionales.`;
     const parsed = JSON.parse(responseText);
 
     const parsedEvent: ParsedEventData = {
-      provider: parsed.provider || null,
-      description: parsed.description || null,
-      location: parsed.location || null,
-      date: parsed.date || null,
-      time: parsed.time || null,
-      amount: typeof parsed.amount === 'number' ? parsed.amount : null,
+      provider: parsed.provider || "",
+      description: parsed.description || "",
+      location: parsed.location || "",
+      date: parsed.date || new Date().toISOString().split("T")[0],
+      time: parsed.time || "00:00",
+      amount: typeof parsed.amount === 'number' ? parsed.amount : 0,
       error: false
     };
 
@@ -116,12 +117,12 @@ Responde SOLO con el JSON, sin explicaciones adicionales.`;
   } catch (error) {
     console.error('Error al procesar texto con GeminiService:', error);
     return {
-      provider: '',
-      description: '',
-      location: '',
-      date: null,
-      time: null,
-      amount: null,
+      provider: "",
+      description: "",
+      location: "",
+      date: new Date().toISOString().split("T")[0],
+      time: "00:00",
+      amount: 0,
       error: true,
       message: 'Error al procesar el texto con GeminiService'
     };
@@ -150,6 +151,7 @@ debe ser positivo, claro y lleno de energía para invitar a la acción.`;
         }]
       }
     );
+    console.log('Respuesta de Gemini (InspirationalText):', response.data);
     return response.data.candidates[0].content.parts[0].text;
   } catch (error) {
     console.error('Error generando texto inspirador:', error);

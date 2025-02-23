@@ -22,6 +22,9 @@ import ArrowPathIcon from '@heroicons/vue/24/outline/ArrowPathIcon';
 import EyeSlashIcon from '@heroicons/vue/24/outline/EyeSlashIcon';
 import RefreshIcon from '@heroicons/vue/24/outline/ArrowPathIcon'; // Añadir RefreshIcon como alias de ArrowPathIcon
 import XMarkIcon from '@heroicons/vue/24/outline/XMarkIcon';
+import SearchIcon from '@heroicons/vue/24/outline/MagnifyingGlassIcon';
+import SaveIcon from '@heroicons/vue/24/outline/BookmarkIcon';
+import  ChevronUpIcon  from '@heroicons/vue/24/outline/ChevronUpIcon';
 
 export {
   ChevronLeftIcon,
@@ -48,4 +51,7 @@ export {
   EyeSlashIcon,
   RefreshIcon, // Exportar RefreshIcon
   XMarkIcon,
+  SearchIcon,
+  SaveIcon,
+  ChevronUpIcon,
 };

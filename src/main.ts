@@ -9,6 +9,7 @@ import { NotificationService } from './services/NotificationService'
 import { createPinia } from 'pinia'
 import type { ComponentPublicInstance } from 'vue'
 import './style.css'
+import dragDirective from './directives/drag'
 
 // Agregar configuración de íconos para Leaflet
 import L from 'leaflet';
@@ -33,6 +34,9 @@ const initializeApp = async () => {
     const app = createApp(App);
     const pinia = createPinia();
     
+    // Registro global de la directiva
+    app.directive("drag", dragDirective);
+
     // Configurar Toast antes de otros plugins
     app.use(Toast, {
       position: "top-right",
