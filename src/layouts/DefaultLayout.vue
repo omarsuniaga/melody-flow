@@ -13,7 +13,7 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { RouterView } from "vue-router";
 import { useEventStore } from "../stores/eventStore";
-import FooterLayout from "./FooterLayout.vue";
+import FooterLayout from "@/layouts/FooterLayout.vue";
 import { startOfDay, endOfDay, parseISO } from "date-fns";
 import { auth } from "../firebase/config";
 import { onAuthStateChanged } from "firebase/auth";
