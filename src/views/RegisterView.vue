@@ -287,7 +287,7 @@ import { useRouter } from "vue-router";
 import EyeIcon from "@heroicons/vue/24/outline/EyeIcon";
 import EyeSlashIcon from "@heroicons/vue/24/outline/EyeSlashIcon";
 import UserPlusIcon from "@heroicons/vue/24/outline/UserPlusIcon";
-import { auth } from "@/firebase/config";
+import { auth } from "../firebase/config";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 // import { useAnalytics } from "../composables/useAnalytics";
@@ -445,22 +445,21 @@ const handleGoogleSignup = async () => {
   loading.value = true;
   try {
     await collectDeviceInfo();
-    // logEvent("google_registration_attempt", { deviceInfo });
-
     await signInWithPopup(auth, googleProvider);
-
-    // logEvent("registration_success", {
-    //   userId: result.user.uid,
-    //   method: "google",
-    //   deviceInfo,
-    // });
-
     router.push("/");
   } catch (error: any) {
     console.error("Error al registrarse con Google:", error);
-    // logEvent("google_registration_failure", {
-    //   error: error.code,
-    // });
+    if (error.code === "auth/popup-closed-by-user") {
+      alert("La ventana de Google se cerró. Por favor, inténtalo de nuevo.");
+    } else if (error.code === "auth/cancelled-popup-request") {
+      alert("Se canceló la solicitud del popup. Por favor, inténtalo de nuevo.");
+    } else if (error.code === "auth/popup-blocked") {
+      alert("El popup fue bloqueado. Habilita los popups e inténtalo nuevamente.");
+    } else if (error.code === "auth/network-request-failed") {
+      alert("Error de red. Verifica tu conexión e inténtalo de nuevo.");
+    } else {
+      alert("Ocurrió un error durante el inicio con Google. Intenta nuevamente.");
+    }
   } finally {
     loading.value = false;
   }

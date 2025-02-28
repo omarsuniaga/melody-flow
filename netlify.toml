@@ -29,5 +29,11 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000"
 
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cross-Origin-Embedder-Policy = "unsafe-none"
+    Cross-Origin-Resource-Policy = "cross-origin"
+
 [functions]
 directory = "netlify/functions"
