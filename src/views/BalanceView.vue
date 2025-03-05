@@ -88,10 +88,11 @@ import type { TDocumentDefinitions } from "pdfmake/interfaces";
 import { getPendingEventsTemplate } from "../utils/pdfTemplates";
 import { defineAsyncComponent } from "vue";
 import BalanceMonthlyProjection from "../components/BalanceMonthlyProjection.vue";
+import { useUserStore } from "../stores/userStore";
 // Estado y utilidades principales
 const toast = useToast();
 const eventStore = useEventStore();
-
+const userStore = useUserStore();
 // Componentes cargados de forma asíncrona para optimizar el rendimiento
 const MonthSelector = defineAsyncComponent(
   () => import("../components/MonthSelector.vue")
@@ -163,13 +164,42 @@ const handleTouchEnd = (e: TouchEvent) => {
   touchEndX.value = null;
 };
 
-// Computed: Filtrar eventos según el mes seleccionado
+// Función mejorada para manejar fechas de manera segura y consistente
+function safeDate(dateStr: string | null): Date {
+  if (!dateStr) return new Date();
+
+  try {
+    // Si la fecha está en formato YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      // Crear la fecha en la zona horaria local para evitar el desplazamiento
+      const [year, month, day] = dateStr.split("-").map(Number);
+      return new Date(year, month - 1, day);
+    }
+
+    // Para otros formatos, usar el constructor estándar
+    return new Date(dateStr);
+  } catch (e) {
+    console.error("Error al parsear fecha:", dateStr, e);
+    return new Date();
+  }
+}
+
+// Modificar la función monthEvents para usar la nueva función safeDate
 const monthEvents = computed(() => {
   const start = startOfMonth(selectedMonth.value);
   const end = endOfMonth(selectedMonth.value);
+
   return eventStore.events.filter((event) => {
-    const eventDate = new Date(event.date);
-    return eventDate >= start && eventDate <= end;
+    if (!event.date) return false;
+
+    // Usar la función mejorada para crear fechas consistentes
+    const eventDate = safeDate(event.date);
+
+    // Comparar año y mes directamente para evitar problemas de zona horaria
+    return (
+      eventDate.getFullYear() === start.getFullYear() &&
+      eventDate.getMonth() === start.getMonth()
+    );
   });
 });
 
@@ -229,27 +259,25 @@ const totalCompletedAmount = computed(() =>
   completedPayments.value.reduce((sum, event) => sum + event.amount, 0)
 );
 
-// Tipado de eventos musicales
-type MusicEvent = {
+// Renombrar alias para evitar conflicto con el tipo global Event
+// Antes: type Event = MusicEvent;
+type AppEvent = {
   id: string;
-  date: string;
-  location: string;
-  amount: number;
-  provider: string;
-  paymentStatus: string;
-  activityType: string;
-  description: string;
   createdAt: string;
-  updatedAt?: string;
-  createdBy: string;
-  time: string;
+  createdBy?: string;
+  userIP?: string;
+  coord?: { lat: number; lng: number };
+  activityType: "Eventual" | "Fija";
+  paymentStatus: "Pendiente" | "Pagado";
+  date: string | null;
+  description: string | null;
+  location: string | null;
+  provider: string | null;
+  amount: number;
+  time: string | null;
   userId: string;
   isFixed?: boolean;
 };
-
-// Renombrar alias para evitar conflicto con el tipo global Event
-// Antes: type Event = MusicEvent;
-type AppEvent = MusicEvent;
 
 interface EventGroups {
   [key: string]: AppEvent[];
@@ -258,10 +286,13 @@ interface EventGroups {
 // Computed: Agrupar eventos pendientes y completados por proveedor
 const groupedPendingPayments = computed<EventGroups>(() =>
   pendingPayments.value.reduce((groups: EventGroups, event) => {
-    if (!groups[event.provider]) {
-      groups[event.provider] = [];
+    // Asegurarse de que provider no sea null
+    const provider = event.provider || "Sin proveedor";
+
+    if (!groups[provider]) {
+      groups[provider] = [];
     }
-    groups[event.provider].push({
+    groups[provider].push({
       ...event,
       isFixed: event.activityType === "Fija",
     });
@@ -271,10 +302,13 @@ const groupedPendingPayments = computed<EventGroups>(() =>
 
 const groupedCompletedPayments = computed<EventGroups>(() =>
   completedPayments.value.reduce((groups: EventGroups, event) => {
-    if (!groups[event.provider]) {
-      groups[event.provider] = [];
+    // Asegurarse de que provider no sea null
+    const provider = event.provider || "Sin proveedor";
+
+    if (!groups[provider]) {
+      groups[provider] = [];
     }
-    groups[event.provider].push({
+    groups[provider].push({
       ...event,
       isFixed: event.activityType === "Fija",
     });
@@ -286,8 +320,10 @@ const groupedCompletedPayments = computed<EventGroups>(() =>
 const locationStats = computed(() => {
   const stats = new Map<string, { count: number }>();
   monthEvents.value.forEach((event) => {
-    const current = stats.get(event.location) || { count: 0 };
-    stats.set(event.location, { count: current.count + 1 });
+    // Usar una ubicación por defecto si es null
+    const location = event.location || "Sin ubicación";
+    const current = stats.get(location) || { count: 0 };
+    stats.set(location, { count: current.count + 1 });
   });
   return Array.from(stats.entries()).map(([name, data]) => ({ name, ...data }));
 });
@@ -296,11 +332,11 @@ const sortedLocationsByRecurrence = computed(() =>
   [...locationStats.value].sort((a, b) => b.count - a.count)
 );
 
-// Computed: Ordenar eventos del mes de forma descendente por fecha
+// Usar en sortedMonthEvents
 const sortedMonthEvents = computed(() => {
   return monthEvents.value
     .slice()
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    .sort((a, b) => safeDate(b.date).getTime() - safeDate(a.date).getTime());
 });
 
 // Función para generar y descargar PDF de eventos de un proveedor
@@ -316,7 +352,13 @@ const generateProviderPDF = async (
     )}.pdf`;
 
     toast.info("Generando PDF...");
+    // Obtener datos bancarios del usuario
+    userStore.fetchUserBankData().then((bankData) => {
+      console.log("Datos bancarios cargados:", bankData);
+    });
+    toast.info("Cargando datos bancarios...");
 
+    // Generar el documento PDF utilizando la plantilla, que internamente consulta bankData
     const docDefinition = getPendingEventsTemplate(provider, events);
     await createAndDownloadPdf((docDefinition as unknown) as TDocumentDefinitions, {
       fileName,
@@ -326,7 +368,40 @@ const generateProviderPDF = async (
   } catch (error) {
     console.error("Error al generar PDF:", error);
     toast.error(`Error al generar el PDF: ${(error as Error).message}`);
+    // Registrar el error para análisis
+    logErrorToAnalytics("pdf_generation_error", {
+      provider,
+      errorMessage: (error as Error).message,
+    });
   }
+};
+
+const itemsPerPage = ref(10);
+const currentPage = ref(1);
+
+const paginatedEvents = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value;
+  const end = start + itemsPerPage.value;
+  return sortedMonthEvents.value.slice(start, end);
+});
+
+// Modificar la función getEventsForMonth
+const getEventsForMonth = (year: number, month: number) => {
+  // Corregir el filtrado para incluir correctamente el día 1
+  return events.value.filter((event) => {
+    // Asegurarse de que event.date existe
+    if (!event.date) return false;
+
+    // Usar safeDate para manejar posibles valores nulos
+    const eventDate = safeDate(event.date);
+
+    // Extraer año y mes (0-11) del evento
+    const eventYear = eventDate.getFullYear();
+    const eventMonth = eventDate.getMonth();
+
+    // Comparar año y mes (sin considerar el día)
+    return eventYear === year && eventMonth === month;
+  });
 };
 </script>
 

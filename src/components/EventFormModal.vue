@@ -197,7 +197,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from "vue";
+import { ref, watch, computed, onMounted } from "vue";
 import ModalComponent from "./ModalComponent.vue";
 import ButtonComponent from "./ButtonComponent.vue";
 import { useEventStore } from "../stores/eventStore";
@@ -402,6 +402,16 @@ const handleSubmit = async () => {
     isSubmitting.value = false;
   }
 };
+
+onMounted(() => {
+  const tempData = eventStore.getTempEventData();
+  if (tempData) {
+    // Llenar el formulario con los datos procesados
+    Object.assign(eventForm.value, tempData);
+    // Limpiar datos temporales
+    eventStore.clearTempEventData();
+  }
+});
 </script>
 
 <script lang="ts">

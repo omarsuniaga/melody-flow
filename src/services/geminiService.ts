@@ -59,58 +59,34 @@ en beneficio de ambas partes.
 
 /**
  * Procesa el texto del evento mediante la API Gemini y retorna los datos en formato JSON.
+ * Mejora el prompt para obtener resultados más precisos.
  */
 export const processEventText = async (text: string): Promise<ParsedEventData> => {
   try {
-    const prompt = `Analiza el siguiente texto y extrae la información del evento en formato JSON. 
-Usa este formato específico:
-{
-  "provider": "nombre del proveedor o empresa o persona; si el texto contiene un nombre reconocido (por ejemplo, de un diccionario de proveedores) así como nombres de personas, utilízalo; de lo contrario, asigna una cadena vacía",
-  "description": "breve descripción del evento, si es un lobby, una piscina, restaurant o el elemento sobrante que no forma parte del resto de propiedades",
-  "location": "lugar del evento, si es un hotel, un restaurante, un parque, una piscina, etc.",
-  "date": "YYYY-MM-DD, revisa si en el texto aparecen palabras como mañana, pasado mañana, hoy u otro día de la semana; utiliza la fecha actual para ubicar el día especificado",
-  "time": "busca en el texto un formato HH:mm o de 12 horas; por ejemplo, si aparece '7pm' devuelve '19:00'",
-  "amount": "número normalmente de 4 dígitos en adelante; también revisa si el texto contiene montos escritos como '7mil' que representen 7000; omite el tipo de moneda"
-}
-
-Adicionalmente, si el texto menciona nombres que puedan corresponder a proveedores, empresas o personas, identifícalos y asígnalos al campo 'provider'. 
-
-Texto a analizar: "${text}"
-
-Responde SOLO con el JSON, sin explicaciones adicionales.`;
-
+    // En lugar de llamar directamente a la API de Gemini, usamos nuestro propio endpoint
     const response = await axios.post(
-      `${API_URL}?key=${GEMINI_API_KEY}`,
-      {
-        contents: [{
-          parts: [{ text: prompt }]
-        }]
-      }
+      '/api/process-event', // Endpoint en nuestro servidor/función serverless
+      { text }
     );
-    console.log('Respuesta de Gemini (processEventText):', response.data);
-    let responseText = response.data.candidates[0].content.parts[0].text.trim();
-
-    // Limpia la respuesta eliminando posibles bloques de código Markdown
-    responseText = responseText.replace(/^```(?:json)?\s*([\s\S]*?)\s*```$/m, '$1');
-
-    const parsed = JSON.parse(responseText);
-
+    
+    // El resto del procesamiento permanece igual
     const parsedEvent: ParsedEventData = {
-      provider: parsed.provider || "",
-      description: parsed.description || "",
-      location: parsed.location || "",
-      date: parsed.date || new Date().toISOString().split("T")[0],
-      time: parsed.time || "00:00",
-      amount: typeof parsed.amount === 'number' ? parsed.amount : 0,
+      provider: response.data.provider || "",
+      description: response.data.description || "",
+      location: response.data.location || "",
+      date: response.data.date || new Date().toISOString().split("T")[0],
+      time: response.data.time || "00:00",
+      amount: typeof response.data.amount === 'number' ? response.data.amount : 
+              typeof response.data.amount === 'string' ? parseFloat(response.data.amount) : 0,
       error: false
     };
 
-    // Guarda el ejemplo en Firestore para entrenamiento futuro
+    // Guardar el ejemplo en Firestore para entrenamiento futuro
     await ModelStorageService.saveTrainingDataLocal([{
-      originalText: text, // Texto original
-      prediction: parsedEvent, // El JSON que generó Gemini
-      correction: parsedEvent, // En este caso, la predicción se usa como ejemplo
-      reward: 1 // Valor de recompensa (puede ajustarse)
+      originalText: text,
+      prediction: parsedEvent,
+      correction: parsedEvent,
+      reward: 1
     }]);
 
     return parsedEvent;
@@ -124,7 +100,7 @@ Responde SOLO con el JSON, sin explicaciones adicionales.`;
       time: "00:00",
       amount: 0,
       error: true,
-      message: 'Error al procesar el texto con GeminiService'
+      message: error instanceof Error ? error.message : 'Error al procesar el texto con GeminiService'
     };
   }
 };

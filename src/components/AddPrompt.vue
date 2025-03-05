@@ -268,32 +268,33 @@ const formatFieldValue = (value: any, key: string) => {
 
 // Removed unused processPrompt function.
 
-const handleConfirm = async () => {
+const handleConfirm = () => {
   if (!parsedResult.value) return;
-  try {
-    const eventData = {
-      provider: parsedResult.value.provider || "",
-      description: parsedResult.value.description || "",
-      location: parsedResult.value.location || "",
-      date: formatDateToISO(
-        parsedResult.value.date || new Date().toISOString().split("T")[0]
-      ),
-      time: parsedResult.value.time || "",
-      amount:
-        typeof parsedResult.value.amount === "object" &&
-        parsedResult.value.amount !== null
-          ? parsedResult.value.amount.value
-          : parsedResult.value.amount || 0,
-      activityType: "Eventual",
-      paymentStatus: "Pendiente",
-    };
-    console.log("Datos del evento formateados:", eventData);
-    emit("eventProcessed", eventData);
-    closeModal();
-  } catch (err) {
-    console.error("Error al procesar el evento:", err);
-    error.value = "No se pudo crear el evento";
+  
+  // Crear objeto de evento compatible con EventFormModal
+  const eventData = {
+    provider: parsedResult.value.provider || "",
+    description: parsedResult.value.description || "",
+    location: parsedResult.value.location || "",
+    date: parsedResult.value.date || new Date().toISOString().split("T")[0],
+    time: parsedResult.value.time || "19:00",
+    amount: typeof parsedResult.value.amount === "number" 
+      ? parsedResult.value.amount 
+      : (parsedResult.value.amount?.value || 0),
+    activityType: "Eventual", // Valor predeterminado
+    paymentStatus: "Pendiente" // Valor predeterminado
+  };
+  
+  // Emitir evento con datos procesados
+  emit("eventProcessed", eventData);
+  
+  // Guardar en historial de entrenamiento si fue exitoso
+  if (!error.value) {
+    saveCorrection();
   }
+  
+  // Cerrar modal
+  closeModal();
 };
 
 // Removed unused handleCorrect function as it was not utilized in the component.
@@ -374,17 +375,41 @@ const toggleEditMode = () => {
 
 // Agregar dos métodos para interpretar con AI o local
 const processPromptWithAI = async () => {
-  if (!geminiAvailable.value) return;
+  if (!geminiAvailable.value || !promptText.value.trim()) {
+    error.value = "Por favor ingrese un texto para procesar";
+    return;
+  }
+  
   isProcessing.value = true;
   error.value = "";
+  
   try {
     // Consumir el servicio de Gemini para interpretar el texto
     const result = await processEventText(promptText.value);
+    
+    // Validar el resultado
+    if (!result || result.error) {
+      throw new Error(result?.message || "Error en la interpretación del texto");
+    }
+    
+    // Asignar el resultado y registrar para depuración
     parsedResult.value = result;
     console.log("Resultado de Gemini AI:", result);
+    
+    // Calcular confianza basada en campos completos
+    const fieldCount = Object.keys(displayFields.value).length;
+    const filledFields = Object.keys(displayFields.value).filter(
+      key => !!result[key as keyof typeof result]
+    ).length;
+    
+    // Asignar confianza si no viene del modelo
+    if (!result.confidence) {
+      result.confidence = filledFields / fieldCount;
+    }
+    
   } catch (err) {
     console.error("Error en interpretación AI:", err);
-    error.value = "Error en interpretación AI.";
+    error.value = err instanceof Error ? err.message : "Error en interpretación AI";
   } finally {
     isProcessing.value = false;
   }

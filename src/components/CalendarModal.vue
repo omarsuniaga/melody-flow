@@ -146,7 +146,7 @@
 
 <script setup lang="ts">
 import { format } from "date-fns";
-import { MusicEvent } from "../types/event";
+import { MusicEvent, EventFormData } from "../types/event";
 import ModalComponent from "./ModalComponent.vue";
 import ButtonComponent from "./ButtonComponent.vue";
 import EventFormModal from "./EventFormModal.vue";
@@ -195,6 +195,7 @@ interface Emits {
   (e: "event-saved"): void;
   (e: "toggle-payment-status", event: MusicEvent): void;
   (e: "delete-event", event: typeof DeleteEvent): void;
+  (e: "processed-event", eventData: EventFormData): void;
 }
 const DeleteConfirmationModal = defineAsyncComponent(
   () => import("./DeleteConfirmationModal.vue")

@@ -5,7 +5,7 @@
       @click="toggle"
       class="w-full px-4 py-3 flex justify-between items-center bg-gray-50 hover:bg-gray-100"
     >
-      <h3 class="text-lg font-medium text-gray-900">Gestión de Ubicaciones</h3>
+      <h3 class="text-lg font-medium text-gray-900">Gestion de Ubicaciones</h3>
       <ChevronDownIcon
         :class="['h-5 w-5 transition-transform', open ? 'transform rotate-180' : '']"
       />
@@ -18,24 +18,22 @@
         <div
           v-for="(loc, index) in locationsWithRoutes"
           :key="index"
-          class="p-4 flex justify-between items-center cursor-pointer border-b"
+          class="p-4 flex justify-between bg-green-200 items-center cursor-pointer border-b"
           :class="{ 'bg-red-50': !loc.coord, 'bg-green-50': hasValidRouteInfo(loc) }"
         >
-          <!-- Información de la ubicación -->
+          <!-- Información: Alineado a la izquierda -->
           <div class="flex flex-col gap-2">
-            <h4 class="font-medium text-gray-800">
-              {{ loc.location || "Sin nombre" }}
-            </h4>
+            <h4 class="font-medium text-gray-800">{{ loc.location || "Sin nombre" }}</h4>
+
+            <!-- Coordenadas -->
             <div class="flex items-center text-sm text-gray-600">
               <MapIcon class="h-4 w-4 mr-2" />
-              <span>
-                {{
-                  loc.sinCoord
-                    ? "Sin coordenadas asignadas"
-                    : formatCoordinates(loc.coord)
-                }}
-              </span>
+              <span>{{
+                loc.sinCoord ? "Sin coordenadas asignadas" : formatCoordinates(loc.coord)
+              }}</span>
             </div>
+
+            <!-- Duración -->
             <div
               v-if="loc.routeInfo?.duration"
               class="flex items-center text-sm text-gray-600"
@@ -43,6 +41,8 @@
               <ClockIcon class="h-4 w-4 mr-2" />
               <span>Duración: {{ loc.routeInfo.duration }}</span>
             </div>
+
+            <!-- Distancia -->
             <div
               v-if="loc.routeInfo?.distance"
               class="flex items-center text-sm text-gray-600"
@@ -50,11 +50,13 @@
               <MapPinIcon class="h-4 w-4 mr-2" />
               <span>Distancia: {{ loc.routeInfo.distance }}</span>
             </div>
+
+            <!-- Indicador de estado cuando está calculando -->
             <div v-if="loc.isCalculating" class="text-sm text-blue-600">
               Calculando ruta...
             </div>
           </div>
-          <!-- Botones de acción -->
+          <!-- Botones de acción: Alineados a la derecha -->
           <div class="flex items-center gap-2 ml-auto">
             <button @click.stop="openEditModal(loc)" class="btn-icon" title="Abrir mapa">
               <MapIcon class="h-4 w-4" />
@@ -96,7 +98,8 @@
       >
         <XMarkIcon class="h-6 w-6" />
       </button>
-      <!-- Contenido del modal -->
+
+      <!-- Contenido del modal con scroll -->
       <div class="p-6 h-full overflow-y-auto">
         <h3 class="text-lg font-medium mb-4">
           {{ selectedLocation ? "Editar" : "Nueva" }} Ubicación
@@ -116,11 +119,10 @@
               {{ formErrors.location }}
             </p>
           </div>
+
           <!-- Coordenadas -->
           <div>
-            <label class="block text-sm font-medium text-gray-700">
-              Coordenadas
-            </label>
+            <label class="block text-sm font-medium text-gray-700"> Coordenadas </label>
             <input
               v-model="coordinatesInput"
               type="text"
@@ -131,6 +133,7 @@
               Haz clic en el mapa para seleccionar una ubicación.
             </p>
             <p class="text-xs text-gray-500 mt-1">
+              <!-- mostrar la distancia y la duracion del recorrido -->
               {{ selectedLocation?.routeInfo?.distance }} -
               {{ selectedLocation?.routeInfo?.duration }}
             </p>
@@ -153,7 +156,8 @@
               Guardar
             </button>
           </div>
-          <!-- Componente de mapa -->
+
+          <!-- Mapa -->
           <div class="h-96 bg-gray-100 rounded-lg overflow-hidden">
             <MapSearch
               :destinationCoordinates="selectedLocation?.coord"
@@ -164,7 +168,8 @@
               @marker-drag="handleMarkerDrag"
               @map-click="onMapClick"
               class="h-full bg-gray-100 rounded-lg overflow-hidden"
-            />
+            >
+            </MapSearch>
           </div>
         </div>
       </div>
@@ -200,8 +205,8 @@
 </template>
 
 <script setup lang="ts">
-// Importaciones del sistema y librerías
-import { ref, computed, onMounted, onUnmounted, watch } from "vue";
+// Importaciones del sistema
+import { ref, computed, onMounted, onUnmounted, watch, watchEffect } from "vue";
 import "leaflet/dist/leaflet.css";
 
 // Importaciones de servicios y utilidades
@@ -209,8 +214,11 @@ import { getUserLocation } from "../utils/geolocation";
 import { calculateRoute, formatDistance, formatDuration } from "../services/RouteService";
 import { useEventStore } from "../stores/eventStore";
 
-// Importaciones de componentes e íconos
+// Importaciones de componentes
 import MapSearch from "./MapSearch.vue";
+import { LMap, LTileLayer, LMarker } from "@vue-leaflet/vue-leaflet";
+
+// Importaciones de iconos
 import {
   MapPinIcon,
   ClockIcon,
@@ -230,41 +238,57 @@ interface Location {
   createdAt: string;
   location: string;
   sinCoord: boolean;
-  coord?: { lat: number; lng: number } | null;
+  coord?: { lat: number; lng: number };
   routeInfo?: {
     distance: string;
     duration: string;
-    timestamp: number;
-  } | null;
+  };
   isCalculating?: boolean;
 }
 
-type RouteCacheEntry = {
-  distance: string;
-  duration: string;
-  timestamp: number;
-  rawDistance: number;
-  rawDuration: number;
-};
-
 // Estados Reactivos
 const eventStore = useEventStore();
+
+// Estados del panel principal
 const open = ref(false);
 const locations = ref<Location[]>([]);
+
+// Estados de geolocalización
 const currentPosition = ref<{ lat: number; lng: number } | null>(null);
 const updateInterval = ref<number | null>(null);
+
+// Estados del mapa
+// const mapZoom = ref(13);
 const mapCenter = ref<[number, number]>([0, 0]);
 const markerPosition = ref<{ lat: number; lng: number } | null>(null);
-const routeCache = ref(new Map<string, RouteCacheEntry>());
+const tileLayerUrl = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+const routeCache = ref(new Map());
+
+// Estados del formulario
 const searchQuery = ref("");
 const coordinatesInput = ref("");
 const editingLocation = ref<Partial<Location>>({});
 const formErrors = ref<{ location?: string; coordinates?: string }>({});
+
+// Estados de modales
 const showEditModal = ref(false);
 const showDeleteModal = ref(false);
 const selectedLocation = ref<Location | null>(null);
 
-// Computed: integrar rutas con las ubicaciones
+// Emits
+const emit = defineEmits([
+  "select-location",
+  "update:searchQuery",
+  "save-coordinates",
+  "update-route",
+]);
+
+// mostrar en consola los valores de routeInfo que viene del componente hijo
+watchEffect(() => {
+  console.log("routeInfo", routeCache.value);
+});
+
+// Computed Properties
 const locationsWithRoutes = computed(() => {
   const unique = new Set();
   return eventStore.events
@@ -274,7 +298,7 @@ const locationsWithRoutes = computed(() => {
       return true;
     })
     .map((event) => {
-      const routeInfo = routeCache.value.get(event.id);
+      const routeInfo = routeCache.value.get(event.id); // Usar el ID como clave
       return {
         ...event,
         sinCoord: !event.coord,
@@ -282,7 +306,6 @@ const locationsWithRoutes = computed(() => {
           ? {
               distance: routeInfo.distance,
               duration: routeInfo.duration,
-              timestamp: routeInfo.timestamp,
             }
           : null,
         isCalculating: false,
@@ -290,125 +313,178 @@ const locationsWithRoutes = computed(() => {
     });
 });
 
-// Función para formatear las coordenadas
+// Funciones de utilidad
 const formatCoordinates = (
   coords: { lat: number; lng: number } | null | undefined
 ): string =>
   coords ? `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}` : "Sin coordenadas";
 
-// Alternar visibilidad del panel
-const toggle = () => {
-  open.value = !open.value;
-};
+// Remove the unused function since hasValidRouteInfo already provides similar functionality
 
-// Actualizar posición del marcador al hacer clic en el mapa
+// Funciones de manejo de UI
+const toggle = () => (open.value = !open.value);
+
 const onMapClick = (e: any) => {
+  // Actualizar la posición del marcador y el input de coordenadas
   const { lat, lng } = e.latlng;
   markerPosition.value = { lat, lng };
-  coordinatesInput.value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+  coordinatesInput.value = `${lat.toFixed(6)},${lng.toFixed(6)}`;
 };
 
-// Validación del formulario de edición
+// Funciones de validación
 const validateForm = (): boolean => {
   formErrors.value = {};
   let isValid = true;
+
   if (!editingLocation.value.location?.trim()) {
     formErrors.value.location = "El nombre de la ubicación es requerido.";
     isValid = false;
   }
-  if (!markerPosition.value) {
+
+  if (
+    !markerPosition.value ||
+    isNaN(markerPosition.value.lat) ||
+    isNaN(markerPosition.value.lng)
+  ) {
     formErrors.value.coordinates = "Debe seleccionar una ubicación válida en el mapa.";
     isValid = false;
   }
+
   return isValid;
 };
 
-// Cargar ubicaciones desde el store
+// Funciones de gestión de ubicaciones
 const loadLocations = async () => {
   try {
     const data = await eventStore.getLocations();
-    if (!Array.isArray(data)) {
-      console.error("Datos de ubicaciones en formato inesperado:", data);
-      alert("Error al cargar ubicaciones: datos no válidos");
-      return;
-    }
-    locations.value = data.map((item) => ({
-      id: "id" in item ? item.id : String(Math.random()),
-      location: item.location,
-      sinCoord: item.sinCoord,
-      coord: item.coord,
-      routeInfo: undefined,
-      isCalculating: false,
-    }));
+    locations.value = Array.isArray(data)
+      ? data.map((item, index) => ({
+          id: "id" in item ? Number(item.id) : index,
+          location: item.location,
+          sinCoord: item.sinCoord,
+          coord: item.coord,
+          routeInfo: undefined,
+          isCalculating: false,
+        }))
+      : [];
     await calculateAllRoutes();
   } catch (error) {
     console.error("Error cargando ubicaciones:", error);
-    alert("Error al cargar ubicaciones. Inténtelo de nuevo más tarde.");
   }
 };
 
-// Calcular la ruta para una ubicación
+// Funciones de cálculo de rutas
 const calculateRouteForLocation = async (location: Location) => {
   if (!location.coord || !currentPosition.value) return;
+
   location.isCalculating = true;
   try {
     const route = await calculateRoute(currentPosition.value, location.coord);
+
     if (!route) {
       console.error("No se pudo calcular la ruta");
-      alert(`No se pudo calcular la ruta para ${location.location}`);
       return;
     }
-    const routeInfo: RouteCacheEntry = {
+
+    // Asegurarse de que distance y duration estén formateados correctamente
+    const routeInfo = {
       distance: formatDistance(route.distance || 0),
       duration: formatDuration(route.duration || 0),
       timestamp: Date.now(),
+      // Guardar valores raw para cálculos
       rawDistance: route.distance,
       rawDuration: route.duration,
     };
+
+    // Actualizar el cache
     routeCache.value.set(location.id, routeInfo);
+
+    // Forzar actualización de la UI
+    locations.value = locations.value.map((loc) =>
+      loc.id === location.id ? { ...loc, routeInfo, isCalculating: false } : loc
+    );
   } catch (error) {
     console.error(`Error calculando ruta para ${location.location}:`, error);
-    alert(`Error calculando ruta para ${location.location}`);
   } finally {
     location.isCalculating = false;
   }
 };
 
-// Calcular rutas para todas las ubicaciones en lotes
+// Mejorar la función calculateAllRoutes para procesar en lotes
 const calculateAllRoutes = async () => {
   if (!currentPosition.value) {
     console.warn("No hay posición actual disponible");
     return;
   }
+
   const locationsToUpdate = locations.value.filter(
     (loc) => loc.coord && !loc.isCalculating
   );
+
   if (locationsToUpdate.length === 0) {
     console.log("No hay ubicaciones para actualizar");
     return;
   }
+
+  // Procesar en lotes de 3 para no sobrecargar el servidor
   const batchSize = 3;
   for (let i = 0; i < locationsToUpdate.length; i += batchSize) {
     const batch = locationsToUpdate.slice(i, i + batchSize);
     await Promise.all(batch.map((location) => calculateRouteForLocation(location)));
   }
+
   console.log("Cálculo de rutas completado");
 };
 
-// Verificar si la información de la ruta es obsoleta
-const isRouteStale = (routeInfo: RouteCacheEntry | undefined): boolean => {
-  if (!routeInfo || !routeInfo.timestamp || !routeInfo.distance || !routeInfo.duration)
-    return true;
-  const ROUTE_TTL = 5 * 60 * 1000; // 5 minutos
+// Agregar una función para verificar si una ruta necesita actualización
+const isRouteStale = (routeInfo: any): boolean => {
+  if (!routeInfo?.timestamp) return true;
+
+  const ROUTE_TTL = 5 * 60 * 1000; // 5 minutos en milisegundos
   return Date.now() - routeInfo.timestamp > ROUTE_TTL;
 };
 
-// Detectar cambios significativos en la posición
+// Modificar el intervalo de actualización para ser más eficiente
+onMounted(async () => {
+  try {
+    currentPosition.value = await getUserLocation();
+    await loadLocations();
+    onMapClick({
+      latlng: { lat: currentPosition.value.lat, lng: currentPosition.value.lng },
+    });
+    // Configurar intervalo de actualización
+    updateInterval.value = window.setInterval(async () => {
+      const newPosition = await getUserLocation();
+
+      // Solo actualizar si la posición ha cambiado significativamente
+      if (hasPositionChangedSignificantly(currentPosition.value, newPosition)) {
+        currentPosition.value = newPosition;
+        await calculateAllRoutes();
+      } else {
+        // Actualizar solo rutas obsoletas
+        const staleLocations = locations.value.filter((loc) =>
+          isRouteStale(routeCache.value.get(loc.id))
+        );
+
+        if (staleLocations.length > 0) {
+          for (const location of staleLocations) {
+            await calculateRouteForLocation(location);
+          }
+        }
+      }
+    }, 300000); // Cada 5 minutos
+  } catch (error) {
+    console.error("Error en la inicialización:", error);
+  }
+});
+
+// Función auxiliar para detectar cambios significativos en la posición
 const hasPositionChangedSignificantly = (
   oldPos: { lat: number; lng: number } | null,
   newPos: { lat: number; lng: number } | null
 ): boolean => {
   if (!oldPos || !newPos) return true;
+
   const THRESHOLD = 0.0001; // Aproximadamente 11 metros
   return (
     Math.abs(oldPos.lat - newPos.lat) > THRESHOLD ||
@@ -416,73 +492,92 @@ const hasPositionChangedSignificantly = (
   );
 };
 
-// Recalcular la ruta de una ubicación específica
 const recalcForLocation = async (location: Location) => {
   if (!currentPosition.value) return;
   await calculateRouteForLocation(location);
 };
 
-// Abrir modal de edición y configurar datos iniciales
+// Funciones de gestión de modales
 const openEditModal = async (location: Location) => {
   selectedLocation.value = location;
   editingLocation.value = {
     location: location.location,
-    coord: location.coord ? { lat: location.coord.lat, lng: location.coord.lng } : undefined,
+    coord: location.coord
+      ? { lat: location.coord.lat, lng: location.coord.lng }
+      : undefined,
   };
+
+  // Obtener ubicación actual si no está disponible
   if (!currentPosition.value) {
     try {
       currentPosition.value = await getUserLocation();
     } catch (error) {
       console.error("Error obteniendo ubicación actual:", error);
-      alert("Error obteniendo ubicación actual");
     }
   }
+
+  // Configurar el mapa
   if (currentPosition.value) {
     mapCenter.value = [currentPosition.value.lat, currentPosition.value.lng];
+
+    // Si la ubicación tiene coordenadas, establecer el marcador
     if (location.coord) {
       markerPosition.value = location.coord;
+      // Calcular la ruta automáticamente
       await calculateRouteForLocation(location);
     }
   }
+
   showEditModal.value = true;
-  coordinatesInput.value = location.coord
-    ? `${location.coord.lat.toFixed(6)}, ${location.coord.lng.toFixed(6)}`
-    : "";
 };
 
-// Cerrar modal de edición y limpiar estados
 const closeEditModal = () => {
   showEditModal.value = false;
   selectedLocation.value = null;
   editingLocation.value = {};
   formErrors.value = {};
-  markerPosition.value = null;
-  coordinatesInput.value = "";
 };
 
-// Eliminar coordenadas de la ubicación seleccionada
+// Funciones de gestión de datos
+
 const deleteLocation = async () => {
   if (!selectedLocation.value) return;
+
   try {
     if (
       confirm(
         "¿Estás seguro de que deseas eliminar las coordenadas de esta ubicación? Esta acción no se puede deshacer."
       )
     ) {
+      // Obtener los eventos asociados a esta ubicación
       const events = await eventStore.getLocations();
-      const locationEvents = events.filter((event: { location: string; sinCoord: boolean; coord?: { lat: number; lng: number } }) =>
-        event.location === selectedLocation.value?.location
+      const locationEvents = events.filter(
+        (event: {
+          location: string;
+          sinCoord: boolean;
+          coord?: { lat: number; lng: number };
+        }) => event.location === selectedLocation.value?.location
       );
+
+      // Actualizar cada evento eliminando solo las coordenadas
       for (const event of locationEvents) {
         if (event.coord) {
-          const updatedEvent = { ...event, coord: null };
+          // Crear una copia del evento sin las coordenadas
+          const updatedEvent = {
+            ...event,
+            coord: null, // Simplemente establecemos coord a null
+          };
+
           await eventStore.updateEvent(event.id, updatedEvent);
         }
       }
+
+      // Recargar las ubicaciones y cerrar modales
       await loadLocations();
       showDeleteModal.value = false;
       selectedLocation.value = null;
     } else {
+      // Si el usuario cancela, solo cerramos el modal
       showDeleteModal.value = false;
     }
   } catch (error) {
@@ -491,30 +586,28 @@ const deleteLocation = async () => {
   }
 };
 
-// Guardar la ubicación (actualizar nombre y coordenadas)
 const saveLocation = async () => {
   if (!validateForm()) return;
+
   try {
     const newLocationName = editingLocation.value.location!.trim();
     const newCoordinates = markerPosition.value!;
+
     if (!selectedLocation.value) {
-      alert("No se ha seleccionado una ubicación");
+      alert(
+        "Por favor, selecciona una ubicación existente para actualizar sus coordenadas."
+      );
       return;
     }
+
     if (selectedLocation.value.location !== newLocationName) {
-      await eventStore.updateEvent(selectedLocation.value.id, { location: newLocationName });
-      // Actualizar la cache de rutas si es necesario
-      routeCache.value.forEach((value, key) => {
-        const oldName = selectedLocation.value?.location;
-        if (key.includes(oldName)) {
-          const newKey = key.replace(oldName, newLocationName);
-          routeCache.value.set(newKey, value);
-          routeCache.value.delete(key);
-        }
-      });
+      await eventStore.updateEventsLocation(
+        selectedLocation.value.location!,
+        newLocationName
+      );
     }
-    await saveCoordinates(newCoordinates);
-    await calculateAllRoutes();
+
+    await eventStore.updateEventsCoordinates(newLocationName, newCoordinates);
     await loadLocations();
     closeEditModal();
   } catch (error) {
@@ -523,93 +616,34 @@ const saveLocation = async () => {
   }
 };
 
-// Guardar las coordenadas en el store
-const saveCoordinates = async (coordinates: { lat: number; lng: number }) => {
-  if (!selectedLocation.value) throw new Error("No se ha seleccionado una ubicación.");
-  await eventStore.updateEventsCoordinates(selectedLocation.value.id, coordinates);
-  selectedLocation.value.coord = coordinates;
+const confirmDelete = (location: Location) => {
+  selectedLocation.value = location;
+  showDeleteModal.value = true;
 };
 
-// Manejar el guardado de coordenadas desde el componente MapSearch
-const handleSaveCoordinates = async (coordinates: { lat: number; lng: number }) => {
-  if (!selectedLocation.value) return;
-  try {
-    await saveCoordinates(coordinates);
-    await calculateRouteForLocation(selectedLocation.value);
-    await calculateAllRoutes();
-    alert("Coordenadas guardadas correctamente");
-  } catch (error) {
-    console.error("Error al guardar coordenadas:", error);
-    alert("Error al guardar las coordenadas");
-  }
-};
-
-// Actualizar la ruta desde MapSearch
-const handleRouteUpdate = (routeInfo: { distance: string; duration: string }) => {
-  if (!selectedLocation.value?.id) return;
-  routeCache.value.set(selectedLocation.value.id, {
-    ...routeInfo,
-    timestamp: Date.now(),
-    rawDistance: 0,
-    rawDuration: 0,
-  });
-  locations.value = [...locations.value]; // Forzar actualización de la UI
-  alert("Ruta actualizada correctamente");
-};
-
-// Actualizar el input y posición al arrastrar el marcador en el mapa
-const handleMarkerDrag = (newPosition: { lat: number; lng: number }) => {
-  if (!selectedLocation.value) return;
-  coordinatesInput.value = `${newPosition.lat.toFixed(6)}, ${newPosition.lng.toFixed(6)}`;
-  markerPosition.value = newPosition;
-};
-
-// Inicialización: obtener ubicación actual, cargar ubicaciones y configurar intervalos
-onMounted(async () => {
-  try {
-    currentPosition.value = await getUserLocation();
-    await loadLocations();
-    onMapClick({
-      latlng: { lat: currentPosition.value.lat, lng: currentPosition.value.lng },
-    });
-    updateInterval.value = window.setInterval(async () => {
-      const newPosition = await getUserLocation();
-      if (hasPositionChangedSignificantly(currentPosition.value, newPosition)) {
-        currentPosition.value = newPosition;
-        await calculateAllRoutes();
-      } else {
-        const staleLocations = locations.value.filter((loc) =>
-          isRouteStale(routeCache.value.get(loc.id))
-        );
-        for (const location of staleLocations) {
-          await calculateRouteForLocation(location);
-        }
-      }
-    }, 300000); // Cada 5 minutos
-  } catch (error) {
-    console.error("Error en la inicialización:", error);
-    alert("Error en la inicialización");
-  }
-});
-
+// Lifecycle hooks
 onUnmounted(() => {
   if (updateInterval.value) {
     clearInterval(updateInterval.value);
   }
 });
 
-// Helper para verificar si una ubicación tiene información de ruta válida
+// Agregar función helper para validar la información de ruta
 const hasValidRouteInfo = (location: Location): boolean => {
-  if (location.sinCoord) return false;
+  // Si la ubicación está marcada como sinCoord, debería tener fondo rojo
+  if (location.sinCoord) {
+    return false;
+  }
+
   return Boolean(
     location.coord &&
       location.routeInfo?.distance &&
       location.routeInfo?.duration &&
       !location.isCalculating
   );
-};
+}; // Agregar punto y coma aquí
 
-// Debug: Mostrar cambios en la cache de rutas
+// Agregar un watch para debug
 watch(
   routeCache,
   (newCache) => {
@@ -617,12 +651,64 @@ watch(
   },
   { deep: true }
 );
+
+// Agregar nuevos métodos para manejar las interacciones con el mapa
+const handleSaveCoordinates = async (coordinates: { lat: number; lng: number }) => {
+  if (!selectedLocation.value) return;
+
+  try {
+    // Actualizar las coordenadas del evento
+    await eventStore.updateEventsCoordinates(
+      selectedLocation.value.location!,
+      coordinates
+    );
+
+    // Actualizar el estado local
+    selectedLocation.value.coord = coordinates;
+
+    // Recalcular la ruta
+    await calculateRouteForLocation(selectedLocation.value);
+
+    // Mostrar confirmación
+    alert("Coordenadas guardadas correctamente");
+  } catch (error) {
+    console.error("Error al guardar coordenadas:", error);
+    alert("Error al guardar las coordenadas");
+  }
+};
+
+const handleRouteUpdate = (routeInfo: { distance: string; duration: string }) => {
+  if (!selectedLocation.value?.id) return;
+
+  // Actualizar el cache con la nueva información de ruta
+  routeCache.value.set(selectedLocation.value.id, {
+    ...routeInfo,
+    timestamp: Date.now(),
+  });
+
+  // Forzar actualización de la UI
+  locations.value = [...locations.value];
+
+  // Mostrar confirmación
+  alert("Ruta actualizada correctamente");
+};
+
+const handleMarkerDrag = (newPosition: { lat: number; lng: number }) => {
+  if (!selectedLocation.value) return;
+
+  // Actualizar el input de coordenadas
+  coordinatesInput.value = `${newPosition.lat.toFixed(6)}, ${newPosition.lng.toFixed(6)}`;
+
+  // Actualizar la posición del marcador
+  markerPosition.value = newPosition;
+};
 </script>
 
 <style lang="postcss">
 .animate-spin {
   animation: spin 1s linear infinite;
 }
+
 @keyframes spin {
   from {
     transform: rotate(0deg);
@@ -631,28 +717,37 @@ watch(
     transform: rotate(360deg);
   }
 }
+
 .btn-icon {
   @apply p-2 rounded-full hover:bg-gray-100 transition-colors;
 }
+
+/* Estilos adicionales para el modal */
 .overflow-y-auto {
   scrollbar-width: thin;
   scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
 }
+
 .overflow-y-auto::-webkit-scrollbar {
   width: 6px;
 }
+
 .overflow-y-auto::-webkit-scrollbar-track {
   background: transparent;
 }
+
 .overflow-y-auto::-webkit-scrollbar-thumb {
   background-color: rgba(156, 163, 175, 0.5);
   border-radius: 3px;
 }
+
 @media (max-width: 640px) {
   .h-64 {
-    height: 16rem;
+    height: 16rem; /* 256px, ajustable para móviles */
   }
 }
+
+/* Asegurar que el contenedor de Leaflet se visualice correctamente en dispositivos móviles */
 .leaflet-container {
   height: 100% !important;
   width: 100% !important;

@@ -13,6 +13,7 @@
         <ProfileCurrency />
         <ProfileNotifications />
         <ProfileDistance />
+        <ProfileBancario />
 
         <!-- Acción: Cerrar Sesión -->
         <div class="mt-6">
@@ -49,7 +50,7 @@ import ProfilePassword from "../components/ProfilePassword.vue";
 import ProfileCurrency from "../components/ProfileCurrency.vue";
 import ProfileNotifications from "../components/ProfileNotifications.vue";
 import ProfileDistance from "../components/ProfileDistance.vue";
-
+import ProfileBancario from "../components/ProfileBancario.vue";
 const router = useRouter();
 
 /**

@@ -47,17 +47,26 @@
 <script setup lang="ts">
 import { defineAsyncComponent } from "vue";
 
-// Renombrar la interfaz para evitar conflicto con el tipo Event
+// Definir AppEvent directamente en el componente en lugar de importarlo
 interface AppEvent {
   id: string;
-  date: string;
-  provider: string;
-  location: string;
+  createdAt: string;
+  createdBy?: string;
+  userIP?: string;
+  coord?: { lat: number; lng: number };
+  activityType: "Eventual" | "Fija";
+  paymentStatus: "Pendiente" | "Pagado";
+  date: string | null;
+  description: string | null;
+  location: string | null;
+  provider: string | null;
   amount: number;
-  paymentStatus: string;
-  description?: string;
+  time: string | null;
+  userId: string;
+  isFixed?: boolean;
 }
 
+// Renombrar la interfaz para evitar conflicto con el tipo Event
 interface MonthlyStats {
   totalEvents: number;
   totalRevenue: number;

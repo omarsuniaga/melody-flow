@@ -70,25 +70,57 @@ const closeModal = () => {
   emit("update:modelValue", false);
 };
 
-async function handleSubmit() {
-  if (!isFormValid.value) {
-    errorMessage.value = "Por favor complete todos los campos requeridos";
-    return;
+const validateForm = () => {
+  errorMessage.value = "";
+  
+  if (!eventForm.value.provider.trim()) {
+    errorMessage.value = "El proveedor es obligatorio";
+    return false;
   }
+  
+  if (!eventForm.value.location.trim()) {
+    errorMessage.value = "La ubicación es obligatoria";
+    return false;
+  }
+  
+  if (!eventForm.value.date) {
+    errorMessage.value = "La fecha es obligatoria";
+    return false;
+  }
+  
+  if (!eventForm.value.time) {
+    errorMessage.value = "La hora es obligatoria";
+    return false;
+  }
+  
+  if (eventForm.value.amount <= 0) {
+    errorMessage.value = "El monto debe ser mayor a cero";
+    return false;
+  }
+  
+  return true;
+};
+
+async function handleSubmit() {
+  if (!validateForm()) return;
 
   try {
     isLoading.value = true;
-    // Usar el ID del evento, no el userId
     await eventStore.updateEvent(props.event.id!, {
       ...eventForm.value,
-      // Asegurarnos de que la fecha esté en el formato correcto
       date: formatDateToISO(eventForm.value.date),
     });
+    
+    // Recargar eventos después de guardar
+    await eventStore.fetchEvents();
+    
     emit("saved");
     closeModal();
   } catch (error) {
     console.error("Error al actualizar evento:", error);
-    errorMessage.value = "Error al guardar los cambios";
+    errorMessage.value = error instanceof Error 
+      ? error.message 
+      : "Error al guardar los cambios";
   } finally {
     isLoading.value = false;
   }

@@ -17,6 +17,7 @@ import type {MusicEvent, EventFormData}
 from '../types/event'
 import {IPService} from '../services/IPService';
 import {format, addWeeks, isSameMonth} from 'date-fns';
+import { validateEventForm } from '../validation/eventSchema';
 
 export const useEventStore = defineStore('events', () => {
 	const events = ref < MusicEvent[] > ([]);
@@ -29,27 +30,42 @@ export const useEventStore = defineStore('events', () => {
 
 	const addEvent = async (eventData : EventFormData) => {
 		if (!auth.currentUser) 
-			throw new Error('User not authenticated');
+			throw new Error('Usuario no autenticado');
 		
 
 		try {
 			loading.value = true;
+			
+			// Validar datos antes de procesarlos
+			const validation = validateEventForm(eventData);
+			if (!validation.success) {
+				throw new Error(validation.error);
+			}
+			
+			const validatedData = validation.data!;
+			
 			const ipService = IPService.getInstance();
 			const deviceIP = await ipService.getDeviceIP();
 
-			// Datos base del evento
+			// Asegurarse de que la fecha está en formato YYYY-MM-DD
+			if (validatedData.date) {
+				// Normalizar formato de fecha para evitar problemas
+				const [year, month, day] = validatedData.date.split("-").map(Number);
+				validatedData.date = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+			}
+			
+			// Datos base del evento (ahora validados)
 			const baseEvent = {
-				...eventData,
+				...validatedData,
 				createdAt: new Date().toISOString(),
 				createdBy: auth.currentUser.email || '',
 				userId: auth.currentUser.uid,
 				userIP: deviceIP
-
 			};
 
-			if (eventData.activityType === 'Fija') { // Para eventos fijos, crear instancias para todas las semanas del mes
+			if (validatedData.activityType === 'Fija') { // Para eventos fijos, crear instancias para todas las semanas del mes
 				// Se crea la fecha correctamente sin efecto UTC
-				const [year, month, day] = eventData.date.split("-").map(Number);
+				const [year, month, day] = validatedData.date.split("-").map(Number);
 				const eventDate = new Date(year, month - 1, day);
 				let currentDate = eventDate;
 
@@ -195,11 +211,23 @@ export const useEventStore = defineStore('events', () => {
 		}
 	};
 
-	const deleteRecurringEvents = async (baseEvent : MusicEvent) => {
+	const deleteRecurringEvents = async (baseEvent: MusicEvent) => {
 		try {
 			loading.value = true;
+			
+			// Verificar que baseEvent.date no sea null
+			if (!baseEvent.date) {
+				throw new Error('La fecha del evento es inválida');
+			}
+			
 			const eventDate = new Date(baseEvent.date);
-			const eventsToDelete = events.value.filter(e => e.activityType === 'Fija' && e.provider === baseEvent.provider && e.description === baseEvent.description && new Date(e.date).getDay() === eventDate.getDay());
+			const eventsToDelete = events.value.filter(e => 
+				e.activityType === 'Fija' && 
+				e.provider === baseEvent.provider && 
+				e.description === baseEvent.description && 
+				e.date && // Verificar que e.date no sea null
+				new Date(e.date).getDay() === eventDate.getDay()
+			);
 
 			await Promise.all(eventsToDelete.map(async e => {
 				if (e.id) {
@@ -229,36 +257,43 @@ export const useEventStore = defineStore('events', () => {
 			
 			events.value = querySnapshot.docs.map(doc => {
 				const data = doc.data();
-	  
+				
+				// Asegurar que coord tenga el formato correcto
+				let coordData = data.coord;
+				if (coordData && typeof coordData === 'object') {
+					coordData = {
+						lat: Number(coordData.lat),
+						lng: Number(coordData.lng)
+					};
+				} else {
+					coordData = undefined; // Usar undefined en lugar de null
+				}
+				
 				return {
-				  id: doc.id,
-				  userId: data.userId,
-				  activityType: data.activityType,
-				  amount: data.amount,
-				  createdAt: data.createdAt,
-				  updatedAt: data.updatedAt,
-				  createdBy: data.createdBy,
-				  date: data.date,
-				  description: data.description,
-				  location: data.location,
-				  time: data.time,
-				  provider: data.provider,
-				  paymentStatus: data.paymentStatus,
-				  userIP: data.userIP,
-				  coord: data.coord ? {  // Asegurarnos de mapear correctamente coord
-					lat: data.coord.lat,
-					lng: data.coord.lng
-				  } : null
-				};
-			  });
-	  
+					id: doc.id,
+					userId: data.userId,
+					activityType: data.activityType,
+					amount: data.amount,
+					createdAt: data.createdAt,
+					updatedAt: data.updatedAt,
+					createdBy: data.createdBy,
+					date: data.date,
+					description: data.description,
+					location: data.location,
+					time: data.time,
+					provider: data.provider,
+					paymentStatus: data.paymentStatus,
+					userIP: data.userIP,
+					coord: coordData
+				} as MusicEvent;
+			});
 		} catch (err) {
 			error.value = 'Failed to fetch events';
 			throw err;
 		} finally {
 			loading.value = false;
 		}
-	}; // Añadir punto y coma aquí
+	};
 
 	const togglePaymentStatus = async (eventId : string, newPaymentStatus : 'Pendiente' | 'Pagado') => {
 		if (!eventId || !auth.currentUser) {
@@ -412,6 +447,65 @@ export const useEventStore = defineStore('events', () => {
 		}
 	}
 
+	// Agregar funciones para manejar datos temporales
+	const tempEventData = ref<EventFormData | null>(null);
+
+	const setTempEventData = (data: EventFormData) => {
+	  tempEventData.value = data;
+	};
+
+	const getTempEventData = () => {
+	  return tempEventData.value;
+	};
+
+	const clearTempEventData = () => {
+	  tempEventData.value = null;
+	};
+
+	const updateRecurringEvents = async (eventId: string, changes: Partial<EventFormData>): Promise<void> => {
+		try {
+			loading.value = true;
+			
+			// Obtener el evento original
+			const eventRef = doc(db, 'actividades', eventId);
+			const eventDoc = await getDoc(eventRef);
+			
+			if (!eventDoc.exists()) {
+				throw new Error('Evento no encontrado');
+			}
+			
+			const originalEvent = eventDoc.data() as MusicEvent;
+			
+			// Buscar todos los eventos recurrentes
+			const q = query(
+				collection(db, 'actividades'),
+				where('provider', '==', originalEvent.provider),
+				where('activityType', '==', 'Fija')
+			);
+			
+			const querySnapshot = await getDocs(q);
+			
+			// Iniciar transacción
+			const batch = writeBatch(db);
+			
+			querySnapshot.forEach((doc) => {
+				batch.update(doc.ref, changes);
+			});
+			
+			// Ejecutar todas las actualizaciones como una transacción
+			await batch.commit();
+			
+			// Actualizar estado local
+			await fetchEvents();
+			
+		} catch (err) {
+			console.error('Error al actualizar eventos recurrentes:', err);
+			throw err;
+		} finally {
+			loading.value = false;
+		}
+	};
+
 	return {
 		events,
 		loading,
@@ -426,6 +520,10 @@ export const useEventStore = defineStore('events', () => {
 		updateEventsLocation,
 		updateEventsCoordinates,
 		getLocations,
+		setTempEventData,
+		getTempEventData,
+		clearTempEventData,
+		updateRecurringEvents
 	};
 }); // Cierre del defineStore
 

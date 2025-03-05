@@ -2,6 +2,7 @@
 import { computed, ref, onMounted, onUnmounted } from "vue";
 import { isSameDay, parse } from "date-fns";
 import { formatCurrency } from "../utils/helpers";
+import type { AppEvent } from "../types/event";
 
 interface Event {
   id: string;
@@ -12,7 +13,7 @@ interface Event {
   time?: string; // "HH:mm"
 }
 
-const props = defineProps<{ events: Event[] }>();
+const props = defineProps<{ events: AppEvent[] }>();
 
 // Reloj reactivo
 const currentTime = ref(new Date());
