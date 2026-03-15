@@ -2,13 +2,13 @@
   <!-- Contenedor principal del calendario.
        Se han agregado eventos touch para detectar gestos de swipe y cambiar de mes -->
   <div
-    class="min-h-screen p-2 sm:p-4"
+    class="min-h-screen p-2 sm:p-4 bg-gray-50 dark:bg-gray-900 transition-colors duration-300"
     @touchstart="handleTouchStart"
     @touchend="handleTouchEnd"
   >
     <div class="max-w-7xl mx-auto">
       <!-- Contenedor del calendario con encabezado y grilla de días -->
-      <div class="bg-white rounded-lg shadow p-3 sm:p-6 mb-4">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-3 sm:p-6 mb-4 transition-colors duration-300">
         <!-- Encabezado del calendario: muestra la fecha actual en formato "MMMM yyyy" -->
         <CalendarHeader
           :currentDate="currentDate"

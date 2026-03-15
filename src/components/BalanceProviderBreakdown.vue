@@ -1,11 +1,11 @@
 <template>
-  <div class="bg-green-50 p-4 rounded-lg">
+  <div class="bg-green-50 dark:bg-gray-800 p-4 rounded-lg">
     <!-- MENÚ PRINCIPAL: Ingresos Totales -->
     <div
       class="cursor-pointer flex justify-between items-center"
       @click="$emit('toggleProviderRevenue')"
     >
-      <h3 class="text-lg font-medium text-blue-900 flex items-center justify-between">
+      <h3 class="text-lg font-medium text-blue-900 dark:text-blue-300 flex items-center justify-between">
         <span>Ingresos Totales</span>
       </h3>
       <div class="flex items-center">
@@ -45,12 +45,12 @@
           >
             <!-- Fila del proveedor -->
             <div
-              class="flex items-center p-2 bg-white rounded cursor-pointer"
+              class="flex items-center p-2 bg-white dark:bg-gray-700 rounded cursor-pointer"
               @click="$emit('toggleProvider', provider)"
             >
-              <div class="w-48">
-                <p class="font-medium">{{ provider }}</p>
-                <p class="text-sm text-gray-600">{{ events.length }} eventos</p>
+              <div class="flex-1 min-w-0 mr-2">
+                <p class="font-medium truncate">{{ provider }}</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400">{{ events.length }} eventos</p>
               </div>
               <div class="flex-grow text-center">
                 <span class="font-medium text-red-600">

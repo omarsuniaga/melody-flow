@@ -48,11 +48,11 @@ function selectDate() {
 <template>
   <div
     :class="[
-      'p-1 sm:p-2 min-h-[45px] sm:min-h-[80px] md:min-h-[100px] border rounded-md relative',
-      today ? 'border-blue-500' : 'border-gray-200',
-      hasEvents ? dayColorClass : '',
+      'p-1 sm:p-2 min-h-[45px] sm:min-h-[80px] md:min-h-[100px] border rounded-md relative dark:border-gray-700',
+      today ? 'border-blue-500 dark:border-blue-400' : 'border-gray-200 dark:border-gray-700',
+      hasEvents ? dayColorClass : 'dark:bg-gray-800',
       isPast ? 'past-day' : '',
-      'cursor-pointer hover:border-blue-300',
+      'cursor-pointer hover:border-blue-300 dark:hover:border-blue-500',
       !isCurrentMonth ? 'opacity-50' : '',
     ]"
     @click="selectDate"
@@ -61,7 +61,7 @@ function selectDate() {
       <span
         :class="[
           'text-xs sm:text-sm font-medium',
-          !isCurrentMonth ? 'text-gray-400' : 'text-gray-700',
+          !isCurrentMonth ? 'text-gray-400 dark:text-gray-600' : 'text-gray-700 dark:text-gray-200',
         ]"
       >
         {{ dayNumber }}
@@ -84,11 +84,11 @@ function selectDate() {
         class="text-[8px] sm:text-[10px] md:text-xs truncate p-0.5 rounded"
         :class="
           event.paymentStatus === 'Pagado'
-            ? 'bg-green-200 text-green-800'
-            : 'bg-red-200 text-red-800'
+            ? 'bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-100'
+            : 'bg-red-200 text-red-800 dark:bg-red-800 dark:text-red-100'
         "
       >
-        {{ event.provider }}
+        {{ event.provider }}<span v-if="event.time"> · {{ event.time }}</span>
       </div>
       <div
         v-if="events.length > (isMobile ? 1 : 2)"

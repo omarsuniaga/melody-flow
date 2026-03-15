@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen pb-16">
+  <div class="min-h-screen pb-16 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
     <!-- Indicador de estado offline -->
     <div v-if="isOffline" class="bg-yellow-200 text-yellow-800 p-2 text-center text-sm">
       Estás en modo offline. Mostrando datos en caché.
