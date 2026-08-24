@@ -1,7 +1,17 @@
 import { defineStore } from 'pinia'
 import type { Currency, CurrencySettings } from '../types/currency'
 import axios from 'axios'
-import { getUnicodeFlagIcon } from 'country-flag-icons/unicode'
+
+// Helper to convert country code to flag emoji (e.g., 'US' -> '🇺🇸')
+const countryCodeToFlag = (code: string): string => {
+  if (!code || code.length < 2) return '🏳️'
+  return code
+    .toUpperCase()
+    .slice(0, 2)
+    .split('')
+    .map(char => String.fromCodePoint(127397 + char.charCodeAt(0)))
+    .join('')
+}
 
 const EXCHANGE_API_URL = 'https://api.exchangerate-api.com/v4/latest/'
 
@@ -121,8 +131,8 @@ export const useCurrencyStore = defineStore('currency', {
         // Luego intentar convertir el código de moneda a código de país
         const countryCode = this.getCurrencyCountry(currencyCode);
 
-        // Usar getUnicodeFlagIcon en lugar de acceder directamente
-        return getUnicodeFlagIcon(countryCode) || '🏳️';
+        // Convertir código de país a bandera emoji
+        return countryCodeToFlag(countryCode);
       } catch {
         return '🏳️' // Bandera neutral como fallback
       }
