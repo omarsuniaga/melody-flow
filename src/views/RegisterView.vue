@@ -291,11 +291,9 @@ import { auth } from "../firebase/config";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 // import { useAnalytics } from "../composables/useAnalytics";
-import { useDeviceInfo } from "../composables/useDeviceInfo";
 
 const router = useRouter();
 // const { logEvent } = useAnalytics();
-const { collectDeviceInfo } = useDeviceInfo();
 
 const form = ref({
   fullName: "",
@@ -397,7 +395,6 @@ const handleRegister = async () => {
   errors.value = { fullName: "", email: "", password: "", confirmPassword: "" };
 
   try {
-    await collectDeviceInfo();
     // logEvent("registration_attempt", { deviceInfo });
 
     const userCredential = await createUserWithEmailAndPassword(
@@ -444,7 +441,6 @@ const handleRegister = async () => {
 const handleGoogleSignup = async () => {
   loading.value = true;
   try {
-    await collectDeviceInfo();
     await signInWithPopup(auth, googleProvider);
     router.push("/");
   } catch (error: any) {
