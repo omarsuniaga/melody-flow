@@ -11,6 +11,7 @@
   "type-check": "vue-tsc --noEmit",
   "type-check:watch": "vue-tsc --noEmit --watch",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.68.0",
     "@fullcalendar/core": "^6.1.15",
     "@headlessui/vue": "^1.7.23",
     "@heroicons/vue": "^2.2.0",

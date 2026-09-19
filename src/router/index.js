@@ -29,6 +29,12 @@ const routes = [
         meta: { requiresAuth: true }
       },
       {
+        path: 'negotiator',
+        name: 'negotiator',
+        component: () => import('../views/negotiator/NegotiatorSandboxView.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
         path: 'profile',
         name: 'profile',
         component: () => import('../views/ProfileView.vue'),
