@@ -1,4 +1,3 @@
-console.log("pdfMakeConfig (absolute) loaded");
 import pdfMake from "pdfmake/build/pdfmake";
 // Se cambia la importación por defecto en lugar de "import * as pdfFonts"
 import pdfFonts from "pdfmake/build/vfs_fonts";
@@ -14,10 +13,24 @@ interface PdfOptions {
   fileName?: string;
   openInNewTab?: boolean;
   compression?: boolean;
+  onAudit?: (log: PdfAuditLog) => void;
+}
+
+interface PdfAuditLog {
+  timestamp: string;
+  action: 'created' | 'downloaded' | 'opened' | 'error';
+  fileName: string;
+  status: 'success' | 'failed';
+  message?: string;
 }
 
 // Configuración inicial de fuentes
 pdfMake.vfs = pdfFonts.vfs;
+
+// Función para registrar auditoría
+const auditLog = (log: PdfAuditLog) => {
+  console.log(`[PDF AUDIT] ${log.timestamp} | ${log.action} | ${log.fileName} | ${log.status}${log.message ? ` | ${log.message}` : ''}`);
+};
 
 // Función principal para crear y descargar PDF
 export async function createAndDownloadPdf(
@@ -27,11 +40,21 @@ export async function createAndDownloadPdf(
   const {
     fileName = 'documento.pdf',
     openInNewTab = false,
-    compression = true
+    compression = true,
+    onAudit
   } = options;
 
   // Validación de entrada
   if (!docDefinition || !docDefinition.content) {
+    const errorLog: PdfAuditLog = {
+      timestamp: new Date().toISOString(),
+      action: 'created',
+      fileName,
+      status: 'failed',
+      message: 'Definición de documento inválida'
+    };
+    onAudit?.(errorLog);
+    auditLog(errorLog);
     throw new Error('Se requiere un docDefinition válido con contenido');
   }
 
@@ -44,24 +67,59 @@ export async function createAndDownloadPdf(
         title: fileName.replace('.pdf', ''),
         creator: 'MelodyFlow',
         producer: 'MelodyFlow PDF Generator',
+        subject: 'Reporte de Actividades Musicales',
+        keywords: 'música, eventos, pagos',
         ...docDefinition.info
       }
     });
+
+    const createdLog: PdfAuditLog = {
+      timestamp: new Date().toISOString(),
+      action: 'created',
+      fileName,
+      status: 'success'
+    };
+    onAudit?.(createdLog);
+    auditLog(createdLog);
 
     return new Promise((resolve, reject) => {
       try {
         if (openInNewTab) {
           pdfDoc.open({}, window);
+          const openLog: PdfAuditLog = {
+            timestamp: new Date().toISOString(),
+            action: 'opened',
+            fileName,
+            status: 'success'
+          };
+          onAudit?.(openLog);
+          auditLog(openLog);
           resolve();
         } else {
           pdfDoc.download(fileName, () => {
-            console.log(`PDF ${fileName} generado y descargado correctamente`);
+            const downloadLog: PdfAuditLog = {
+              timestamp: new Date().toISOString(),
+              action: 'downloaded',
+              fileName,
+              status: 'success'
+            };
+            onAudit?.(downloadLog);
+            auditLog(downloadLog);
             resolve();
           });
         }
       } catch (error) {
         const pdfError = error as PdfError;
         pdfError.details = `Error al ${openInNewTab ? 'abrir' : 'descargar'} el PDF`;
+        const errorLog: PdfAuditLog = {
+          timestamp: new Date().toISOString(),
+          action: openInNewTab ? 'opened' : 'downloaded',
+          fileName,
+          status: 'failed',
+          message: pdfError.details
+        };
+        onAudit?.(errorLog);
+        auditLog(errorLog);
         console.error(pdfError.details, pdfError);
         reject(pdfError);
       }
@@ -69,6 +127,15 @@ export async function createAndDownloadPdf(
   } catch (error) {
     const pdfError = error as PdfError;
     pdfError.details = 'Error al crear el PDF';
+    const errorLog: PdfAuditLog = {
+      timestamp: new Date().toISOString(),
+      action: 'created',
+      fileName,
+      status: 'failed',
+      message: pdfError.details
+    };
+    onAudit?.(errorLog);
+    auditLog(errorLog);
     console.error(pdfError.details, pdfError);
     throw pdfError;
   }

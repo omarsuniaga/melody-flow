@@ -1,8 +1,8 @@
 <template>
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+  <div class="mb-6">
     <Suspense>
       <template #default>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 w-full">
           <!-- Total Events Panel -->
           <lazy-total-events-panel
             :totalEvents="monthlyStats.totalEvents"
@@ -36,7 +36,7 @@
         </div>
       </template>
       <template #fallback>
-        <div class="col-span-3 flex justify-center items-center p-4">
+        <div class="col-span-full flex justify-center items-center p-4">
           <div class="animate-pulse text-gray-500">Cargando métricas...</div>
         </div>
       </template>

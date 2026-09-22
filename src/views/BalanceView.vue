@@ -1,12 +1,12 @@
 <template>
   <!-- Contenedor principal con soporte para gestos táctiles (swipe) -->
   <div
-    class="min-h-screen p-2 sm:p-4"
+    class="min-h-screen p-2 sm:p-4 bg-gray-50 dark:bg-gray-900 transition-colors duration-300"
     @touchstart="handleTouchStart"
     @touchend="handleTouchEnd"
   >
     <div class="max-w-7xl mx-auto">
-      <div class="bg-white rounded-lg shadow p-3 sm:p6">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-3 sm:p-6 transition-colors duration-300">
         <!-- Selector de mes -->
         <MonthSelector
           :selectedMonth="selectedMonth"

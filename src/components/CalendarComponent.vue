@@ -78,6 +78,7 @@ import {
 import { MusicEvent } from "../types/event";
 import ChevronLeftIcon from "@heroicons/vue/24/outline/ChevronLeftIcon";
 import ChevronRightIcon from "@heroicons/vue/24/outline/ChevronRightIcon";
+import LoadingSpinner from "./LoadingSpinner.vue";
 
 // Props
 import { PropType } from "vue";

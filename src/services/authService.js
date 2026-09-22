@@ -16,7 +16,7 @@ import {
     getRedirectResult
   } from 'firebase/auth';
   import { auth } from '../firebase/config';
-  import router from '../router/indexBorrar';
+  import router from '../router/index';
   
   /**
    * Servicio de autenticación que encapsula las operaciones relacionadas con Firebase Auth.
