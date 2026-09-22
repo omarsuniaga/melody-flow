@@ -196,7 +196,6 @@ export const getPendingEventsTemplate = (provider: string, events: Event[]) => {
           widths: ['*', 'auto'],
           body: [
             ['Total de Eventos', events.length.toString()],
-            ['Promedio por Evento', formatCurrency(totalAmount / events.length)],
             ['Monto Total', formatCurrency(totalAmount)]
           ]
         },
