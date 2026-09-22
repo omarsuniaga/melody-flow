@@ -17,7 +17,7 @@
     <div class="flex min-h-full items-center justify-center p-2 sm:p-4">
       <div
         ref="modalRef"
-        class="relative w-full transform overflow-hidden rounded-lg bg-white p-4 sm:p-6 text-left shadow-xl transition-all"
+        class="relative w-full transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 p-4 sm:p-6 text-left shadow-xl transition-all"
         :class="[
           $slots.default ? modelClass : 'max-w-lg',
           { 'animate-modal-open': modelValue },
@@ -26,7 +26,7 @@
       >
         <!-- Botón para cerrar -->
         <button
-          class="absolute right-4 top-4 text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          class="absolute right-4 top-4 text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
           @click="close"
           aria-label="Cerrar modal"
         >
@@ -42,7 +42,7 @@
 
         <!-- Título del modal -->
         <div v-if="title" class="mb-4">
-          <h3 class="text-lg font-medium leading-6 text-gray-900">
+          <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100">
             {{ title }}
           </h3>
         </div>

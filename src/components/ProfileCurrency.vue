@@ -1,18 +1,18 @@
 <template>
-  <div class="border rounded-lg overflow-hidden mb-4">
+  <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden mb-4">
     <button
       @click="toggle"
-      class="w-full px-4 py-3 flex justify-between items-center bg-gray-50 hover:bg-gray-100"
+      class="w-full px-4 py-3 flex justify-between items-center bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700"
     >
-      <h3 class="text-lg font-medium text-gray-900">Configuración de Moneda</h3>
+      <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Configuración de Moneda</h3>
       <ChevronDownIcon
         :class="['h-5 w-5 transition-transform', open ? 'transform rotate-180' : '']"
       />
     </button>
-    <div v-show="open" class="p-4">
+    <div v-show="open" class="p-4 dark:text-gray-200">
       <!-- Moneda Nativa -->
       <div class="space-y-4 mb-6">
-        <h4 class="font-medium">Moneda Local/Nativa</h4>
+        <h4 class="font-medium text-gray-900 dark:text-gray-100">Moneda Local/Nativa</h4>
         <div class="flex items-center gap-4">
           <input
             v-model="localCode"
@@ -27,7 +27,7 @@
       </div>
       <!-- Moneda Extranjera -->
       <div class="space-y-4 mb-6">
-        <h4 class="font-medium">Moneda Extranjera</h4>
+        <h4 class="font-medium text-gray-900 dark:text-gray-100">Moneda Extranjera</h4>
         <div class="flex items-center gap-4">
           <input
             v-model="foreignCode"
@@ -43,7 +43,7 @@
       <!-- Tasa de Cambio -->
       <div class="space-y-4">
         <div class="flex items-center justify-between">
-          <h4 class="font-medium">Tasa de Cambio</h4>
+          <h4 class="font-medium text-gray-900 dark:text-gray-100">Tasa de Cambio</h4>
           <button
             @click="updateExchangeRate"
             class="btn btn-secondary"
@@ -53,7 +53,7 @@
             Actualizar Tasa
           </button>
         </div>
-        <div class="text-sm text-gray-500">
+        <div class="text-sm text-gray-500 dark:text-gray-400">
           Última actualización: {{ formattedLastUpdate }}
         </div>
         <div class="flex items-center gap-2">

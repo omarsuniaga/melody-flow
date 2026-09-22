@@ -1,5 +1,5 @@
 <template>
-  <div v-if="event?.coord" class="bg-white rounded-lg shadow-lg p-4 mb-4">
+  <div v-if="event?.coord" class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 mb-4 transition-colors duration-300">
     <div class="flex items-start space-x-4">
       <!-- Ícono y título -->
       <div class="flex-shrink-0">
@@ -8,11 +8,11 @@
 
       <div class="flex-grow">
         <!-- Título del evento -->
-        <h3 class="font-medium text-gray-900 flex items-center justify-between">
+        <h3 class="font-medium text-gray-900 dark:text-gray-100 flex items-center justify-between">
           <span>
             Próximo evento en {{ event.location || "Ubicación no especificada" }}
           </span>
-          <span class="text-blue-600">
+          <span class="text-blue-600 dark:text-blue-400">
             {{ formatTime(event.time) }}
           </span>
         </h3>
@@ -20,21 +20,21 @@
         <!-- Resto del contenido solo si hay coordenadas -->
         <template v-if="event.coord">
           <!-- Información de distancia y tiempo -->
-          <div class="mt-3 flex items-center text-sm text-gray-600 space-x-4">
+          <div class="mt-3 flex items-center text-sm text-gray-600 dark:text-gray-400 space-x-4">
             <span class="flex items-center">
-              <ClockIcon class="h-4 w-4 mr-1 text-gray-400" />
+              <ClockIcon class="h-4 w-4 mr-1 text-gray-400 dark:text-gray-500" />
               {{ routeInfo?.duration || "Presiona Actualizar Ruta" }}
             </span>
-            <span class="text-gray-300">|</span>
+            <span class="text-gray-300 dark:text-gray-600">|</span>
             <span class="flex items-center">
-              <MapIcon class="h-4 w-4 mr-1 text-gray-400" />
+              <MapIcon class="h-4 w-4 mr-1 text-gray-400 dark:text-gray-500" />
               {{ routeInfo?.distance || "Presiona Actualizar Ruta" }}
             </span>
           </div>
 
           <!-- Recomendación de salida -->
-          <div class="mt-3 bg-blue-50 rounded-md p-3">
-            <p class="text-sm text-blue-700 flex items-start">
+          <div class="mt-3 bg-blue-50 dark:bg-blue-950 rounded-md p-3">
+            <p class="text-sm text-blue-700 dark:text-blue-300 flex items-start">
               <InformationCircleIcon class="h-5 w-5 mr-2 flex-shrink-0 text-blue-500" />
               <span>
                 Deberías salir a las
@@ -49,7 +49,7 @@
           <div class="mt-4 flex items-center space-x-3">
             <button
               @click="refreshLocation"
-              class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600"
             >
               <RefreshIcon class="h-4 w-4 mr-2" />
               Actualizar ruta
@@ -66,8 +66,8 @@
           </div>
         </template>
         <template v-else>
-          <div class="mt-3 bg-yellow-50 rounded-md p-3">
-            <p class="text-sm text-yellow-700">
+          <div class="mt-3 bg-yellow-50 dark:bg-yellow-950 rounded-md p-3">
+            <p class="text-sm text-yellow-700 dark:text-yellow-300">
               Este evento no tiene coordenadas configuradas
             </p>
           </div>

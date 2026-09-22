@@ -1,11 +1,11 @@
 <template>
-  <div class="border rounded-lg overflow-hidden mb-4">
+  <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden mb-4">
     <!-- Botón para alternar la visibilidad del panel de gestión de contraseña -->
     <button
       @click="toggle"
-      class="w-full px-4 py-3 flex justify-between items-center bg-gray-50 hover:bg-gray-100"
+      class="w-full px-4 py-3 flex justify-between items-center bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700"
     >
-      <h3 class="text-lg font-medium text-gray-900">Gestión de Contraseña</h3>
+      <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Gestión de Contraseña</h3>
       <ChevronDownIcon
         :class="['h-5 w-5 transition-transform', open ? 'transform rotate-180' : '']"
       />
@@ -13,7 +13,7 @@
 
     <!-- Panel colapsable: muestra el formulario si el usuario utiliza email/contraseña;
          en caso de autenticación externa se muestra un mensaje informativo -->
-    <div v-show="open" class="p-4">
+    <div v-show="open" class="p-4 dark:text-gray-200">
       <template v-if="isEmailUser">
         <form @submit.prevent="updateUserPassword" class="space-y-4">
           <div>
@@ -50,7 +50,7 @@
         </form>
       </template>
       <template v-else>
-        <p class="text-gray-700">
+        <p class="text-gray-700 dark:text-gray-300">
           No se puede cambiar la contraseña porque iniciaste sesión con un proveedor
           externo (por ejemplo, Google). Para modificar la contraseña de tu cuenta de
           Google, utiliza la configuración de tu cuenta en Google.
@@ -157,10 +157,10 @@ export default {
 <style scoped lang="postcss">
 /* Estilos específicos para el componente ProfilePassword */
 .input {
-  @apply mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500;
+  @apply mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500;
 }
 
 .label {
-  @apply block text-sm font-medium text-gray-700;
+  @apply block text-sm font-medium text-gray-700 dark:text-gray-300;
 }
 </style>

@@ -1,14 +1,15 @@
 <template>
-  <div class="min-h-screen p-2 sm:p-4">
+  <div class="min-h-screen p-2 sm:p-4 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
     <div class="max-w-3xl mx-auto">
-      <div class="bg-white rounded-lg shadow p-3 sm:p-6">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-3 sm:p-6 transition-colors duration-300">
         <!-- Encabezado con ícono y título de la vista -->
         <div class="flex items-center gap-2 mb-6">
-          <UserCircleIcon class="h-8 w-8 text-blue-600" />
-          <h2 class="text-2xl font-bold text-gray-800">Configuración de Perfil</h2>
+          <UserCircleIcon class="h-8 w-8 text-blue-600 dark:text-blue-400" />
+          <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">Configuración de Perfil</h2>
         </div>
 
         <!-- Secciones de configuración de perfil -->
+        <ProfileAppearance />
         <ProfilePassword />
         <ProfileCurrency />
         <ProfileNotifications />
@@ -46,6 +47,7 @@ import { UserCircleIcon } from "../utils/icons";
 import { ArrowRightOnRectangleIcon } from "../utils/icons";
 
 // Importación de los componentes de configuración de perfil
+import ProfileAppearance from "../components/ProfileAppearance.vue";
 import ProfilePassword from "../components/ProfilePassword.vue";
 import ProfileCurrency from "../components/ProfileCurrency.vue";
 import ProfileNotifications from "../components/ProfileNotifications.vue";
@@ -74,12 +76,12 @@ async function logout() {
 
 /* Ejemplo de estilos para inputs (útil si se reutilizan en los componentes hijos) */
 .input {
-  @apply mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500;
+  @apply mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500;
   text-transform: uppercase;
 }
 
 .label {
-  @apply block text-sm font-medium text-gray-700;
+  @apply block text-sm font-medium text-gray-700 dark:text-gray-300;
 }
 
 /* Animación suave para el colapso de secciones (si se usa en componentes internos) */

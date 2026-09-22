@@ -1,9 +1,9 @@
 <template>
   <!-- Vista de inicio de sesión:
        Muestra la sección de bienvenida y el formulario de login dentro de un contenedor centrado -->
-  <div class="min-h-screen p-2 sm:p-4 bg-gray-50">
+  <div class="min-h-screen p-2 sm:p-4 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
     <div class="max-w-lg w-full mx-auto">
-      <div class="bg-white rounded-lg shadow p-3 sm:p-6">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-3 sm:p-6 transition-colors duration-300">
         <!-- Sección de bienvenida o descripción -->
         <HeroSection />
         <!-- Formulario de inicio de sesión -->
@@ -41,6 +41,7 @@ import LoginForm from "../components/LoginForm.vue";
   padding: 0.75rem 1rem;
   border: 1px solid #d1d5db;
   color: #1f2937;
+  background-color: #fff;
   border-radius: 0.375rem;
   outline: none;
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
@@ -49,6 +50,16 @@ import LoginForm from "../components/LoginForm.vue";
 
 .input::placeholder {
   color: #6b7280;
+}
+
+:global(.dark) .input {
+  border-color: #4b5563;
+  color: #f3f4f6;
+  background-color: #374151;
+}
+
+:global(.dark) .input::placeholder {
+  color: #9ca3af;
 }
 
 /* Estilos base para botones */

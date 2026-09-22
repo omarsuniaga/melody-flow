@@ -3,31 +3,31 @@
     <!-- Encabezado del panel colapsable -->
     <button
       @click="toggle"
-      class="w-full px-4 py-3 flex justify-between items-center bg-blue-50 hover:bg-blue-100 transition-colors"
+      class="w-full px-4 py-3 flex justify-between items-center bg-blue-50 dark:bg-blue-950 hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors"
     >
-      <h3 class="text-lg font-medium text-gray-800">Gestión de Datos Bancarios</h3>
+      <h3 class="text-lg font-medium text-gray-800 dark:text-gray-100">Gestión de Datos Bancarios</h3>
       <ChevronDownIcon
         :class="['h-5 w-5 transition-transform', open ? 'transform rotate-180' : '']"
       />
     </button>
 
     <!-- Contenido del panel -->
-    <div v-if="open" class="p-4">
+    <div v-if="open" class="p-4 dark:text-gray-200">
       <!-- Listado de cuentas bancarias -->
       <div v-if="userStore.bankData && userStore.bankData.length">
         <div
           v-for="bank in userStore.bankData"
           :key="bank.id"
-          class="p-4 border rounded-lg mb-3 flex flex-col md:flex-row md:items-center justify-between bg-white hover:shadow-md transition-shadow"
-          :class="{ 'border-green-500': bank.active, 'border-gray-300': !bank.active }"
+          class="p-4 border rounded-lg mb-3 flex flex-col md:flex-row md:items-center justify-between bg-white dark:bg-gray-700 hover:shadow-md transition-shadow"
+          :class="{ 'border-green-500': bank.active, 'border-gray-300 dark:border-gray-600': !bank.active }"
         >
           <div class="mb-3 md:mb-0">
-            <p class="font-semibold text-gray-800">{{ bank.bankName }}</p>
-            <p class="text-sm text-gray-600">Cuenta: {{ bank.accountNumber }}</p>
-            <p class="text-sm text-gray-600">Documento: {{ bank.idNumber }}</p>
-            <p class="text-sm text-gray-600">Nombre: {{ bank.fullName }}</p>
-            <p class="text-sm text-gray-600">Correo: {{ bank.email }}</p>
-            <p class="text-sm text-gray-600">Teléfono: {{ bank.phone }}</p>
+            <p class="font-semibold text-gray-800 dark:text-gray-100">{{ bank.bankName }}</p>
+            <p class="text-sm text-gray-600 dark:text-gray-400">Cuenta: {{ bank.accountNumber }}</p>
+            <p class="text-sm text-gray-600 dark:text-gray-400">Documento: {{ bank.idNumber }}</p>
+            <p class="text-sm text-gray-600 dark:text-gray-400">Nombre: {{ bank.fullName }}</p>
+            <p class="text-sm text-gray-600 dark:text-gray-400">Correo: {{ bank.email }}</p>
+            <p class="text-sm text-gray-600 dark:text-gray-400">Teléfono: {{ bank.phone }}</p>
           </div>
           <div class="flex items-center gap-3">
             <!-- Botón para activar/desactivar -->
@@ -48,7 +48,7 @@
             </button>
             <!-- Botones para editar y eliminar -->
             <button @click="editBank(bank)" class="btn-icon" title="Editar">
-              <PencilIcon class="h-5 w-5 text-gray-600" />
+              <PencilIcon class="h-5 w-5 text-gray-600 dark:text-gray-300" />
             </button>
             <button @click="handleDeleteBank(bank.id)" class="btn-icon" title="Eliminar">
               <TrashIcon class="h-5 w-5 text-red-600" />
@@ -65,7 +65,7 @@
       </div>
       <!-- Mensaje si no hay cuentas registradas -->
       <div v-else class="flex flex-col items-center py-8">
-        <p class="text-gray-600 mb-4">No se han registrado datos bancarios.</p>
+        <p class="text-gray-600 dark:text-gray-400 mb-4">No se han registrado datos bancarios.</p>
         <button
           @click="openForm"
           class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
@@ -75,7 +75,7 @@
       </div>
       <!-- Formulario para crear/editar datos bancarios -->
       <transition name="collapse">
-        <div v-if="showForm" class="mt-6 p-4 border rounded-lg bg-blue-50">
+        <div v-if="showForm" class="mt-6 p-4 border dark:border-gray-600 rounded-lg bg-blue-50 dark:bg-blue-950">
           <h4 class="text-lg font-medium mb-4">
             {{ isEditing ? "Editar Datos Bancarios" : "Nuevo Registro Bancario" }}
           </h4>
@@ -156,7 +156,7 @@
     v-if="isLoading"
     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
   >
-    <div class="bg-white p-4 rounded-lg">Procesando...</div>
+    <div class="bg-white dark:bg-gray-700 dark:text-gray-100 p-4 rounded-lg">Procesando...</div>
   </div>
 </template>
 
@@ -391,13 +391,13 @@ onMounted(async () => {
 
 <style scoped lang="postcss">
 .input {
-  @apply mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500;
+  @apply mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500;
 }
 .label {
-  @apply block text-sm font-medium text-gray-700;
+  @apply block text-sm font-medium text-gray-700 dark:text-gray-300;
 }
 .btn-icon {
-  @apply p-2 rounded-full hover:bg-gray-200 transition-colors;
+  @apply p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors;
 }
 /* Transición para el formulario */
 .collapse-enter-active,

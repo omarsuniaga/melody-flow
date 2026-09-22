@@ -17,7 +17,7 @@
       <div class="p-4">
         <textarea
           v-model="promptText"
-          class="w-full h-32 p-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          class="w-full h-32 p-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           placeholder="Describe tu evento (ejemplo: 'Este Viernes a las 8pm, en el Hotel California, por 6500 Pesos con ProductionEvents, en el Restaurant Pergola')"
           :disabled="isProcessing"
         ></textarea>
@@ -28,9 +28,9 @@
 
         <div v-if="parsedResult" class="interpretation-section">
           <div class="interpretation-header">
-            <h3 class="text-lg font-semibold text-gray-800">
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">
               <span class="icon">🎯</span> Interpretación
-              <span v-if="confidence" class="text-sm text-gray-500">
+              <span v-if="confidence" class="text-sm text-gray-500 dark:text-gray-400">
                 ({{ Math.round(confidence * 100) }}% de confianza)
               </span>
             </h3>
@@ -444,20 +444,20 @@ export default {
 }
 
 .form-input {
-  @apply rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500;
+  @apply rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500;
 }
 
 .form-group label {
-  @apply block text-gray-700;
+  @apply block text-gray-700 dark:text-gray-300;
 }
 
 .interpretation-section {
-  @apply bg-white rounded-lg shadow-sm p-4 mt-4 border border-gray-200;
+  @apply bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mt-4 border border-gray-200 dark:border-gray-700;
   animation: slideIn 0.3s ease-out;
 }
 
 .interpretation-header {
-  @apply mb-4 pb-2 border-b border-gray-100;
+  @apply mb-4 pb-2 border-b border-gray-100 dark:border-gray-700;
 }
 
 .interpretation-content {
@@ -465,27 +465,27 @@ export default {
 }
 
 .field-item {
-  @apply flex items-center py-2 px-3 rounded-md hover:bg-gray-50 transition-colors;
+  @apply flex items-center py-2 px-3 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors;
 }
 
 .field-label {
-  @apply w-1/3 text-sm font-medium text-gray-600;
+  @apply w-1/3 text-sm font-medium text-gray-600 dark:text-gray-400;
 }
 
 .field-value {
-  @apply w-2/3 text-sm text-gray-800;
+  @apply w-2/3 text-sm text-gray-800 dark:text-gray-200;
 }
 
 .field-input {
-  @apply w-2/3 px-2 py-1 text-sm border rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white;
+  @apply w-2/3 px-2 py-1 text-sm border dark:border-gray-600 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 dark:text-gray-100;
 }
 
 .interpretation-actions {
-  @apply flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-100;
+  @apply flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-100 dark:border-gray-700;
 }
 
 .edit-button {
-  @apply hover:bg-gray-100 transition-colors;
+  @apply hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors;
 }
 
 .confirm-button {
@@ -493,7 +493,7 @@ export default {
 }
 
 .confidence-indicator {
-  @apply text-xs text-gray-500 ml-2;
+  @apply text-xs text-gray-500 dark:text-gray-400 ml-2;
 }
 
 @keyframes slideIn {

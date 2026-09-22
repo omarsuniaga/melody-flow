@@ -1,10 +1,10 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50">
+  <div class="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
     <div class="text-center">
-      <h1 class="text-4xl font-bold text-gray-900 mb-4">404</h1>
+      <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-4">404</h1>
       <!-- agregar logo de la app -->
       <img :src="icon192" alt="Icono 192x192" class="w-20 mx-auto mb-8" />
-      <p class="text-lg text-gray-600 mb-8">Página no encontrada</p>
+      <p class="text-lg text-gray-600 dark:text-gray-400 mb-8">Página no encontrada</p>
       <router-link to="/" class="btn btn-primary flex items-center justify-center gap-2">
         <svg
           xmlns="http://www.w3.org/2000/svg"

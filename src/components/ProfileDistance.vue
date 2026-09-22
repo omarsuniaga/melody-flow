@@ -1,32 +1,32 @@
 <template>
-  <div class="border rounded-lg overflow-hidden mb-4">
+  <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden mb-4">
     <!-- Botón para alternar la visibilidad del panel -->
     <button
       @click="toggle"
-      class="w-full px-4 py-3 flex justify-between items-center bg-gray-50 hover:bg-gray-100"
+      class="w-full px-4 py-3 flex justify-between items-center bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700"
     >
-      <h3 class="text-lg font-medium text-gray-900">Gestion de Ubicaciones</h3>
+      <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Gestion de Ubicaciones</h3>
       <ChevronDownIcon
         :class="['h-5 w-5 transition-transform', open ? 'transform rotate-180' : '']"
       />
     </button>
 
     <!-- Contenido principal -->
-    <div v-if="open" class="p-4">
+    <div v-if="open" class="p-4 dark:text-gray-200">
       <!-- Lista de ubicaciones -->
       <div class="mb-4 border rounded-lg overflow-hidden">
         <div
           v-for="(loc, index) in locationsWithRoutes"
           :key="index"
-          class="p-4 flex justify-between bg-green-200 items-center cursor-pointer border-b"
-          :class="{ 'bg-red-50': !loc.coord, 'bg-green-50': hasValidRouteInfo(loc) }"
+          class="p-4 flex justify-between items-center cursor-pointer border-b dark:border-gray-700"
+          :class="{ 'bg-red-50 dark:bg-red-950': !loc.coord, 'bg-green-50 dark:bg-green-950': hasValidRouteInfo(loc) }"
         >
           <!-- Información: Alineado a la izquierda -->
           <div class="flex flex-col gap-2">
-            <h4 class="font-medium text-gray-800">{{ loc.location || "Sin nombre" }}</h4>
+            <h4 class="font-medium text-gray-800 dark:text-gray-100">{{ loc.location || "Sin nombre" }}</h4>
 
             <!-- Coordenadas -->
-            <div class="flex items-center text-sm text-gray-600">
+            <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
               <MapIcon class="h-4 w-4 mr-2" />
               <span>{{
                 loc.sinCoord ? "Sin coordenadas asignadas" : formatCoordinates(loc.coord)
@@ -36,7 +36,7 @@
             <!-- Duración -->
             <div
               v-if="loc.routeInfo?.duration"
-              class="flex items-center text-sm text-gray-600"
+              class="flex items-center text-sm text-gray-600 dark:text-gray-400"
             >
               <ClockIcon class="h-4 w-4 mr-2" />
               <span>Duración: {{ loc.routeInfo.duration }}</span>
@@ -45,7 +45,7 @@
             <!-- Distancia -->
             <div
               v-if="loc.routeInfo?.distance"
-              class="flex items-center text-sm text-gray-600"
+              class="flex items-center text-sm text-gray-600 dark:text-gray-400"
             >
               <MapPinIcon class="h-4 w-4 mr-2" />
               <span>Distancia: {{ loc.routeInfo.distance }}</span>
@@ -90,18 +90,18 @@
     v-if="showEditModal"
     class="fixed inset-0 h-screen bg-black bg-opacity-50 flex items-center justify-center overflow-y-auto"
   >
-    <div class="relative bg-white rounded-lg w-full max-w-4xl h-full">
+    <div class="relative bg-white dark:bg-gray-800 rounded-lg w-full max-w-4xl h-full">
       <!-- Botón de cierre -->
       <button
         @click="closeEditModal"
-        class="absolute top-4 right-4 text-gray-400 hover:text-gray-500 z-10"
+        class="absolute top-4 right-4 text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 z-10"
       >
         <XMarkIcon class="h-6 w-6" />
       </button>
 
       <!-- Contenido del modal con scroll -->
       <div class="p-6 h-full overflow-y-auto">
-        <h3 class="text-lg font-medium mb-4">
+        <h3 class="text-lg font-medium mb-4 text-gray-900 dark:text-gray-100">
           {{ selectedLocation ? "Editar" : "Nueva" }} Ubicación
         </h3>
         <div class="space-y-4">
@@ -113,7 +113,7 @@
             <input
               v-model="editingLocation.location"
               type="text"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+              class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm"
             />
             <p v-if="formErrors.location" class="text-xs text-red-500 mt-1">
               {{ formErrors.location }}
@@ -126,13 +126,13 @@
             <input
               v-model="coordinatesInput"
               type="text"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+              class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm"
               readonly
             />
-            <p class="text-xs text-gray-500 mt-1">
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Haz clic en el mapa para seleccionar una ubicación.
             </p>
-            <p class="text-xs text-gray-500 mt-1">
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
               <!-- mostrar la distancia y la duracion del recorrido -->
               {{ selectedLocation?.routeInfo?.distance }} -
               {{ selectedLocation?.routeInfo?.duration }}
@@ -142,10 +142,10 @@
             </p>
           </div>
           <!-- Botones de acción -->
-          <div class="mt-6 flex justify-end gap-3 sticky bottom-0 bg-white py-4">
+          <div class="mt-6 flex justify-end gap-3 sticky bottom-0 bg-white dark:bg-gray-800 py-4">
             <button
               @click="closeEditModal"
-              class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+              class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600"
             >
               Cancelar
             </button>
@@ -158,7 +158,7 @@
           </div>
 
           <!-- Mapa -->
-          <div class="h-96 bg-gray-100 rounded-lg overflow-hidden">
+          <div class="h-96 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
             <MapSearch
               :destinationCoordinates="selectedLocation?.coord"
               :currentLocation="currentPosition"
@@ -167,7 +167,7 @@
               @update-route="handleRouteUpdate"
               @marker-drag="handleMarkerDrag"
               @map-click="onMapClick"
-              class="h-full bg-gray-100 rounded-lg overflow-hidden"
+              class="h-full bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden"
             >
             </MapSearch>
           </div>
@@ -181,15 +181,15 @@
     v-if="showDeleteModal"
     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
   >
-    <div class="bg-white rounded-lg p-6 max-w-sm w-full">
-      <h3 class="text-lg font-medium mb-4">Confirmar eliminación</h3>
-      <p class="text-gray-600 mb-6">
+    <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full">
+      <h3 class="text-lg font-medium mb-4 text-gray-900 dark:text-gray-100">Confirmar eliminación</h3>
+      <p class="text-gray-600 dark:text-gray-400 mb-6">
         ¿Estás seguro de que deseas eliminar esta ubicación?
       </p>
       <div class="flex justify-end space-x-3">
         <button
           @click="showDeleteModal = false"
-          class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+          class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600"
         >
           Cancelar
         </button>
@@ -719,7 +719,7 @@ const handleMarkerDrag = (newPosition: { lat: number; lng: number }) => {
 }
 
 .btn-icon {
-  @apply p-2 rounded-full hover:bg-gray-100 transition-colors;
+  @apply p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors;
 }
 
 /* Estilos adicionales para el modal */

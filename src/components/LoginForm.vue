@@ -27,7 +27,7 @@
             v-model="email"
             type="email"
             required
-            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="Correo electrónico"
             :disabled="loading"
           />
@@ -44,7 +44,7 @@
             v-model="password"
             :type="showPassword ? 'text' : 'password'"
             required
-            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="Contraseña"
             :disabled="loading"
           />
@@ -52,7 +52,7 @@
           <button
             type="button"
             @click="showPassword = !showPassword"
-            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
           >
             <EyeIcon v-if="!showPassword" class="h-5 w-5" />
             <EyeSlashIcon v-else class="h-5 w-5" />
@@ -83,7 +83,7 @@
       <button
         type="button"
         @click="onGoogleLogin"
-        class="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        class="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 dark:text-gray-100 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         :disabled="loading"
       >
         <img src="../assets/google-icon.svg" alt="Google" class="w-5 h-5" />

@@ -6,12 +6,12 @@
   >
     <div class="space-y-6">
       <!-- Mensaje de confirmación -->
-      <div class="text-gray-700">
+      <div class="text-gray-700 dark:text-gray-300">
         <p v-if="event?.activityType === 'Fija'" class="mb-2">
           Este es un evento fijo del proveedor:
           <span class="font-semibold">{{ event.provider }}</span>
         </p>
-        <p v-if="event?.activityType === 'Fija'" class="text-sm text-gray-600">
+        <p v-if="event?.activityType === 'Fija'" class="text-sm text-gray-600 dark:text-gray-400">
           Seleccione qué desea eliminar:
         </p>
         <p v-else>
@@ -20,17 +20,17 @@
       </div>
 
       <!-- Detalles del evento -->
-      <div v-if="event" class="bg-gray-50 p-4 rounded-md space-y-2">
+      <div v-if="event" class="bg-gray-50 dark:bg-gray-700 p-4 rounded-md space-y-2">
         <div class="flex items-center gap-2">
-          <CalendarIcon class="h-4 w-4 text-gray-500" />
+          <CalendarIcon class="h-4 w-4 text-gray-500 dark:text-gray-400" />
           <span class="text-sm">{{ event.date }}</span>
         </div>
         <div class="flex items-center gap-2">
-          <ClockIcon class="h-4 w-4 text-gray-500" />
+          <ClockIcon class="h-4 w-4 text-gray-500 dark:text-gray-400" />
           <span class="text-sm">{{ event.time }}</span>
         </div>
         <div class="flex items-center gap-2">
-          <MapPinIcon class="h-4 w-4 text-gray-500" />
+          <MapPinIcon class="h-4 w-4 text-gray-500 dark:text-gray-400" />
           <span class="text-sm">{{ event.location }}</span>
         </div>
       </div>

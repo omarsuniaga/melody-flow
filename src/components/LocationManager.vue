@@ -304,9 +304,9 @@ export default {
     <!-- Panel toggle -->
     <button
       @click="isPanelOpen = !isPanelOpen"
-      class="w-full px-4 py-3 flex justify-between items-center bg-gray-50 hover:bg-gray-100"
+      class="w-full px-4 py-3 flex justify-between items-center bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700"
     >
-      <h3 class="text-lg font-medium text-gray-900">Location Management</h3>
+      <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Location Management</h3>
       <ChevronDownIcon
         class="h-5 w-5 transition-transform"
         :class="{ 'transform rotate-180': isPanelOpen }"
@@ -336,12 +336,12 @@ export default {
         <div
           v-for="location in locations"
           :key="location.id"
-          class="flex items-center justify-between p-4 hover:bg-gray-50"
+          class="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-200"
           :class="location.coordinates ? 'bg-green-50' : 'bg-red-50'"
         >
           <div class="flex-grow">
             <h4 class="font-medium">{{ location.name }}</h4>
-            <div class="text-sm text-gray-600">
+            <div class="text-sm text-gray-600 dark:text-gray-400">
               <p class="flex items-center gap-2">
                 <MapPinIcon class="h-4 w-4" />
                 {{ location.coordinates.lat.toFixed(6) }},
@@ -360,7 +360,7 @@ export default {
           <div class="flex items-center gap-2">
             <button
               @click="openEditModal(location)"
-              class="p-2 rounded-full hover:bg-gray-100"
+              class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
               title="Edit location"
             >
               <PencilIcon class="h-4 w-4" />
@@ -368,7 +368,7 @@ export default {
             <button
               v-if="location.coordinates"
               @click="calculateRoute(location)"
-              class="p-2 rounded-full hover:bg-gray-100"
+              class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
               :disabled="location.isCalculating"
             >
               <ArrowPathIcon
@@ -378,7 +378,7 @@ export default {
             </button>
             <button
               @click="confirmDelete(location)"
-              class="p-2 rounded-full hover:bg-gray-100 text-red-600"
+              class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-red-600 dark:text-red-400"
               title="Delete location"
             >
               <TrashIcon class="h-4 w-4" />
@@ -388,7 +388,7 @@ export default {
       </div>
 
       <!-- Map -->
-      <div class="h-96 bg-gray-100 rounded-lg overflow-hidden">
+      <div class="h-96 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
         <div id="map" class="h-full w-full"></div>
       </div>
     </div>
@@ -398,27 +398,27 @@ export default {
       v-if="showEditModal"
       class="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center p-4 overflow-y-auto"
     >
-      <div class="relative bg-white rounded-lg max-w-4xl w-full my-8">
+      <div class="relative bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full my-8">
         <button
           @click="closeEditModal"
-          class="absolute top-4 right-4 text-gray-400 hover:text-gray-500"
+          class="absolute top-4 right-4 text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400"
         >
           <XMarkIcon class="h-6 w-6" />
         </button>
 
         <div class="p-6">
-          <h3 class="text-lg font-medium mb-4">
+          <h3 class="text-lg font-medium mb-4 text-gray-900 dark:text-gray-100">
             {{ selectedLocation ? "Edit" : "Add" }} Location
           </h3>
 
           <div class="space-y-4">
             <!-- Location name -->
             <div>
-              <label class="block text-sm font-medium text-gray-700">Location name</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Location name</label>
               <input
                 v-model="editingLocation.name"
                 type="text"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm"
               />
               <p v-if="formErrors.name" class="mt-1 text-sm text-red-600">
                 {{ formErrors.name }}
@@ -427,7 +427,7 @@ export default {
 
             <!-- Search -->
             <div>
-              <label class="block text-sm font-medium text-gray-700"
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300"
                 >Search location</label
               >
               <div class="flex gap-2">
@@ -435,7 +435,7 @@ export default {
                   v-model="searchQuery"
                   type="text"
                   placeholder="Enter address or place name"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                  class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm"
                 />
                 <button
                   @click="geocodeSearch"
@@ -448,17 +448,17 @@ export default {
 
             <!-- Coordinates -->
             <div>
-              <label class="block text-sm font-medium text-gray-700">Coordinates</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Coordinates</label>
               <input
                 v-model="coordinatesInput"
                 type="text"
                 readonly
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm bg-gray-50"
+                class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm bg-gray-50 dark:bg-gray-700 dark:text-gray-100"
               />
             </div>
 
             <!-- Map -->
-            <div class="h-96 bg-gray-100 rounded-lg overflow-hidden">
+            <div class="h-96 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
               <LMap
                 v-if="showEditModal"
                 :zoom="mapZoom"
@@ -480,7 +480,7 @@ export default {
           <div class="mt-6 flex justify-end gap-3">
             <button
               @click="closeEditModal"
-              class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+              class="px-4 py-2 text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600"
             >
               Cancel
             </button>
@@ -500,13 +500,13 @@ export default {
       v-if="showDeleteModal"
       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
     >
-      <div class="bg-white rounded-lg p-6 max-w-sm w-full">
-        <h3 class="text-lg font-medium mb-4">Confirm deletion</h3>
-        <p class="text-gray-600 mb-6">Are you sure you want to delete this location?</p>
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full">
+        <h3 class="text-lg font-medium mb-4 text-gray-900 dark:text-gray-100">Confirm deletion</h3>
+        <p class="text-gray-600 dark:text-gray-400 mb-6">Are you sure you want to delete this location?</p>
         <div class="flex justify-end gap-3">
           <button
             @click="showDeleteModal = false"
-            class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+            class="px-4 py-2 text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600"
           >
             Cancel
           </button>
