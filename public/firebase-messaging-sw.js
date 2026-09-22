@@ -2,10 +2,10 @@ importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js')
 importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAeuLu0NjTq9BQHpWsct-wTeVorw-Kj284",
-  projectId: "apptividades-5b66f",
-  messagingSenderId: "92553077594",
-  appId: "1:92553077594:web:aedbc59c7dbff37ed00963"
+  apiKey: "__VITE_FIREBASE_API_KEY__",
+  projectId: "__VITE_FIREBASE_PROJECT_ID__",
+  messagingSenderId: "__VITE_FIREBASE_MESSAGING_SENDER_ID__",
+  appId: "__VITE_FIREBASE_APP_ID__"
 };
 
 // Inicializar Firebase solo si no está inicializado

@@ -1,16 +1,55 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv, type Plugin } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
 import { fileURLToPath, URL } from 'node:url'
+import fs from 'node:fs'
+import path from 'node:path'
 
-// Ejemplo: si quieres usar path en Node 14 o anterior
-// import path from 'path';
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = path.dirname(__filename);
+const __dirname = fileURLToPath(new URL('.', import.meta.url))
 
-export default defineConfig({
-  plugins: [
-    vue(),
+function firebaseServiceWorkerPlugin(env: Record<string, string>): Plugin {
+  return {
+    name: 'firebase-service-worker-replace',
+    closeBundle() {
+      const swPath = path.resolve(__dirname, 'dist/firebase-messaging-sw.js')
+      if (fs.existsSync(swPath)) {
+        let content = fs.readFileSync(swPath, 'utf-8')
+        content = content
+          .replace('__VITE_FIREBASE_API_KEY__', env.VITE_FIREBASE_API_KEY || '')
+          .replace('__VITE_FIREBASE_PROJECT_ID__', env.VITE_FIREBASE_PROJECT_ID || '')
+          .replace('__VITE_FIREBASE_MESSAGING_SENDER_ID__', env.VITE_FIREBASE_MESSAGING_SENDER_ID || '')
+          .replace('__VITE_FIREBASE_APP_ID__', env.VITE_FIREBASE_APP_ID || '')
+        fs.writeFileSync(swPath, content, 'utf-8')
+      }
+    },
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (req.url === '/firebase-messaging-sw.js') {
+          const swPath = path.resolve(__dirname, 'public/firebase-messaging-sw.js')
+          if (fs.existsSync(swPath)) {
+            let content = fs.readFileSync(swPath, 'utf-8')
+            content = content
+              .replace('__VITE_FIREBASE_API_KEY__', env.VITE_FIREBASE_API_KEY || '')
+              .replace('__VITE_FIREBASE_PROJECT_ID__', env.VITE_FIREBASE_PROJECT_ID || '')
+              .replace('__VITE_FIREBASE_MESSAGING_SENDER_ID__', env.VITE_FIREBASE_MESSAGING_SENDER_ID || '')
+              .replace('__VITE_FIREBASE_APP_ID__', env.VITE_FIREBASE_APP_ID || '')
+            res.setHeader('Content-Type', 'application/javascript')
+            return res.end(content)
+          }
+        }
+        next()
+      })
+    }
+  }
+}
+
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+
+  return {
+    plugins: [
+      vue(),
+      firebaseServiceWorkerPlugin(env),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: [
@@ -137,20 +176,6 @@ export default defineConfig({
           'firebase-firestore': ['firebase/firestore'],
           // Leaflet
           'leaflet': ['leaflet'],
-          // Ejemplo de componentes agrupados
-          'calendar-components': [
-            './src/components/MonthSelector.vue',
-            './src/components/EventsMetrics.vue'
-          ],
-          'analytics-components': [
-            './src/components/ProviderBreakdown.vue',
-            './src/components/ProviderDistribution.vue'
-          ],
-          'dashboard-components': [
-            './src/components/LocationsPanel.vue',
-            './src/components/TotalEventsPanel.vue',
-            './src/components/AverageEventPanel.vue'
-          ],
           'utils': [
             './src/utils/helpers.ts',
             './src/utils/icons.ts',
@@ -174,4 +199,5 @@ export default defineConfig({
 
   envPrefix: 'VITE_',
   assetsInclude: ['**/*.svg']
+  }
 })
