@@ -74,15 +74,11 @@
 </template>
 
 <script setup lang="ts">
-// 1. Primero los tipos
-interface Event {
-  id: string;
-  date: string;
-  provider: string;
-  location: string;
-  amount: number;
-  description?: string;
-}
+import { ref } from "vue";
+import { ChevronDownIcon } from "../utils/icons";
+import { formatCurrency } from "../utils/helpers";
+import { format, parseISO } from "date-fns";
+import type { AppEvent } from "../types/event";
 
 interface Provider {
   name: string;
@@ -90,11 +86,11 @@ interface Provider {
   percentage: string;
 }
 
-// 2. Props y Emits
+// Props y Emits
 const props = defineProps<{
   providerDistribution: Provider[];
   showProviderDistribution: boolean;
-  events: Event[];
+  events: AppEvent[];
 }>();
 
 const emit = defineEmits<{
@@ -125,11 +121,11 @@ const toggleProvider = (provider: string): void => {
   expandedProvider.value = expandedProvider.value === provider ? null : provider;
 };
 
-const getProviderEvents = (provider: string): Event[] => {
+const getProviderEvents = (provider: string): AppEvent[] => {
   if (!props.events) return [];
   return props.events
     .filter((event) => event.provider === provider)
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    .sort((a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime());
 };
 </script>
 

@@ -9,16 +9,7 @@ if (!getActivePinia()) {
   setActivePinia(createPinia());
 }
 
-// Tipos
-interface Event {
-  date: string;
-  location: string;
-  time: string;
-  amount: number;
-  description: string;
-  provider: string;
-  paymentStatus: string;
-}
+import type { AppEvent } from '../types/event';
 
 // Función para formatear moneda usando la del usuario
 const formatCurrency = (amount: number, currency?: string): string => {
@@ -100,7 +91,7 @@ const getBankDataBlock = (): any[] => {
  * Template del PDF de eventos pendientes.
  * Se integra la información bancaria (si existe cuenta activa) justo después del párrafo final del resumen, antes de la firma.
  */
-export const getPendingEventsTemplate = (provider: string, events: Event[]) => {
+export const getPendingEventsTemplate = (provider: string, events: AppEvent[]) => {
   const authStore = useAuthStore();
   const userStore = useUserStore();
 
@@ -242,8 +233,8 @@ export const getPendingEventsTemplate = (provider: string, events: Event[]) => {
               { text: 'ESTADO', style: 'tableHeader' },
               { text: 'MONTO', style: 'tableHeader', alignment: 'right' }
             ],
-            ...sortedEvents.map((event: Event) => [
-              { text: format(new Date(event.date), 'dd MMM yyyy', { locale: es }), style: 'cell' },
+            ...sortedEvents.map((event: AppEvent) => [
+              { text: format(new Date(event.date || ''), 'dd MMM yyyy', { locale: es }), style: 'cell' },
               { text: event.description || event.location, style: 'cell' },
               { text: event.time || '—', style: 'cell' },
               {

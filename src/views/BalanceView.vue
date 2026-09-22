@@ -86,9 +86,9 @@ import { useEventStore } from "../stores/eventStore";
 import { createAndDownloadPdf } from "../utils/pdfMakeConfig";
 import type { TDocumentDefinitions } from "pdfmake/interfaces";
 import { getPendingEventsTemplate } from "../utils/pdfTemplates";
-import { defineAsyncComponent } from "vue";
 import BalanceMonthlyProjection from "../components/BalanceMonthlyProjection.vue";
 import { useUserStore } from "../stores/userStore";
+import type { AppEvent } from "../types/event";
 // Estado y utilidades principales
 const toast = useToast();
 const eventStore = useEventStore();
@@ -258,26 +258,6 @@ const totalPendingAmount = computed(() =>
 const totalCompletedAmount = computed(() =>
   completedPayments.value.reduce((sum, event) => sum + event.amount, 0)
 );
-
-// Renombrar alias para evitar conflicto con el tipo global Event
-// Antes: type Event = MusicEvent;
-type AppEvent = {
-  id: string;
-  createdAt: string;
-  createdBy?: string;
-  userIP?: string;
-  coord?: { lat: number; lng: number };
-  activityType: "Eventual" | "Fija";
-  paymentStatus: "Pendiente" | "Pagado";
-  date: string | null;
-  description: string | null;
-  location: string | null;
-  provider: string | null;
-  amount: number;
-  time: string | null;
-  userId: string;
-  isFixed?: boolean;
-};
 
 interface EventGroups {
   [key: string]: AppEvent[];

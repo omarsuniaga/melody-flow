@@ -4,15 +4,6 @@ import { isSameDay, parse } from "date-fns";
 import { formatCurrency } from "../utils/helpers";
 import type { AppEvent } from "../types/event";
 
-interface Event {
-  id: string;
-  date: string; // "yyyy-MM-dd"
-  provider: string;
-  location: string;
-  amount: number;
-  time?: string; // "HH:mm"
-}
-
 const props = defineProps<{ events: AppEvent[] }>();
 
 // Reloj reactivo
@@ -34,8 +25,8 @@ function parseLocalDate(dateStr: string): Date {
 }
 
 // Combina fecha y hora
-function getEventDateTime(event: Event): Date {
-  const date = parseLocalDate(event.date);
+function getEventDateTime(event: AppEvent): Date {
+  const date = parseLocalDate(event.date || "1970-01-01");
   if (event.time) {
     const [hours, minutes] = event.time.split(":").map(Number);
     date.setHours(hours, minutes, 0, 0);
@@ -44,13 +35,13 @@ function getEventDateTime(event: Event): Date {
 }
 
 // ¿Es pasado?
-function isEventPast(event: Event): boolean {
+function isEventPast(event: AppEvent): boolean {
   const eventDateTime = getEventDateTime(event);
   return eventDateTime.getTime() < currentTime.value.getTime();
 }
 
 // ¿Es futuro?
-function isEventFuture(event: Event): boolean {
+function isEventFuture(event: AppEvent): boolean {
   const eventDateTime = getEventDateTime(event);
   return eventDateTime.getTime() >= currentTime.value.getTime();
 }
