@@ -85,7 +85,6 @@ const LazyAverageEventPanel = defineAsyncComponent(
 
 // Props con tipado estricto
 const props = defineProps<Props>();
-console.log(props);
 // Removed unused destructured elements
 
 // Eventos tipados

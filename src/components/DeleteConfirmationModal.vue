@@ -114,8 +114,6 @@ function handleDelete(mode: "single" | "all") {
     console.error("Error: No hay evento para eliminar", props.event);
     return;
   }
-  console.log("Eliminando evento", props.event.activityType);
-  console.log("Valor de mode: ", mode);
 
   emit("delete", props.event, mode); // Emitir evento de eliminación
   emit("update:modelValue", false); // Cerrar modal

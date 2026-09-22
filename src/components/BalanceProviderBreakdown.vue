@@ -164,32 +164,25 @@ import { ChevronDownIcon } from "../utils/icons";
 import { formatCurrency } from "../utils/helpers";
 import { format, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
+import type { AppEvent } from "../types/event";
 
 // Define formato de fecha reutilizable
 const formatDate = (date: string) => {
   return format(parseISO(date), "EEEE d 'de' MMMM, yyyy", { locale: es });
 };
-type Event = {
-  id: string;
-  date: string;
-  location: string;
-  amount: number;
-  description?: string; // Add description property
-  time?: string; // Add time property
-};
 
-const calculateTotalAmount = (events: Event[]): number => {
+const calculateTotalAmount = (events: AppEvent[]): number => {
   return events.reduce((sum, event) => sum + (event?.amount ?? 0), 0);
 };
 
 // Función de utilidad para calcular el total
-const calculateEventsTotal = (events: Event[]): number => {
+const calculateEventsTotal = (events: AppEvent[]): number => {
   if (!events?.length) return 0;
   return events.reduce((sum, event) => sum + (event?.amount || 0), 0);
 };
 
 // Agregar función de ordenamiento local
-const sortEventsByDate = (events: Event[]): Event[] => {
+const sortEventsByDate = (events: AppEvent[]): AppEvent[] => {
   return [...events].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
@@ -200,22 +193,19 @@ const props = defineProps<{
   monthlyStats: { totalEvents: number; totalRevenue: number; averagePerEvent: number };
   totalPendingAmount: number;
   totalCompletedAmount: number;
-  groupedPendingPayments: Record<string, Event[]>;
-  groupedCompletedPayments: Record<string, Event[]>;
+  groupedPendingPayments: Record<string, AppEvent[]>;
+  groupedCompletedPayments: Record<string, AppEvent[]>;
   sortedProviderStatsByRevenue: Array<{ name: string; revenue: number }>;
   expandedProvider: string | null;
-  sortedEvents: Event[]; // Cambiar a Event[] en lugar de función
+  sortedEvents: AppEvent[]; // Cambiar a AppEvent[] en lugar de función
   showPendingPayments: boolean;
   showCompletedPayments: boolean;
   showProviderRevenue: boolean;
 }>();
 
-// Use props directly without destructuring
-console.log("props", props);
-
 // Definir emits
 const emit = defineEmits<{
-  (e: "generatePDF", provider: string, events: Event[]): void;
+  (e: "generatePDF", provider: string, events: AppEvent[]): void;
   (e: "toggleProvider", provider: string): void;
   (e: "toggleProviderRevenue"): void;
   (e: "togglePendingPayments"): void;
@@ -223,56 +213,17 @@ const emit = defineEmits<{
 }>();
 
 // Función para manejar la generación del PDF
-const handlePdfGeneration = async (provider: string, events: Event[]) => {
+const handlePdfGeneration = async (provider: string, events: AppEvent[]) => {
   try {
-    // Crear grupos de consola con emojis
-    console.group(`📊 REPORTE DE EVENTOS PENDIENTES - ${provider.toUpperCase()}`);
-    console.log("📅 Fecha de generación:", format(new Date(), "dd/MM/yyyy HH:mm:ss"));
-    console.log("👤 Proveedor:", provider);
-    console.log("📝 Resumen:");
-
-    // Tabla de resumen
-    console.table({
-      "Total Eventos": events.length,
-      "Monto Total": formatCurrency(events.reduce((sum, event) => sum + event.amount, 0)),
-      "Promedio por Evento": formatCurrency(
-        events.reduce((sum, event) => sum + event.amount, 0) / events.length
-      ),
-    });
-
-    // Detalle de eventos
-    console.log("\n📋 Detalle de Eventos:");
-    const eventDetails = events.map((event) => ({
-      Fecha: format(new Date(event.date), "dd/MM/yyyy"),
-      Hora: event.time || "No especificada",
-      Lugar: event.location,
-      Descripción: event.description,
-      Monto: formatCurrency(event.amount),
-    }));
-    console.table(eventDetails);
-
-    // Estadísticas por ubicación
-    const locationStats = events.reduce((acc, event) => {
-      acc[event.location] = (acc[event.location] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    console.log("\n📍 Eventos por Ubicación:");
-    console.table(locationStats);
-
-    // Estadísticas de montos
-    const amounts = events.map((e) => e.amount);
-    console.log("\n📈 Estadísticas de Montos:");
-    console.table({
-      "Evento Menor": formatCurrency(Math.min(...amounts)),
-      "Evento Mayor": formatCurrency(Math.max(...amounts)),
-      Promedio: formatCurrency(amounts.reduce((a, b) => a + b, 0) / amounts.length),
-    });
+    if (import.meta.env.DEV) {
+      console.group(`📊 REPORTE DE EVENTOS PENDIENTES - ${provider.toUpperCase()}`);
+      console.log("📅 Fecha de generación:", format(new Date(), "dd/MM/yyyy HH:mm:ss"));
+      console.log("👤 Proveedor:", provider);
+    }
 
     // Formatear eventos para el PDF
     const formattedEvents = events.map((event) => ({
-      id: event.id,
-      date: event.date,
+      ...event,
       location: event.location || "Sin ubicación",
       time: event.time || "00:00",
       description: event.description || "Sin descripción",
@@ -280,12 +231,15 @@ const handlePdfGeneration = async (provider: string, events: Event[]) => {
       provider: provider,
     }));
 
-    console.log("\n🔄 Iniciando generación de PDF...");
     emit("generatePDF", provider, formattedEvents);
-    console.groupEnd();
+    if (import.meta.env.DEV) {
+      console.groupEnd();
+    }
   } catch (error) {
-    console.error("❌ Error al preparar el PDF:", error);
-    console.groupEnd();
+    if (import.meta.env.DEV) {
+      console.error("❌ Error al preparar el PDF:", error);
+      console.groupEnd();
+    }
   }
 };
 </script>

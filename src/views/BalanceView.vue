@@ -333,9 +333,7 @@ const generateProviderPDF = async (
 
     toast.info("Generando PDF...");
     // Obtener datos bancarios del usuario
-    userStore.fetchUserBankData().then((bankData) => {
-      console.log("Datos bancarios cargados:", bankData);
-    });
+    userStore.fetchUserBankData();
     toast.info("Cargando datos bancarios...");
 
     // Generar el documento PDF utilizando la plantilla, que internamente consulta bankData
