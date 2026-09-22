@@ -29,5 +29,8 @@ dist-ssr
 .env.local
 EntrenamientoDataset.py
 
+# Estado local del CLI de Netlify
+.netlify
+
 # Asegúrate que no haya una línea que excluya *.toml
 
