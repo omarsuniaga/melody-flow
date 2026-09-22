@@ -2,12 +2,12 @@
 
 <template>
   <div class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
-    <div class="bg-white p-4 rounded w-full max-w-md">
+    <div class="bg-white dark:bg-gray-800 p-4 rounded w-full max-w-md text-gray-900 dark:text-gray-100">
       <h2 class="text-lg font-bold mb-3">Registrar Pagos</h2>
 
       <!-- Selección de proveedor sin placeholder -->
       <label class="block mb-2">Proveedor</label>
-      <select v-model="selectedProvider" class="border p-2 w-full mb-4">
+      <select v-model="selectedProvider" class="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 p-2 w-full mb-4 rounded">
         <!-- Se elimina <option value="">-- Seleccionar --</option> -->
         <option v-for="(provider, index) in providerList" :key="index" :value="provider">
           {{ provider }}
@@ -16,7 +16,7 @@
 
       <!-- Selección de mes sin placeholder -->
       <label class="block mb-2">Mes con Pendientes</label>
-      <select v-model="selectedMonth" class="border p-2 w-full mb-4">
+      <select v-model="selectedMonth" class="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 p-2 w-full mb-4 rounded">
         <!-- Se elimina <option value="">-- Seleccionar --</option> -->
         <option v-for="month in monthList" :key="month" :value="month">
           {{ month }}
@@ -30,7 +30,7 @@
 
       <!-- Botones -->
       <div class="flex justify-end gap-2">
-        <button @click="closeModal" class="bg-gray-300 px-4 py-2 rounded">Cerrar</button>
+        <button @click="closeModal" class="bg-gray-300 dark:bg-gray-600 dark:text-gray-100 px-4 py-2 rounded">Cerrar</button>
         <button
           @click="paySelectedMonth"
           class="bg-green-500 text-white px-4 py-2 rounded"

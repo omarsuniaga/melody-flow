@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col sm:flex-row justify-between items-center mb-4 sm:mb-6">
-    <h2 class="text-xl sm:text-2xl font-bold text-gray-800 flex items-center gap-2">
-      <ChartBarIcon class="h-6 w-6 text-blue-600" />
+    <h2 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+      <ChartBarIcon class="h-6 w-6 text-blue-600 dark:text-blue-400" />
       Balance Mensual - {{ formattedMonth }}
     </h2>
     <div class="flex items-center gap-4">

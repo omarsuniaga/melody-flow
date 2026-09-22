@@ -79,8 +79,8 @@ export default {
 </script>
 
 <template>
-  <div class="bg-gray-50 p-4 rounded-lg">
-    <h3 class="text-lg font-medium text-gray-800 mb-4">Proyección Total del Mes</h3>
+  <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg text-gray-700 dark:text-gray-300 transition-colors duration-300">
+    <h3 class="text-lg font-medium text-gray-800 dark:text-gray-100 mb-4">Proyección Total del Mes</h3>
     <div class="space-y-2">
       <div class="flex justify-between">
         <span>
@@ -96,7 +96,7 @@ export default {
         </span>
         <span>{{ formatCurrency(totalFutureRevenue) }}</span>
       </div>
-      <div class="flex justify-between font-bold border-t pt-2 mt-2">
+      <div class="flex justify-between font-bold border-t border-gray-300 dark:border-gray-600 pt-2 mt-2 text-gray-900 dark:text-gray-100">
         <span>Total Proyectado:</span>
         <span>{{ formatCurrency(projectedTotalRevenue) }}</span>
       </div>

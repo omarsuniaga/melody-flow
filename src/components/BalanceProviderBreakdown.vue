@@ -10,11 +10,11 @@
       </h3>
       <div class="flex items-center">
         <!-- Se muestra el total global de ingresos -->
-        <p class="text-3xl font-bold text-blue-600">
+        <p class="text-3xl font-bold text-blue-600 dark:text-blue-400">
           {{ formatCurrency(monthlyStats.totalRevenue) }}
         </p>
         <ChevronDownIcon
-          class="h-5 w-5 ml-2 transform transition-transform duration-200"
+          class="h-5 w-5 ml-2 transform transition-transform duration-200 text-gray-500 dark:text-gray-400"
           :class="{ 'rotate-180': showProviderRevenue }"
         />
       </div>
@@ -23,16 +23,16 @@
     <!-- Si el menú principal está abierto, se muestran los submenús -->
     <div v-if="showProviderRevenue" class="mt-4 space-y-4">
       <!-- Submenú: Eventos Pendientes -->
-      <div class="bg-red-100 p-3 rounded">
+      <div class="bg-red-100 dark:bg-red-950 p-3 rounded">
         <div
           class="cursor-pointer flex justify-between items-center"
           @click="$emit('togglePendingPayments')"
         >
-          <span class="font-medium">Eventos Pendientes</span>
+          <span class="font-medium text-gray-900 dark:text-gray-100">Eventos Pendientes</span>
           <div class="flex items-center">
-            <span>{{ formatCurrency(totalPendingAmount) }}</span>
+            <span class="text-gray-900 dark:text-gray-100">{{ formatCurrency(totalPendingAmount) }}</span>
             <ChevronDownIcon
-              class="h-5 w-5 ml-2 transform transition-transform duration-200"
+              class="h-5 w-5 ml-2 transform transition-transform duration-200 text-gray-500 dark:text-gray-400"
               :class="{ 'rotate-180': showPendingPayments }"
             />
           </div>
@@ -49,17 +49,17 @@
               @click="$emit('toggleProvider', provider)"
             >
               <div class="flex-1 min-w-0 mr-2">
-                <p class="font-medium truncate">{{ provider }}</p>
+                <p class="font-medium truncate text-gray-900 dark:text-gray-100">{{ provider }}</p>
                 <p class="text-sm text-gray-600 dark:text-gray-400">{{ events.length }} eventos</p>
               </div>
               <div class="flex-grow text-center">
-                <span class="font-medium text-red-600">
+                <span class="font-medium text-red-600 dark:text-red-400">
                   {{ formatCurrency(calculateEventsTotal(events)) }}
                 </span>
               </div>
               <button
                 @click.stop="handlePdfGeneration(provider, events)"
-                class="flex-none text-blue-600 hover:text-blue-800 p-2"
+                class="flex-none text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 p-2"
                 title="Descargar PDF"
               >
                 <!-- Ícono SVG para PDF -->

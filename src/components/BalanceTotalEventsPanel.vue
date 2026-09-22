@@ -1,17 +1,17 @@
 <!-- TotalEventsPanel.vue -->
 <template>
-  <div class="bg-indigo-50 p-4 rounded-lg">
+  <div class="bg-indigo-50 dark:bg-gray-800 p-4 rounded-lg transition-colors duration-300">
     <div
       @click="$emit('toggleTotalEvents')"
       class="cursor-pointer flex justify-between items-center"
     >
-      <h3 class="text-lg font-medium text-indigo-900">
+      <h3 class="text-lg font-medium text-indigo-900 dark:text-indigo-300">
         <span>Total de Eventos Realizados</span>
       </h3>
       <div class="flex items-center">
-        <p class="text-3xl font-bold text-indigo-600">{{ pastEvents.length }}</p>
+        <p class="text-3xl font-bold text-indigo-600 dark:text-indigo-400">{{ pastEvents.length }}</p>
         <ChevronDownIcon
-          class="h-5 w-5 ml-2 transform transition-transform duration-200"
+          class="h-5 w-5 ml-2 transform transition-transform duration-200 text-gray-500 dark:text-gray-400"
           :class="{ 'rotate-180': showTotalEvents }"
         />
       </div>
@@ -22,17 +22,17 @@
         <div
           v-for="event in sortedEvents"
           :key="event.id"
-          class="bg-white p-2 rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
+          class="bg-white dark:bg-gray-700 p-2 rounded-lg shadow-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
         >
           <div class="flex justify-between items-start">
             <div>
-              <p class="font-medium text-indigo-900">{{ event.provider }}</p>
-              <p class="text-sm text-gray-600">
+              <p class="font-medium text-indigo-900 dark:text-indigo-300">{{ event.provider }}</p>
+              <p class="text-sm text-gray-600 dark:text-gray-400">
                 {{ formatDate(event.date) }}
               </p>
-              <p class="text-xs text-gray-500">{{ event.location }}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-500">{{ event.location }}</p>
             </div>
-            <span class="font-medium text-indigo-600">
+            <span class="font-medium text-indigo-600 dark:text-indigo-400">
               {{ formatCurrency(event.amount) }}
             </span>
           </div>
