@@ -1,0 +1,70 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Función auxiliar para verificar si el usuario está autenticado
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Función auxiliar para verificar si el usuario es dueño del documento por userId
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Perfil y datos del usuario (users/{userId})
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // Actividades / Eventos (actividades/{activityId})
+    match /actividades/{activityId} {
+      allow read, update, delete: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || 
+        resource.data.createdBy == request.auth.token.email
+      );
+      allow create: if isAuthenticated() && (
+        request.resource.data.userId == request.auth.uid ||
+        request.resource.data.createdBy == request.auth.token.email
+      );
+    }
+
+    // Ubicaciones (locations/{locationId}) - Accesibles a usuarios autenticados
+    match /locations/{locationId} {
+      allow read, create: if isAuthenticated();
+      allow update, delete: if isAuthenticated();
+    }
+
+    // Datos de entrenamiento NLP (nlp_training/{exampleId})
+    match /nlp_training/{exampleId} {
+      allow read, create: if isAuthenticated();
+      allow update, delete: if false; // Los ejemplos de entrenamiento son append-only
+    }
+
+    // Subsistema Hermes / Negociaciones
+    match /negotiation_conversations/{convId} {
+      allow read, update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+    }
+
+    match /negotiation_quotes/{quoteId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    match /negotiation_policies/{policyId} {
+      allow read, update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+    }
+
+    match /negotiation_audit/{auditId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if false; // Auditoría inmutable
+    }
+
+    // Denegación por defecto para cualquier ruta no mapeada
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
