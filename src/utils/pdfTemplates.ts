@@ -20,12 +20,19 @@ interface Event {
   paymentStatus: string;
 }
 
-// Función para formatear moneda
-const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('es-MX', {
-    style: 'currency',
-    currency: 'MXN'
-  }).format(amount);
+// Función para formatear moneda usando la del usuario
+const formatCurrency = (amount: number, currency?: string): string => {
+  const userStore = useUserStore();
+  const currencyCode = currency || userStore.settings?.nativeCurrency?.code || 'MXN';
+  try {
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: currencyCode
+    }).format(amount);
+  } catch {
+    // Fallback si la moneda no es válida
+    return `${amount.toFixed(2)} ${currencyCode}`;
+  }
 };
 
 /**
@@ -102,15 +109,42 @@ export const getPendingEventsTemplate = (provider: string, events: Event[]) => {
   const authStore = useAuthStore();
   const userStore = useUserStore();
 
-  // Ordenar eventos por fecha
-  const sortedEvents = [...events].sort(
-    (a: Event, b: Event) => new Date(a.date).getTime() - new Date(b.date).getTime()
-  );
-  const totalAmount = sortedEvents.reduce((sum, event) => sum + event.amount, 0);
+  // Validar entrada
+  if (!provider || typeof provider !== 'string' || provider.trim().length === 0) {
+    throw new Error('El nombre del proveedor es requerido y debe ser válido');
+  }
+
+  if (!Array.isArray(events) || events.length === 0) {
+    throw new Error('Se requiere al menos un evento para generar el PDF');
+  }
+
+  // Validar campos requeridos en cada evento
+  const validatedEvents = events.filter((event: Event) => {
+    return event.date && event.location && event.amount && typeof event.amount === 'number';
+  });
+
+  if (validatedEvents.length === 0) {
+    throw new Error('Ninguno de los eventos contiene los datos requeridos (fecha, ubicación, monto)');
+  }
+
+  // Ordenar eventos: primero por paymentStatus (Pendiente antes), luego por fecha descendente
+  const sortedEvents = [...validatedEvents].sort((a: Event, b: Event) => {
+    const statusOrder = a.paymentStatus === 'Pendiente' ? -1 : 1;
+    if (statusOrder !== (b.paymentStatus === 'Pendiente' ? -1 : 1)) {
+      return statusOrder - (b.paymentStatus === 'Pendiente' ? -1 : 1);
+    }
+    return new Date(b.date).getTime() - new Date(a.date).getTime();
+  });
+
+  const totalAmount = sortedEvents.reduce((sum, event) => sum + (event.amount || 0), 0);
   const currentDate = format(new Date(), 'yyyy-MM-dd');
+  const currencyCode = userStore.settings?.nativeCurrency?.code || 'MXN';
 
   // Obtener bloque bancario (array vacío si no hay cuenta activa)
   const bankDataBlock = getBankDataBlock();
+
+  // Log de auditoría
+  console.log(`[PDF] Generando reporte para proveedor: ${provider}, eventos: ${sortedEvents.length}, monto total: ${formatCurrency(totalAmount, currencyCode)}`);
 
   return {
     fileName: `${provider}_${currentDate}.pdf`,
