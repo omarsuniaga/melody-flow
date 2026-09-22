@@ -11,7 +11,9 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+dev-dist
 *.local
+vite.config.*.timestamp-*
 
 # Archivos de configuración del editor
 .vscode/*
