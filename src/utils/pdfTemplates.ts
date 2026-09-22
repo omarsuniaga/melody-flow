@@ -38,65 +38,60 @@ const formatCurrency = (amount: number, currency?: string): string => {
 /**
  * Obtiene el bloque de información bancaria, mostrando todas las cuentas activas.
  * Las cuentas se muestran en columnas (hasta 3), adaptándose a la cantidad disponible.
+ * Estilo minimalista: sin cajas ni fondos, solo tipografía y una línea divisoria fina.
  */
 const getBankDataBlock = (): any[] => {
   const userStore = useUserStore();
-  // Obtenemos solo las cuentas activas
   const activeBanks = (userStore.bankData || []).filter(bank => bank.active);
-  
+
   if (activeBanks.length === 0) {
     return [];
   }
-  
-  // Determinamos el número de columnas según la cantidad de cuentas activas
+
+  const muted = '#71717a';
+  const faint = '#a1a1aa';
+  const ink = '#18181b';
+  const hairline = '#e4e4e7';
+
   const numColumns = Math.min(activeBanks.length, 3);
-  const columnWidth = Math.floor(100 / numColumns) + '%';
-  const columnWidths = Array(numColumns).fill(columnWidth);
-  
-  // Creamos las celdas para cada cuenta bancaria
+  const columnWidths = Array(numColumns).fill('*');
+
   const bankCells = activeBanks.map(bank => ({
     stack: [
-      { text: `Banco: ${bank.bankName}`, fontSize: 9 },
-      { text: `Cuenta: ${bank.accountNumber}`, fontSize: 9 },
-      { text: `Documento: ${bank.idNumber}`, fontSize: 9 },
-      { text: `Nombre: ${bank.fullName}`, fontSize: 9 },
-      { text: `Correo: ${bank.email}`, fontSize: 9 },
-      { text: `Teléfono: ${bank.phone}`, fontSize: 9 },
+      { text: bank.bankName, fontSize: 10, bold: true, color: ink, margin: [0, 0, 0, 4] },
+      { text: bank.accountNumber, fontSize: 9, color: muted, margin: [0, 0, 0, 2] },
+      { text: bank.fullName, fontSize: 9, color: muted, margin: [0, 0, 0, 2] },
+      { text: bank.idNumber, fontSize: 8.5, color: faint, margin: [0, 0, 0, 2] },
+      { text: bank.email, fontSize: 8.5, color: faint, margin: [0, 0, 0, 2] },
+      { text: bank.phone, fontSize: 8.5, color: faint }
     ],
-    margin: [5, 5, 5, 5]
+    margin: [0, 0, 16, 0]
   }));
-  
-  // Si hay menos de 3 cuentas, rellenamos con celdas vacías para mantener la estructura
+
   while (bankCells.length < numColumns) {
-    bankCells.push({
-      stack: [],
-      margin: [5, 5, 5, 5]
-    });
+    bankCells.push({ stack: [], margin: [0, 0, 16, 0] });
   }
-  
-  // Creamos un bloque que simula un recuadro con border y padding
+
   return [
     {
-      text: 'Datos Bancarios',
-      style: 'headerBank',
-      margin: [0, 10, 0, 5]
+      text: 'DATOS BANCARIOS',
+      fontSize: 8,
+      bold: true,
+      color: faint,
+      characterSpacing: 1,
+      margin: [0, 0, 0, 10]
     },
     {
       table: {
         widths: columnWidths,
         body: [bankCells]
       },
-      layout: {
-        hLineWidth: () => 1,
-        vLineWidth: () => 1,
-        hLineColor: '#cccccc',
-        vLineColor: '#cccccc',
-        paddingLeft: () => 5,
-        paddingRight: () => 5,
-        paddingTop: () => 5,
-        paddingBottom: () => 5
-      },
-      margin: [0, 0, 0, 10]
+      layout: 'noBorders',
+      margin: [0, 0, 0, 4]
+    },
+    {
+      canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.5, lineColor: hairline }],
+      margin: [0, 8, 0, 0]
     }
   ];
 };
@@ -146,161 +141,200 @@ export const getPendingEventsTemplate = (provider: string, events: Event[]) => {
   // Log de auditoría
   console.log(`[PDF] Generando reporte para proveedor: ${provider}, eventos: ${sortedEvents.length}, monto total: ${formatCurrency(totalAmount, currencyCode)}`);
 
+  // Paleta minimalista: tinta casi negra, grises neutros, un único acento sobrio
+  const ink = '#18181b';       // texto principal
+  const muted = '#71717a';     // texto secundario
+  const faint = '#a1a1aa';     // texto terciario / metadata
+  const hairline = '#e4e4e7';  // líneas divisorias
+  const accent = '#18181b';    // acento (mismo tono que ink → look monocromático)
+  const paidColor = '#16a34a';
+  const pendingColor = '#b45309';
+
   return {
     fileName: `${provider}_${currentDate}.pdf`,
     pageSize: 'LETTER',
-    pageMargins: [40, 80, 40, 60],
+    pageMargins: [48, 70, 48, 56],
     header: () => ({
-      columns: [
+      stack: [
         {
-          text: 'REPORTE DE ACTIVIDADES MUSICALES',
-          alignment: 'center',
-          fontSize: 20,
-          bold: true,
-          color: '#2563eb',
-          margin: [0, 20]
+          columns: [
+            { text: 'MELODYFLOW', fontSize: 9, bold: true, color: ink, characterSpacing: 2 },
+            { text: 'REPORTE DE ACTIVIDADES', fontSize: 8, color: faint, alignment: 'right', characterSpacing: 1 }
+          ],
+          margin: [48, 28, 48, 8]
+        },
+        {
+          canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.5, lineColor: hairline }],
+          margin: [48, 0, 48, 0]
         }
       ]
     }),
     footer: (currentPage: number, pageCount: number) => ({
-      columns: [
-        { text: format(new Date(), 'dd/MM/yyyy HH:mm:ss'), alignment: 'left', fontSize: 8 },
-        { text: `Página ${currentPage} de ${pageCount}`, alignment: 'right', fontSize: 8 }
-      ],
-      margin: [40, 20]
+      stack: [
+        {
+          canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.5, lineColor: hairline }],
+          margin: [48, 0, 48, 6]
+        },
+        {
+          columns: [
+            { text: format(new Date(), "d 'de' MMMM, yyyy", { locale: es }), alignment: 'left', fontSize: 7.5, color: faint },
+            { text: `${currentPage} / ${pageCount}`, alignment: 'right', fontSize: 7.5, color: faint }
+          ],
+          margin: [48, 0, 48, 18]
+        }
+      ]
     }),
     content: [
-      // Encabezado con información del proveedor
+      // Título del documento
+      {
+        text: 'Resumen de eventos pendientes',
+        fontSize: 22,
+        bold: true,
+        color: ink,
+        margin: [0, 4, 0, 2]
+      },
+      {
+        text: `Preparado para ${provider}`,
+        fontSize: 11,
+        color: muted,
+        margin: [0, 0, 0, 28]
+      },
+
+      // Fila de métricas clave (estilo "stat cards" minimalista)
       {
         columns: [
           {
-            width: '*',
+            width: 'auto',
             stack: [
-              { text: `Estimado/a: ${provider}`, fontSize: 16, bold: true, color: '#1e40af' },
-              { text: 'Proveedor de Servicios Musicales', fontSize: 10, color: '#6b7280', margin: [0, 0, 0, 20] }
+              { text: 'EVENTOS', fontSize: 8, color: faint, characterSpacing: 1, margin: [0, 0, 0, 3] },
+              { text: sortedEvents.length.toString(), fontSize: 20, bold: true, color: ink }
             ]
+          },
+          {
+            width: 40,
+            text: ''
           },
           {
             width: 'auto',
             stack: [
-              { text: formatCurrency(totalAmount), fontSize: 11, bold: true, color: '#059669', alignment: 'right' },
-              { text: 'Total Pendiente', fontSize: 10, color: '#6b7280', alignment: 'right' }
+              { text: 'MONTO TOTAL', fontSize: 8, color: faint, characterSpacing: 1, margin: [0, 0, 0, 3] },
+              { text: formatCurrency(totalAmount, currencyCode), fontSize: 20, bold: true, color: ink }
             ]
           }
         ],
-        margin: [0, 0, 0, 30]
+        margin: [0, 0, 0, 8]
       },
-      // Resumen de eventos
       {
-        table: {
-          widths: ['*', 'auto'],
-          body: [
-            ['Total de Eventos', events.length.toString()],
-            ['Monto Total', formatCurrency(totalAmount)]
-          ]
-        },
-        layout: 'lightHorizontalLines',
-        margin: [0, 0, 0, 30]
+        canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.5, lineColor: hairline }],
+        margin: [0, 0, 0, 24]
       },
-      // Tabla principal de eventos
+
+      // Tabla principal de eventos — sin rejilla, solo separadores finos
       {
         table: {
           headerRows: 1,
-          widths: [80, 120, 50, '*', 70],
+          widths: [62, '*', 40, 70, 75],
           body: [
             [
               { text: 'FECHA', style: 'tableHeader' },
               { text: 'UBICACIÓN', style: 'tableHeader' },
               { text: 'HORA', style: 'tableHeader' },
-              { text: 'DESCRIPCIÓN', style: 'tableHeader' },
-              { text: 'MONTO', style: 'tableHeader' }
+              { text: 'ESTADO', style: 'tableHeader' },
+              { text: 'MONTO', style: 'tableHeader', alignment: 'right' }
             ],
-            ...sortedEvents.map((event: Event, i: number) => [
-              { text: event.date, style: i % 2 === 0 ? 'evenRow' : 'oddRow' },
-              { text: event.location, style: i % 2 === 0 ? 'evenRow' : 'oddRow' },
-              { text: event.time || 'N/A', style: i % 2 === 0 ? 'evenRow' : 'oddRow' },
-              { text: event.description, style: i % 2 === 0 ? 'evenRow' : 'oddRow' },
+            ...sortedEvents.map((event: Event) => [
+              { text: format(new Date(event.date), 'dd MMM yyyy', { locale: es }), style: 'cell' },
+              { text: event.description || event.location, style: 'cell' },
+              { text: event.time || '—', style: 'cell' },
               {
-                text: formatCurrency(event.amount),
-                alignment: 'right',
-                style: i % 2 === 0 ? 'evenRow' : 'oddRow'
-              }
+                text: event.paymentStatus === 'Pagado' ? 'Pagado' : 'Pendiente',
+                style: 'cell',
+                color: event.paymentStatus === 'Pagado' ? paidColor : pendingColor
+              },
+              { text: formatCurrency(event.amount, currencyCode), style: 'cell', alignment: 'right', bold: true }
             ])
           ]
         },
         layout: {
           hLineWidth: (i: number, node: any): number =>
-            i === 0 || i === node.table.body.length ? 0 : 0.5,
+            i === 0 || i === 1 || i === node.table.body.length ? 0.75 : 0.5,
           vLineWidth: (): number => 0,
-          hLineColor: '#aaaaaa',
-          paddingTop: () => 4,
-          paddingBottom: () => 4
+          hLineColor: (i: number): string => (i === 0 || i === 1 ? ink : hairline),
+          paddingLeft: () => 0,
+          paddingRight: () => 0,
+          paddingTop: () => 8,
+          paddingBottom: () => 8
         },
-        margin: [0, 0, 0, 30]
+        margin: [0, 0, 0, 4]
       },
-      // Párrafo final del resumen de eventos pendientes
-      {
-        text: `Adjunto el resumen detallado de los eventos pendientes de pago, correspondiente al mes.
 
-Quiero agradecer la confianza depositada en mis servicios musicales y espero seguir contando con su preferencia para futuros eventos.
-Quedo atento a la gestión del pago correspondiente y a cualquier duda o aclaración adicional que pueda surgir.`,
-        fontSize: 11,
-        margin: [0, 20, 0, 10]
-      },
-      // Bloque informativo previo a los datos bancarios
-      // Bloque de datos bancarios (se renderiza solo si existe cuenta activa)
-      ...bankDataBlock,
-      // Firma y pie de página
+      // Total final alineado a la derecha, a modo de cierre de tabla
       {
         columns: [
           { width: '*', text: '' },
           {
             width: 'auto',
-            stack: [
-              '\n\n_____________________',
-              authStore.user?.displayName || 'Usuario',
-              'Servicios Musicales',
-              `${format(new Date(), "d 'de' MMMM 'de' yyyy", { locale: es })}`
-            ],
-            alignment: 'center',
+            table: {
+              body: [[
+                { text: 'TOTAL', fontSize: 8, color: faint, characterSpacing: 1, alignment: 'right', border: [false, false, false, false] },
+                { text: formatCurrency(totalAmount, currencyCode), fontSize: 13, bold: true, color: ink, alignment: 'right', border: [false, false, false, false] }
+              ]]
+            },
+            layout: 'noBorders',
             margin: [0, 10, 0, 0]
-          },
-          { width: '*', text: '' }
+          }
+        ],
+        margin: [0, 0, 0, 32]
+      },
+
+      // Nota final — breve y discreta
+      {
+        text: 'Gracias por la confianza depositada en estos servicios musicales. Quedo atento a la gestión del pago correspondiente.',
+        fontSize: 9.5,
+        color: muted,
+        italics: true,
+        margin: [0, 0, 0, bankDataBlock.length ? 20 : 4]
+      },
+
+      // Datos bancarios (solo si existen cuentas activas)
+      ...bankDataBlock,
+
+      // Firma
+      {
+        columns: [
+          { width: '*', text: '' },
+          {
+            width: 180,
+            stack: [
+              { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 180, y2: 0, lineWidth: 0.5, lineColor: hairline }], margin: [0, 36, 0, 6] },
+              { text: authStore.user?.displayName || 'Usuario', fontSize: 10, bold: true, color: ink, alignment: 'center' },
+              { text: 'Servicios Musicales', fontSize: 8.5, color: muted, alignment: 'center' }
+            ]
+          }
         ]
       }
     ],
     styles: {
       headerBank: {
-        fontSize: 11,
+        fontSize: 8,
         bold: true,
-        color: '#374151'
-      },
-      boldLabel: {
-        fontSize: 10,
-        bold: true,
-        margin: [0, 2, 0, 2]
+        color: faint,
+        characterSpacing: 1
       },
       tableHeader: {
-        fontSize: 10,
+        fontSize: 8,
         bold: true,
-        color: 'white',
-        fillColor: '#2563eb',
-        alignment: 'center',
-        padding: 8
+        color: faint,
+        characterSpacing: 1
       },
-      evenRow: {
-        fontSize: 9,
-        padding: 6,
-        fillColor: '#f8fafc'
-      },
-      oddRow: {
-        fontSize: 9,
-        padding: 6,
-        fillColor: 'white'
+      cell: {
+        fontSize: 9.5,
+        color: ink
       }
     },
     defaultStyle: {
-      font: 'Roboto'
+      font: 'Roboto',
+      color: ink
     }
   };
 };
