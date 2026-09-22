@@ -9,6 +9,7 @@
         </div>
 
         <!-- Secciones de configuración de perfil -->
+        <ProfileAppearance />
         <ProfilePassword />
         <ProfileCurrency />
         <ProfileNotifications />
@@ -46,6 +47,7 @@ import { UserCircleIcon } from "../utils/icons";
 import { ArrowRightOnRectangleIcon } from "../utils/icons";
 
 // Importación de los componentes de configuración de perfil
+import ProfileAppearance from "../components/ProfileAppearance.vue";
 import ProfilePassword from "../components/ProfilePassword.vue";
 import ProfileCurrency from "../components/ProfileCurrency.vue";
 import ProfileNotifications from "../components/ProfileNotifications.vue";

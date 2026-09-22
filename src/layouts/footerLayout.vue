@@ -25,15 +25,6 @@
         <UserIcon class="h-6 w-6" />
         <span class="text-xs">Perfil</span>
       </router-link>
-      <button
-        @click="toggleTheme"
-        class="flex flex-col items-center text-gray-600 dark:text-gray-400 hover:text-yellow-500 dark:hover:text-yellow-300 transition-colors"
-        :title="isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'"
-      >
-        <SunIcon v-if="isDark" class="h-6 w-6" />
-        <MoonIcon v-else class="h-6 w-6" />
-        <span class="text-xs">{{ isDark ? 'Claro' : 'Oscuro' }}</span>
-      </button>
     </div>
   </nav>
 </template>
@@ -41,11 +32,8 @@
 <script setup lang="ts">
 import { useRoute } from "vue-router";
 import { CalendarIcon, UserIcon, ChartBarIcon } from "@heroicons/vue/24/outline";
-import { SunIcon, MoonIcon } from "@heroicons/vue/24/outline";
-import { useTheme } from "../composables/useTheme";
 
 const route = useRoute();
-const { isDark, toggleTheme } = useTheme();
 
 function isActive(routeName: string): boolean {
   return route.name === routeName;
