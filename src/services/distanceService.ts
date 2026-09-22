@@ -1,4 +1,27 @@
-export async function calculateDistanceAndTime(eventCoords, deviceCoords) {
+export interface Coordinates {
+  lat: number;
+  lng: number;
+}
+
+export interface RouteStep {
+  distance: number;
+  duration: number;
+  geometry: any;
+  name: string;
+  [key: string]: any;
+}
+
+export interface RouteResult {
+  distance: { text: string; value: number };
+  duration: { text: string; value: number };
+  routePolyline: any;
+  steps: RouteStep[];
+}
+
+export async function calculateDistanceAndTime(
+  eventCoords: Coordinates,
+  deviceCoords: Coordinates
+): Promise<RouteResult> {
   // Transformar las coordenadas: OSRM requiere "lng,lat"
   const origin = `${deviceCoords.lng},${deviceCoords.lat}`;
   const destination = `${eventCoords.lng},${eventCoords.lat}`;

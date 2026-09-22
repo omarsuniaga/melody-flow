@@ -1,7 +1,8 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
 import { auth } from '../firebase/config';
+import type { User } from 'firebase/auth';
 
-const routes = [
+const routes: RouteRecordRaw[] = [
   {
     path: '/login',
     name: 'login',
@@ -62,10 +63,10 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   // Esperar a que Firebase inicialice y obtener el usuario actual
-  const user = await new Promise((resolve) => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+  const user = await new Promise<User | null>((resolve) => {
+    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
       unsubscribe();
-      resolve(user);
+      resolve(currentUser);
     });
   });
 
