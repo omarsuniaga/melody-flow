@@ -1,6 +1,6 @@
-import type { MusicEvent } from '../../src/types/event'
+import type { AppEvent } from '../../src/types/event'
 
-export const mockEvent: MusicEvent = {
+export const mockEvent: AppEvent = {
   id: 'evt-001',
   activityType: 'Eventual',
   paymentStatus: 'Pendiente',
@@ -16,7 +16,7 @@ export const mockEvent: MusicEvent = {
   coord: { lat: 18.4861, lng: -69.9312 },
 }
 
-export const mockFixedEvent: MusicEvent = {
+export const mockFixedEvent: AppEvent = {
   ...mockEvent,
   id: 'evt-002',
   activityType: 'Fija',
@@ -27,7 +27,7 @@ export const mockFixedEvent: MusicEvent = {
   coord: undefined,
 }
 
-export const mockEventList: MusicEvent[] = [
+export const mockEventList: AppEvent[] = [
   mockEvent,
   mockFixedEvent,
   {
@@ -50,3 +50,6 @@ export const validEventFormData = {
   amount: 5000,
   userId: 'user-123',
 }
+
+export const mockEvent1 = mockEvent;
+export const mockEvent2 = mockFixedEvent;

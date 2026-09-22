@@ -97,12 +97,6 @@ const emit = defineEmits<{
   (e: "toggleProviderDistribution"): void;
 }>();
 
-// 3. Importaciones
-import { ref } from "vue";
-import { ChevronDownIcon } from "../utils/icons";
-import { formatCurrency } from "../utils/helpers";
-import { format, parseISO } from "date-fns";
-
 // 4. Referencias y estado
 const expandedProvider = ref<string | null>(null);
 
