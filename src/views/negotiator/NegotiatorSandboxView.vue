@@ -29,7 +29,7 @@ const handleSave = async () => {
 <template>
   <div class="max-w-2xl mx-auto p-4 space-y-4">
     <h1 class="text-xl font-semibold">Hermes Negotiator — Sandbox</h1>
-    <p class="text-sm text-gray-500">
+    <p class="text-sm text-gray-500 dark:text-gray-400">
       Pega una conversación para analizarla. Nada se envía; esto es solo simulación (spec 26).
     </p>
 
@@ -57,11 +57,11 @@ const handleSave = async () => {
 
     <p v-if="store.error" class="text-red-600 text-sm">{{ store.error }}</p>
 
-    <div v-if="analysis" class="border rounded-lg p-4 space-y-3 bg-gray-50">
+    <div v-if="analysis" class="border dark:border-gray-700 rounded-lg p-4 space-y-3 bg-gray-50 dark:bg-gray-800">
       <div class="flex justify-between items-center">
         <span class="font-medium">Etapa</span>
         <div class="flex items-center gap-2">
-          <span v-if="analyzedBy" class="text-xs px-2 py-0.5 rounded-full bg-gray-200 text-gray-600">
+          <span v-if="analyzedBy" class="text-xs px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
             {{ analyzedBy === 'ai' ? 'Claude' : 'Reglas (respaldo)' }}
           </span>
           <span class="px-2 py-1 rounded bg-indigo-100 text-indigo-700 text-sm">{{ analysis.stage }}</span>
@@ -87,7 +87,7 @@ const handleSave = async () => {
         <p class="text-sm">{{ analysis.nextBestAction }}</p>
       </div>
 
-      <div class="bg-white border rounded-lg p-3">
+      <div class="bg-white dark:bg-gray-700 border dark:border-gray-600 rounded-lg p-3">
         <span class="font-medium block mb-1">Respuesta sugerida</span>
         <p class="text-sm italic">"{{ analysis.suggestedReply }}"</p>
       </div>
@@ -97,19 +97,19 @@ const handleSave = async () => {
       <h2 class="font-medium">Precio recomendado</h2>
       <div class="grid grid-cols-3 gap-2 text-sm text-center">
         <div>
-          <p class="text-gray-500">Opening</p>
+          <p class="text-gray-500 dark:text-gray-400">Opening</p>
           <p class="font-semibold">RD${{ quote.pricing.openingPrice.toLocaleString('es-DO') }}</p>
         </div>
         <div>
-          <p class="text-gray-500">Target</p>
+          <p class="text-gray-500 dark:text-gray-400">Target</p>
           <p class="font-semibold">RD${{ quote.pricing.targetPrice.toLocaleString('es-DO') }}</p>
         </div>
         <div>
-          <p class="text-gray-500">Floor</p>
+          <p class="text-gray-500 dark:text-gray-400">Floor</p>
           <p class="font-semibold">RD${{ quote.pricing.floorPrice.toLocaleString('es-DO') }}</p>
         </div>
       </div>
-      <div class="bg-white border rounded-lg p-3 text-sm">
+      <div class="bg-white dark:bg-gray-700 border dark:border-gray-600 rounded-lg p-3 text-sm dark:text-gray-200">
         <p class="font-medium mb-1">Mensaje sugerido (WhatsApp)</p>
         <p>{{ quote.textMessage }}</p>
       </div>

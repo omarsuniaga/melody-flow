@@ -1,16 +1,16 @@
 <template>
-  <div class="min-h-screen p-2 sm:p-4 bg-gray-50">
+  <div class="min-h-screen p-2 sm:p-4 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
     <div class="max-w-2xl mx-auto">
-      <div class="bg-white rounded-lg shadow p-3 sm:p-6">
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-3 sm:p-6 transition-colors duration-300">
         <div class="text-center">
-          <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-6">
+          <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">
             <UserPlusIcon class="h-8 w-8 mx-auto mb-2 text-blue-600" />
             Crear una cuenta
           </h2>
         </div>
 
         <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          <div class="bg-white dark:bg-gray-800 py-8 px-4 shadow sm:rounded-lg sm:px-10 transition-colors duration-300">
             <form class="space-y-6" @submit.prevent="handleRegister">
               <!-- Nombre Completo -->
               <div>
@@ -95,7 +95,7 @@
                       {{ passwordStrength.label }}
                     </span>
                   </div>
-                  <ul class="mt-2 space-y-1 text-sm text-gray-500">
+                  <ul class="mt-2 space-y-1 text-sm text-gray-500 dark:text-gray-400">
                     <li :class="{ 'text-green-600': passwordStrength.hasMinLength }">
                       Mínimo 8 caracteres
                     </li>
@@ -156,14 +156,14 @@
                       type="checkbox"
                       v-model="form.acceptTerms"
                       required
-                      class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      class="h-4 w-4 rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 text-blue-600 focus:ring-blue-500"
                     />
                   </div>
                   <div class="ml-3 text-sm">
-                    <label for="terms" class="font-medium text-gray-700">
+                    <label for="terms" class="font-medium text-gray-700 dark:text-gray-300">
                       Acepto los términos y condiciones
                     </label>
-                    <p class="text-gray-500">
+                    <p class="text-gray-500 dark:text-gray-400">
                       <a href="#" class="text-blue-600 hover:text-blue-500">
                         Términos y condiciones
                       </a>
@@ -178,14 +178,14 @@
                       type="checkbox"
                       v-model="form.acceptPrivacy"
                       required
-                      class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      class="h-4 w-4 rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 text-blue-600 focus:ring-blue-500"
                     />
                   </div>
                   <div class="ml-3 text-sm">
-                    <label for="privacy" class="font-medium text-gray-700">
+                    <label for="privacy" class="font-medium text-gray-700 dark:text-gray-300">
                       Acepto la política de privacidad
                     </label>
-                    <p class="text-gray-500">
+                    <p class="text-gray-500 dark:text-gray-400">
                       <a href="#" class="text-blue-600 hover:text-blue-500">
                         Política de privacidad
                       </a>
@@ -199,11 +199,11 @@
                       id="marketing"
                       type="checkbox"
                       v-model="form.acceptMarketing"
-                      class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      class="h-4 w-4 rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 text-blue-600 focus:ring-blue-500"
                     />
                   </div>
                   <div class="ml-3 text-sm">
-                    <label for="marketing" class="font-medium text-gray-700">
+                    <label for="marketing" class="font-medium text-gray-700 dark:text-gray-300">
                       Acepto recibir comunicaciones de marketing
                     </label>
                   </div>
@@ -212,17 +212,17 @@
 
               <div class="relative my-6">
                 <div class="absolute inset-0 flex items-center">
-                  <div class="w-full border-t border-gray-300"></div>
+                  <div class="w-full border-t border-gray-300 dark:border-gray-600"></div>
                 </div>
                 <div class="relative flex justify-center text-sm">
-                  <span class="px-2 bg-white text-gray-500">O continúa con</span>
+                  <span class="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">O continúa con</span>
                 </div>
               </div>
 
               <button
                 type="button"
                 @click="handleGoogleSignup"
-                class="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                class="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 <img
                   src="https://www.google.com/favicon.ico"
@@ -265,7 +265,7 @@
               </div>
             </form>
 
-            <p class="mt-6 text-center text-sm text-gray-600">
+            <p class="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
               ¿Ya tienes una cuenta?
               <router-link
                 to="/login"

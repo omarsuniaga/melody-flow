@@ -70,15 +70,15 @@ const formatDate = (dateString: string) => {
 
         <template #default>
           <div class="flex flex-col space-y-4">
-            <p class="text-gray-700">¿Estás seguro de que deseas eliminar este evento?</p>
+            <p class="text-gray-700 dark:text-gray-300">¿Estás seguro de que deseas eliminar este evento?</p>
 
             <!-- Detalles del evento -->
-            <div class="bg-gray-50 p-4 rounded-md space-y-2">
-              <p class="text-sm text-gray-600">
+            <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-md space-y-2">
+              <p class="text-sm text-gray-600 dark:text-gray-400">
                 <span class="font-medium">Descripción:</span>
                 {{ event.description }}
               </p>
-              <p class="text-sm text-gray-600">
+              <p class="text-sm text-gray-600 dark:text-gray-400">
                 <span class="font-medium">Fecha:</span>
                 {{ formatDate(event.date) }}
               </p>

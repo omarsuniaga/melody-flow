@@ -49,7 +49,7 @@ export default {
     <ButtonComponent
       type="button"
       variant="secondary"
-      class="p-1 sm:p-2 hover:bg-gray-100"
+      class="p-1 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-700"
       aria-label="Mes anterior"
       @click="previousMonth"
     >
@@ -65,14 +65,14 @@ export default {
       Hoy
     </ButtonComponent>
 
-    <span class="text-sm font-medium text-gray-700 min-w-[120px] text-center">
+    <span class="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[120px] text-center">
       {{ currentMonthLabel }}
     </span>
 
     <ButtonComponent
       type="button"
       variant="secondary"
-      class="p-1 sm:p-2 hover:bg-gray-100"
+      class="p-1 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-700"
       aria-label="Mes siguiente"
       @click="nextMonth"
     >

@@ -1,25 +1,25 @@
 <template>
-  <div class="border rounded-lg overflow-hidden mb-4">
+  <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden mb-4">
     <!-- Botón para alternar la visibilidad del panel -->
     <button
       @click="toggle"
-      class="w-full px-4 py-3 flex justify-between items-center bg-gray-50 hover:bg-gray-100"
+      class="w-full px-4 py-3 flex justify-between items-center bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700"
     >
-      <h3 class="text-lg font-medium text-gray-900">Preferencias de Notificaciones</h3>
+      <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Preferencias de Notificaciones</h3>
       <ChevronDownIcon
         :class="['h-5 w-5 transition-transform', open ? 'transform rotate-180' : '']"
       />
     </button>
 
-    <div v-show="open" class="p-4 max-h-[70vh] overflow-y-auto">
+    <div v-show="open" class="p-4 max-h-[70vh] overflow-y-auto dark:text-gray-200">
       <!-- Sección: Configuración General -->
       <div class="space-y-4 mb-6">
-        <h4 class="font-medium mb-4">Configuración General</h4>
+        <h4 class="font-medium mb-4 text-gray-900 dark:text-gray-100">Configuración General</h4>
         <label class="flex items-center space-x-2">
           <input
             type="checkbox"
             v-model="settings.enabled"
-            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            class="rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700 text-blue-600 focus:ring-blue-500"
           />
           <span>Activar Notificaciones</span>
         </label>
@@ -27,7 +27,7 @@
 
       <!-- Sección: Configuración de Sonido -->
       <div class="space-y-4 mb-6">
-        <h4 class="font-medium">Sonido de Notificación</h4>
+        <h4 class="font-medium text-gray-900 dark:text-gray-100">Sonido de Notificación</h4>
         <!-- Menú desplegable para seleccionar un sonido preestablecido o personalizado -->
         <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -37,7 +37,7 @@
             <!-- Botón del dropdown -->
             <button
               @click="toggleDropdown"
-              class="w-full border border-gray-300 rounded-md px-4 py-2 text-left focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-between"
+              class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md px-4 py-2 text-left focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-between"
             >
               <span>{{ selectedAudioName }}</span>
               <svg
@@ -59,13 +59,13 @@
             <transition name="fade">
               <div
                 v-if="dropdownOpen"
-                class="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-md border border-gray-200"
+                class="absolute z-10 mt-1 w-full bg-white dark:bg-gray-700 shadow-lg rounded-md border border-gray-200 dark:border-gray-600"
               >
                 <ul>
                   <li
                     v-for="audio in allAudios"
                     :key="audio.path"
-                    class="flex justify-between items-center px-4 py-2 hover:bg-blue-100 cursor-pointer"
+                    class="flex justify-between items-center px-4 py-2 hover:bg-blue-100 dark:hover:bg-blue-900 cursor-pointer dark:text-gray-100"
                     @click="selectAudio(audio)"
                   >
                     <span>{{ audio.name }}</span>
@@ -106,14 +106,14 @@
             type="file"
             accept="audio/*"
             @change="handleAudioFileChange"
-            class="mt-1 block w-full text-sm text-gray-500"
+            class="mt-1 block w-full text-sm text-gray-500 dark:text-gray-400"
           />
         </div>
       </div>
 
       <!-- Sección: Configuración de Tiempos de Alerta -->
       <div class="space-y-4 mb-6">
-        <h4 class="font-medium">Tiempos de Alerta</h4>
+        <h4 class="font-medium text-gray-900 dark:text-gray-100">Tiempos de Alerta</h4>
         <!-- Alarma Final -->
         <div class="mb-4">
           <label class="block text-sm font-medium text-gray-700">
@@ -154,7 +154,7 @@
           <div
             v-for="alert in sortedAlerts"
             :key="alert.minutes + '-' + alert.type"
-            class="flex items-center justify-between p-2 bg-gray-50 rounded"
+            class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded"
           >
             <span>
               {{ formatAlertTime(alert.minutes) }}
@@ -173,7 +173,7 @@
 
       <!-- Sección: Pruebas del Sistema -->
       <div class="space-y-4">
-        <h4 class="font-medium">Pruebas del Sistema</h4>
+        <h4 class="font-medium text-gray-900 dark:text-gray-100">Pruebas del Sistema</h4>
         <div class="flex flex-wrap gap-2">
           <button
             @click="startNotificationTest"
@@ -425,7 +425,7 @@ export default {
 
 <style scoped lang="postcss">
 .input {
-  @apply mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500;
+  @apply mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500;
 }
 .label {
   @apply block text-sm font-medium text-gray-700;

@@ -426,7 +426,7 @@ const toggleCollapse = () => (isCollapsed.value = !isCollapsed.value);
   @apply px-2 py-1 rounded-md flex items-center justify-center gap-1 text-sm;
 }
 .route-info {
-  @apply flex justify-around p-2 bg-gray-50 rounded-md;
+  @apply flex justify-around p-2 bg-gray-50 dark:bg-gray-700 rounded-md;
 }
 .info-item {
   @apply flex items-center gap-2;

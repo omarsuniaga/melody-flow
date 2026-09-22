@@ -4,15 +4,15 @@
     @update:model-value="$emit('update:modelValue', $event)"
     title="Detalles del Evento"
   >
-    <div class="space-y-4 p-4 bg-white rounded-lg shadow-lg transition-all duration-300">
+    <div class="space-y-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg transition-all duration-300">
       <!-- Section de detalles con grid -->
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <h4 class="text-sm font-semibold text-gray-500">Tipo de Actividad</h4>
-          <p class="mt-1 text-gray-800">{{ event.activityType }}</p>
+          <h4 class="text-sm font-semibold text-gray-500 dark:text-gray-400">Tipo de Actividad</h4>
+          <p class="mt-1 text-gray-800 dark:text-gray-200">{{ event.activityType }}</p>
         </div>
         <div>
-          <h4 class="text-sm font-semibold text-gray-500">Estado de Pago</h4>
+          <h4 class="text-sm font-semibold text-gray-500 dark:text-gray-400">Estado de Pago</h4>
           <p
             :class="[
               'mt-1 font-medium',
@@ -26,20 +26,20 @@
 
       <!-- Proveedor -->
       <div>
-        <h4 class="text-sm font-semibold text-gray-500">Proveedor</h4>
-        <p class="mt-1 text-gray-800">{{ event.provider }}</p>
+        <h4 class="text-sm font-semibold text-gray-500 dark:text-gray-400">Proveedor</h4>
+        <p class="mt-1 text-gray-800 dark:text-gray-200">{{ event.provider }}</p>
       </div>
 
       <!-- Descripción -->
       <div>
-        <h4 class="text-sm font-semibold text-gray-500">Descripción</h4>
-        <p class="mt-1 text-gray-800">{{ event.description }}</p>
+        <h4 class="text-sm font-semibold text-gray-500 dark:text-gray-400">Descripción</h4>
+        <p class="mt-1 text-gray-800 dark:text-gray-200">{{ event.description }}</p>
       </div>
 
       <!-- Lugar -->
       <div>
-        <h4 class="text-sm font-semibold text-gray-500">Lugar</h4>
-        <p class="mt-1 text-gray-800">
+        <h4 class="text-sm font-semibold text-gray-500 dark:text-gray-400">Lugar</h4>
+        <p class="mt-1 text-gray-800 dark:text-gray-200">
           {{ event?.location || "No especificado" }}
           <span v-if="!event?.location" class="text-yellow-500 text-xs">
             (Ubicación no disponible)
@@ -50,23 +50,23 @@
       <!-- Fecha y Hora -->
       <div class="grid grid-cols-2 gap-4">
         <div>
-          <h4 class="text-sm font-semibold text-gray-500">Fecha</h4>
-          <p class="mt-1 text-gray-800">{{ formatDate(event.date) }}</p>
+          <h4 class="text-sm font-semibold text-gray-500 dark:text-gray-400">Fecha</h4>
+          <p class="mt-1 text-gray-800 dark:text-gray-200">{{ formatDate(event.date) }}</p>
         </div>
         <div>
-          <h4 class="text-sm font-semibold text-gray-500">Hora</h4>
-          <p class="mt-1 text-gray-800">{{ event.time }}</p>
+          <h4 class="text-sm font-semibold text-gray-500 dark:text-gray-400">Hora</h4>
+          <p class="mt-1 text-gray-800 dark:text-gray-200">{{ event.time }}</p>
         </div>
       </div>
 
       <!-- Monto -->
       <div>
-        <h4 class="text-sm font-semibold text-gray-500">Monto</h4>
-        <p class="mt-1 text-gray-800">{{ formatCurrency(event.amount) }}</p>
+        <h4 class="text-sm font-semibold text-gray-500 dark:text-gray-400">Monto</h4>
+        <p class="mt-1 text-gray-800 dark:text-gray-200">{{ formatCurrency(event.amount) }}</p>
       </div>
 
       <!-- Timestamps -->
-      <div class="grid grid-cols-2 gap-4 text-xs text-gray-500">
+      <div class="grid grid-cols-2 gap-4 text-xs text-gray-500 dark:text-gray-400">
         <div>
           <p>Creado: {{ formatDateTime(event.createdAt) }}</p>
         </div>
@@ -79,7 +79,7 @@
     </div>
 
     <!-- Debug info - remove in production -->
-    <div class="mt-4 p-2 bg-gray-100 rounded text-xs" v-if="debug">
+    <div class="mt-4 p-2 bg-gray-100 dark:bg-gray-700 dark:text-gray-200 rounded text-xs" v-if="debug">
       <pre>{{ JSON.stringify(event, null, 2) }}</pre>
     </div>
 

@@ -1,15 +1,15 @@
 <template>
-  <div class="bg-green-50 p-4 rounded-lg">
+  <div class="bg-green-50 dark:bg-gray-800 p-4 rounded-lg transition-colors duration-300">
     <!-- Encabezado principal -->
     <div @click="$emit('toggleTotalRevenue')" class="cursor-pointer">
-      <h3 class="text-lg font-medium text-green-900 flex items-center justify-between">
+      <h3 class="text-lg font-medium text-green-900 dark:text-green-300 flex items-center justify-between">
         <span>Ingresos Totales</span>
         <ChevronDownIcon
           class="h-5 w-5 ml-2 transform transition-transform duration-200"
           :class="{ 'rotate-180': showTotalRevenue }"
         />
       </h3>
-      <p class="text-3xl font-bold text-green-600">
+      <p class="text-3xl font-bold text-green-600 dark:text-green-400">
         {{ formatCurrency(monthlyStats.totalRevenue) }}
       </p>
     </div>
@@ -18,15 +18,15 @@
     <transition name="slide">
       <div v-if="showTotalRevenue" class="mt-4 space-y-3">
         <!-- Eventos Pendientes -->
-        <div class="bg-red-100 rounded-lg overflow-hidden">
-          <div class="p-3 cursor-pointer hover:bg-red-50" @click="togglePendingPayments">
+        <div class="bg-red-100 dark:bg-red-950 rounded-lg overflow-hidden">
+          <div class="p-3 cursor-pointer hover:bg-red-50 dark:hover:bg-red-900" @click="togglePendingPayments">
             <div class="flex justify-between items-center">
               <div>
-                <p class="font-medium text-red-900">Eventos Pendientes</p>
-                <p class="text-sm text-red-700">{{ pendingEvents.length }} eventos</p>
+                <p class="font-medium text-red-900 dark:text-red-300">Eventos Pendientes</p>
+                <p class="text-sm text-red-700 dark:text-red-400">{{ pendingEvents.length }} eventos</p>
               </div>
               <div class="flex items-center gap-2">
-                <span class="font-medium text-red-900">
+                <span class="font-medium text-red-900 dark:text-red-300">
                   {{ formatCurrency(totalPendingAmount) }}
                 </span>
                 <ChevronDownIcon
@@ -38,13 +38,13 @@
           </div>
 
           <!-- Lista de eventos pendientes -->
-          <div v-if="showPendingSection" class="divide-y divide-red-50">
-            <div v-for="event in pendingEvents" :key="event.id" class="p-3 bg-white">
+          <div v-if="showPendingSection" class="divide-y divide-red-50 dark:divide-red-900">
+            <div v-for="event in pendingEvents" :key="event.id" class="p-3 bg-white dark:bg-gray-700">
               <div class="flex justify-between items-start">
                 <div>
-                  <p class="font-medium text-gray-900">{{ event.provider }}</p>
-                  <p class="text-sm text-gray-600">{{ formatDate(event.date) }}</p>
-                  <p class="text-xs text-gray-500">{{ event.location }}</p>
+                  <p class="font-medium text-gray-900 dark:text-gray-100">{{ event.provider }}</p>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">{{ formatDate(event.date) }}</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-500">{{ event.location }}</p>
                 </div>
                 <span class="font-medium text-red-600">
                   {{ formatCurrency(event.amount) }}
@@ -55,15 +55,15 @@
         </div>
 
         <!-- Eventos Pagados -->
-        <div class="bg-green-100 rounded-lg overflow-hidden">
-          <div class="p-3 cursor-pointer hover:bg-green-50" @click="togglePaidPayments">
+        <div class="bg-green-100 dark:bg-green-950 rounded-lg overflow-hidden">
+          <div class="p-3 cursor-pointer hover:bg-green-50 dark:hover:bg-green-900" @click="togglePaidPayments">
             <div class="flex justify-between items-center">
               <div>
-                <p class="font-medium text-green-900">Eventos Pagados</p>
-                <p class="text-sm text-green-700">{{ paidEvents.length }} eventos</p>
+                <p class="font-medium text-green-900 dark:text-green-300">Eventos Pagados</p>
+                <p class="text-sm text-green-700 dark:text-green-400">{{ paidEvents.length }} eventos</p>
               </div>
               <div class="flex items-center gap-2">
-                <span class="font-medium text-green-900">
+                <span class="font-medium text-green-900 dark:text-green-300">
                   {{ formatCurrency(totalPaidAmount) }}
                 </span>
                 <ChevronDownIcon
@@ -75,13 +75,13 @@
           </div>
 
           <!-- Lista de eventos pagados -->
-          <div v-if="showPaidSection" class="divide-y divide-green-50">
-            <div v-for="event in paidEvents" :key="event.id" class="p-3 bg-white">
+          <div v-if="showPaidSection" class="divide-y divide-green-50 dark:divide-green-900">
+            <div v-for="event in paidEvents" :key="event.id" class="p-3 bg-white dark:bg-gray-700">
               <div class="flex justify-between items-start">
                 <div>
-                  <p class="font-medium text-gray-900">{{ event.provider }}</p>
-                  <p class="text-sm text-gray-600">{{ formatDate(event.date) }}</p>
-                  <p class="text-xs text-gray-500">{{ event.location }}</p>
+                  <p class="font-medium text-gray-900 dark:text-gray-100">{{ event.provider }}</p>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">{{ formatDate(event.date) }}</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-500">{{ event.location }}</p>
                 </div>
                 <span class="font-medium text-green-600">
                   {{ formatCurrency(event.amount) }}

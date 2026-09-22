@@ -63,7 +63,7 @@ export default defineComponent({
         props.variant === "primary" &&
           "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500",
         props.variant === "secondary" &&
-          "bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-500",
+          "bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600 focus:ring-gray-500",
         props.variant === "danger" &&
           "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
         props.loading && "cursor-wait",

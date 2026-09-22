@@ -10,7 +10,7 @@
     >
       <!-- Botón de Nuevo Evento en la parte superior -->
       <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-medium">{{ selectedDateEvents.length }} eventos</h3>
+        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">{{ selectedDateEvents.length }} eventos</h3>
         <ButtonComponent
           type="button"
           variant="primary"
@@ -28,18 +28,18 @@
           :key="index"
           class="p-3 rounded-lg border transition-colors"
           :class="{
-            'bg-green-50 border-green-200': event.paymentStatus === 'Pagado',
-            'bg-yellow-50 border-yellow-200': event.paymentStatus === 'Pendiente',
+            'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800': event.paymentStatus === 'Pagado',
+            'bg-yellow-50 dark:bg-yellow-950 border-yellow-200 dark:border-yellow-800': event.paymentStatus === 'Pendiente',
           }"
         >
           <!-- Fila 1: Proveedor | Estado de Pago | Acciones -->
           <div class="flex justify-between items-center mb-2">
-            <h4 class="font-medium text-lg text-gray-800">{{ event.provider }}</h4>
+            <h4 class="font-medium text-lg text-gray-800 dark:text-gray-100">{{ event.provider }}</h4>
             <ButtonComponent
               type="button"
               variant="secondary"
               @click="handleTogglePaymentStatus(event)"
-              class="p-1.5 rounded-full hover:bg-gray-100 transition-colors transform hover:scale-105 active:scale-95 focus:outline-none"
+              class="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors transform hover:scale-105 active:scale-95 focus:outline-none"
               :title="
                 event.paymentStatus === 'Pagado'
                   ? 'Marcar como Pendiente'
@@ -56,7 +56,7 @@
               <ButtonComponent
                 type="button"
                 variant="secondary"
-                class="p-1.5 hover:bg-gray-100"
+                class="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700"
                 @click="$emit('view-event', event)"
               >
                 <EyeIcon class="h-4 w-4" />
@@ -64,7 +64,7 @@
               <ButtonComponent
                 type="button"
                 variant="secondary"
-                class="p-1.5 hover:bg-gray-100"
+                class="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700"
                 @click="$emit('edit-event', event)"
               >
                 <PencilIcon class="h-4 w-4" />
@@ -79,7 +79,7 @@
           </div>
 
           <!-- Fila 2: Descripción | Ubicación | Hora -->
-          <div class="flex justify-between items-center text-sm text-gray-600">
+          <div class="flex justify-between items-center text-sm text-gray-600 dark:text-gray-400">
             <p
               :class="{
                 'text-green-600': event.paymentStatus === 'Pagado',
@@ -93,11 +93,11 @@
             <div class="flex items-center gap-4 ml-4">
               <p class="flex-1">{{ event.description }}</p>
               <span class="flex items-center gap-1">
-                <MapPinIcon class="h-4 w-4 text-gray-500" />
+                <MapPinIcon class="h-4 w-4 text-gray-500 dark:text-gray-400" />
                 {{ event.location }}
               </span>
               <span class="flex items-center gap-1">
-                <ClockIcon class="h-4 w-4 text-gray-500" />
+                <ClockIcon class="h-4 w-4 text-gray-500 dark:text-gray-400" />
                 {{ event.time }}
               </span>
             </div>

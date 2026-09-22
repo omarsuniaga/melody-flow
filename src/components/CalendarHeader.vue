@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col sm:flex-row justify-between items-center mb-4 sm:mb-6 gap-3">
-    <h2 class="text-xl sm:text-2xl font-bold text-gray-800">
+    <h2 class="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-100">
       {{ props.title }}
     </h2>
     <CalendarNavigationButtons

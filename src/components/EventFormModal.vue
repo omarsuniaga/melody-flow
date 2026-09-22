@@ -7,7 +7,7 @@
     <!-- Mensaje de error -->
     <div
       v-if="errorMessage"
-      class="mb-4 p-2 bg-red-100 text-red-700 rounded transition-all duration-200"
+      class="mb-4 p-2 bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 rounded transition-all duration-200"
     >
       {{ errorMessage }}
     </div>
@@ -15,11 +15,11 @@
     <!-- Contenedor unificado del formulario -->
     <form
       @submit.prevent="handleSubmit"
-      class="space-y-6 p-4 bg-white rounded-lg shadow-lg transition-all duration-300"
+      class="space-y-6 p-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-lg shadow-lg transition-all duration-300"
     >
       <!-- Tipo de Actividad -->
       <div class="space-y-2">
-        <label class="block text-sm font-medium text-gray-700">Tipo de Actividad</label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Actividad</label>
         <div class="flex gap-4">
           <label class="inline-flex items-center">
             <input
@@ -40,7 +40,7 @@
             <span class="ml-2">Evento Fijo Semanal</span>
           </label>
         </div>
-        <p v-if="eventForm.activityType === 'Fija'" class="text-sm text-gray-500">
+        <p v-if="eventForm.activityType === 'Fija'" class="text-sm text-gray-500 dark:text-gray-400">
           Este evento se repetirá todos los {{ getDayName(selectedDayOfWeek) }} de este
           mes
         </p>
@@ -48,7 +48,7 @@
 
       <!-- Estado de Pago -->
       <div class="space-y-2">
-        <label class="block text-sm font-medium text-gray-700">Estado de Pago</label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Estado de Pago</label>
         <div class="flex gap-4">
           <label class="inline-flex items-center">
             <input
@@ -75,14 +75,14 @@
       <div class="space-y-4">
         <!-- Proveedor -->
         <div>
-          <label class="block text-sm font-medium text-gray-700">Proveedor</label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Proveedor</label>
           <input
             v-model="eventForm.provider"
             type="text"
             required
             @focus="fetchSuggestions('provider')"
             list="provider-list"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
+            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
           />
           <datalist id="provider-list">
             <option
@@ -95,14 +95,14 @@
 
         <!-- Descripción -->
         <div>
-          <label class="block text-sm font-medium text-gray-700">Descripción</label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Descripción</label>
           <input
             v-model="eventForm.description"
             type="text"
             required
             @focus="fetchSuggestions('description')"
             list="description-list"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
+            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
           />
           <datalist id="description-list">
             <option
@@ -115,14 +115,14 @@
 
         <!-- Lugar -->
         <div>
-          <label class="block text-sm font-medium text-gray-700">Lugar</label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Lugar</label>
           <input
             v-model="eventForm.location"
             type="text"
             required
             @focus="fetchSuggestions('location')"
             list="location-list"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
+            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
           />
           <datalist id="location-list">
             <option
@@ -136,33 +136,33 @@
         <!-- Fecha y Hora -->
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700">Fecha</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Fecha</label>
             <input
               v-model="eventForm.date"
               type="date"
               required
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
+              class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
             />
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700">Hora</label>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Hora</label>
             <input
               v-model="eventForm.time"
               type="time"
               required
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
+              class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
             />
           </div>
         </div>
 
         <!-- Monto -->
         <div>
-          <label class="block text-sm font-medium text-gray-700">Monto</label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Monto</label>
           <input
             v-model.number="eventForm.amount"
             type="number"
             required
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
+            class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all duration-200"
           />
         </div>
       </div>
