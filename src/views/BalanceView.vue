@@ -384,25 +384,6 @@ const paginatedEvents = computed(() => {
   const end = start + itemsPerPage.value;
   return sortedMonthEvents.value.slice(start, end);
 });
-
-// Modificar la función getEventsForMonth
-const getEventsForMonth = (year: number, month: number) => {
-  // Corregir el filtrado para incluir correctamente el día 1
-  return events.value.filter((event) => {
-    // Asegurarse de que event.date existe
-    if (!event.date) return false;
-
-    // Usar safeDate para manejar posibles valores nulos
-    const eventDate = safeDate(event.date);
-
-    // Extraer año y mes (0-11) del evento
-    const eventYear = eventDate.getFullYear();
-    const eventMonth = eventDate.getMonth();
-
-    // Comparar año y mes (sin considerar el día)
-    return eventYear === year && eventMonth === month;
-  });
-};
 </script>
 
 <style scoped>
