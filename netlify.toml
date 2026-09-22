@@ -11,7 +11,7 @@
   # access is protected by Firebase Security Rules + API key restrictions.
   # Prevents Netlify's secrets scanner from false-positively blocking the build
   # because these VITE_ vars get inlined into the client bundle.
-  SECRETS_SCAN_SMART_DETECTION_OMIT_VALUES = "VITE_FIREBASE_API_KEY,VITE_FIREBASE_APP_ID,VITE_FIREBASE_VAPIDKEY"
+  SECRETS_SCAN_SMART_DETECTION_OMIT_VALUES = "VITE_FIREBASE_API_KEY,VITE_FIREBASE_APP_ID,VITE_FIREBASE_VAPIDKEY,AIzaSyAeuLu0NjTq9BQHpWsct-wTeVorw-Kj284"
 
 [[redirects]]
   from = "/*"
