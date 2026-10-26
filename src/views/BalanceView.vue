@@ -333,11 +333,11 @@ const generateProviderPDF = async (
 
     toast.info("Generando PDF...");
     // Obtener datos bancarios del usuario
+    userStore.fetchUserBankData();
     toast.info("Cargando datos bancarios...");
-    await userStore.fetchUserBankData();
 
     // Generar el documento PDF utilizando la plantilla, que internamente consulta bankData
-    const docDefinition = getPendingEventsTemplate(provider, events, { period: selectedMonth.value });
+    const docDefinition = getPendingEventsTemplate(provider, events);
     await createAndDownloadPdf((docDefinition as unknown) as TDocumentDefinitions, {
       fileName,
     });
