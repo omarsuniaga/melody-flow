@@ -225,7 +225,7 @@ const handlePdfGeneration = async (provider: string, events: AppEvent[]) => {
     const formattedEvents = events.map((event) => ({
       ...event,
       location: event.location || "Sin ubicación",
-      time: event.time || "00:00",
+      time: event.time,
       description: event.description || "Sin descripción",
       amount: Number(event.amount),
       provider: provider,
